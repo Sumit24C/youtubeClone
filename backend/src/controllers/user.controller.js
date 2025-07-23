@@ -5,7 +5,7 @@ import { User } from '../models/user.model.js'
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js'
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
-import fs from "fs"
+import fs from "fs";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -111,12 +111,12 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
+        // .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(200,
                 {
-                    user: loggedInUser, accessToken, refreshToken
+                    user: loggedInUser, accessToken
                 },
                 "Successfully logged in")
         )
@@ -141,7 +141,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
 
     res.status(200)
-        .clearCookie("accessToken", options)
+        // .clearCookie("accessToken", options)
         .clearCookie("refreshToken", options)
         .json(
             new ApiResponse(
@@ -167,19 +167,20 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Refresh token is expired or used")
     }
 
-    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+    const accessToken = await user.generateAccessToken()
+    const refreshToken = user.refreshToken
     const options = {
         httpOnly: true,
         secure: true
     }
 
     res.status(200)
-        .cookie("accessToken", accessToken, options)
+        // .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(
                 200,
-                { accessToken, refreshToken },
+                { accessToken },
                 "Access token refreshed"
             )
         )
