@@ -4,12 +4,12 @@ import App from './App.jsx'
 import { Provider } from 'react-redux'
 import store from './store/store.js'
 import { RouterProvider } from 'react-router-dom'
-import AppRouter from './AppROuter.jsx'
+import AppRouter from './AppRouter.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <Provider store={store}>
       <RouterProvider router={AppRouter} />
     </Provider>
-  </StrictMode>,
+  // </StrictMode>,
 )

@@ -1,21 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Box, TextField, Button, Input } from '@mui/material'
-import axios, {isCancel} from '../api.js'
+import axios, { isCancel } from '../api/api.js'
 import { login, logout } from '../store/authSlice.js'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import extractErrorMsg from '../utils/extractErrorMsg.js'
 function Signup() {
 
-    const dispatch = useDispatch();
+    const {userData} = useSelector((state) => state.auth)
+
+    useEffect(() => {
+        console.log('userData: ',userData)
+    }, [userData])
+    
     const controllerRef = useRef(null)
-    const [error, setError] = useState("")
+    const [errMsg,, setErrMsg] = useState("")
     const [loading, setLoading] = useState(false)
     const { register, handleSubmit, formState: { errors } } = useForm()
 
     const submit = async (data) => {
         setLoading(true)
-        setError("")
+        setErrMsg("")
         try {
             const formData = new FormData();
             formData.append('username', data.username)
@@ -37,7 +42,7 @@ function Signup() {
             if (isCancel(error)) {
                 console.log('Request canceled:', error.message);
             } else {
-                setError(extractErrorMsg(error))
+                setErrMsg(extractErrorMsg(error))
             }
         } finally {
             setLoading(false)
@@ -53,6 +58,7 @@ function Signup() {
 
     return (
         <>
+            <h1>{errMsg}</h1>
             <Box component={'form'} onSubmit={handleSubmit(submit)}>
                 <TextField id="username" label="username" variant="outlined" error={!!errors.username} helperText={errors.username?.message || ""} {...register("username", { required: true })} />
                 <TextField id="fullName" label="fullName" variant="outlined" error={!!errors.username} helperText={errors.username?.message || ""} {...register("fullName", { required: true })} />
@@ -61,7 +67,6 @@ function Signup() {
                 <TextField id="password" type='password' label="password" variant="outlined" {...register("password", { required: true })} />
                 <Button disabled={loading} type='submit'>{loading ? "submitting" : "Signup"}</Button>
             </Box>
-            <h1>{error}</h1>
         </>
     )
 }
