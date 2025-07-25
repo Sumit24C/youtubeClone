@@ -52,6 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is required")
     }
+    
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
     if (!avatar) {
@@ -94,12 +95,12 @@ const loginUser = asyncHandler(async (req, res) => {
     })
 
     if (!user) {
-        throw new ApiError(400, 'User not found')
+        throw new ApiError(404, 'User not found')
     }
 
     const isPasswordCorrect = await user.isPasswordCorrect(password)
     if (!isPasswordCorrect) {
-        throw new ApiError(400, 'Invalid user credentials')
+        throw new ApiError(401, 'Invalid user credentials')
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
@@ -111,7 +112,7 @@ const loginUser = asyncHandler(async (req, res) => {
     }
     return res
         .status(200)
-        // .cookie("accessToken", accessToken, options)
+        .cookie("accessToken", accessToken, options)
         .cookie("refreshToken", refreshToken, options)
         .json(
             new ApiResponse(200,
@@ -141,7 +142,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
 
     res.status(200)
-        // .clearCookie("accessToken", options)
+        .clearCookie("accessToken", options)
         .clearCookie("refreshToken", options)
         .json(
             new ApiResponse(
@@ -171,12 +172,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const refreshToken = user.refreshToken
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true, 
     }
 
     res.status(200)
-        // .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, {...options, maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRY)})
+        .cookie("refreshToken", refreshToken, {...options, maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRY)})
         .json(
             new ApiResponse(
                 200,

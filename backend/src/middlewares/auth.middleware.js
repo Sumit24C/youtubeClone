@@ -4,18 +4,27 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken"
 
 export const verifyJWT = asyncHandler(async (req, _, next) => {
-    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("bearer ", "")
+    const authHeader = req.header("Authorization")
+    const token = req.cookies?.accessToken ||
+        (authHeader && authHeader.startsWith("Bearer ")
+            ? authHeader.replace("Bearer ", "") : null)
+
+    console.log("getCurrentUser: ", token)
     if (!token) {
         throw new ApiError(401, "Unauthorized request")
     }
 
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
+    let user;
+    try {
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        user = await User.findById(decodedToken?._id).select("-password -refreshToken")
+        if (!user) {
+            throw new ApiError(404, "User Not Found")
+        }
 
-    if (!user) {
-        throw new ApiError(400, "Invalid Access Token")
+        req.user = user
+        next()
+    } catch (error) {
+        throw new ApiError(403, 'Invalid or expired token')
     }
-
-    req.user = user
-    next()
 })
