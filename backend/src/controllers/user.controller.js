@@ -7,6 +7,11 @@ import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
 import fs from "fs";
 
+const OPTIONS = {
+    httpOnly: true,
+    secure: true
+}
+
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId)
@@ -35,38 +40,18 @@ const registerUser = asyncHandler(async (req, res) => {
         $or: [{ username }, { email }]
     })
 
-    const avatarLocalPath = req.files?.avatar[0]?.path
-    let coverImageLocalPath;
-    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-        coverImageLocalPath = req.files.coverImage[0].path
-    }
-
     if (existedUser) {
-        if (Object.entries(req.files).length > 0) {
-            avatarLocalPath ? fs.unlinkSync(avatarLocalPath) : ""
-            coverImageLocalPath ? fs.unlinkSync(coverImageLocalPath) : ""
-        }
         throw new ApiError(409, "user with email or username already exist")
-    }
-
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required")
-    }
-    
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file is required")
     }
 
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
         username: username.toLowerCase(),
         email,
         password,
     })
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
 
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
@@ -76,14 +61,16 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Something went wrong while registering user")
     }
 
-    return res.status(200).json(
-        new ApiResponse(200, createdUser, "User is created successfully")
+    return res.status(200)
+        .cookie("accessToken",accessToken, OPTIONS)
+        .cookie("refreshToken",refreshToken, OPTIONS)
+        .json(
+            new ApiResponse(200, createdUser, "User is created successfully")
     )
 
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-
 
     const { username, email, password } = req.body
     if (!(username || email)) {
@@ -106,14 +93,10 @@ const loginUser = asyncHandler(async (req, res) => {
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
     return res
         .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
+        .cookie("accessToken", accessToken, OPTIONS)
+        .cookie("refreshToken", refreshToken, OPTIONS)
         .json(
             new ApiResponse(200,
                 {
@@ -136,14 +119,9 @@ const logoutUser = asyncHandler(async (req, res) => {
         new: true
     })
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
-
     res.status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
+        .clearCookie("accessToken", OPTIONS)
+        .clearCookie("refreshToken", OPTIONS)
         .json(
             new ApiResponse(
                 200,
@@ -170,14 +148,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const accessToken = await user.generateAccessToken()
     const refreshToken = user.refreshToken
-    const options = {
-        httpOnly: true,
-        secure: true, 
-    }
 
     res.status(200)
-        .cookie("accessToken", accessToken, {...options, maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRY)})
-        .cookie("refreshToken", refreshToken, {...options, maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRY)})
+        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRY) })
+        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRY) })
         .json(
             new ApiResponse(
                 200,
@@ -247,7 +221,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         { new: true }
     )
 
-    await deleteFromCloudinary(avatarURL)
+    if (avatarURL) {
+        await deleteFromCloudinary(avatarURL)
+    }
 
     return res.status(200)
         .json(new ApiResponse(200, user, "successfully updated avatar"))
@@ -272,8 +248,9 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         },
         { new: true }
     )
-
-    await deleteFromCloudinary(coverImageURL)
+    if (coverImage) {
+        await deleteFromCloudinary(coverImageURL)
+    }
 
     return res.status(200)
         .json(new ApiResponse(200, user, "successfully updated coverImage"))

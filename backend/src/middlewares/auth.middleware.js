@@ -9,7 +9,6 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
         (authHeader && authHeader.startsWith("Bearer ")
             ? authHeader.replace("Bearer ", "") : null)
 
-    console.log("getCurrentUser: ", token)
     if (!token) {
         throw new ApiError(401, "Unauthorized request")
     }

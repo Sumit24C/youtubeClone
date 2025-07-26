@@ -1,28 +1,33 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import App from './App'
 import Signup from './pages/Signup'
 import Login from './pages/Login'
 import Comments from './pages/Comments'
+import AuthLayout from './components/AuthLayout'
+import PersistLogin from './components/PersistLogin'
+import NotFound from './components/NotFound'
 
-const AppRouter = createBrowserRouter([
-    {
-        path: '/',
-        element: <App />,
-        children: [
-            {
-                path: '/comment',
-                element: <Comments/>
-            },
-        ]
-    },
-    {
-        path: '/login',
-        element: <Login />
-    },
-    {
-        path: '/signup',
-        element: <Signup />
-    },
-])
+function AppRouter() {
+    return (
+        <Routes>
+            {/* Protected Routes */}
+            <Route element={<PersistLogin />}>
+                <Route element={<AuthLayout authenticated={true} />}>
+                    <Route path="/" element={<App />}>
+                        <Route path="comment" element={<Comments />} />
+                    </Route>
+                </Route>
+
+                {/* Public Routes */}
+                <Route element={<AuthLayout authenticated={false} />}>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                </Route>
+            </Route>
+            <Route path='*' element={<NotFound/>} />
+
+        </Routes>
+    )
+}
 
 export default AppRouter

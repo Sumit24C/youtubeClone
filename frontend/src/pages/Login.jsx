@@ -5,12 +5,14 @@ import axios, { axiosPrivate, isCancel } from '../api/api.js'
 import { login, logout } from '../store/authSlice.js'
 import { useDispatch, useSelector } from 'react-redux'
 import extractErrorMsg from '../utils/extractErrorMsg.js'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js'
 function Login() {
 
     const axiosPrivate = useAxiosPrivate()
     const navigate = useNavigate()
+    const location = useLocation()
+    const from = location.state?.from || '/'
     const { userData } = useSelector((state) => state.auth)
     const dispatch = useDispatch();
     const controllerRef = useRef(null)
@@ -28,10 +30,9 @@ function Login() {
             });
             console.log(res.data)
             dispatch(login(res.data.data.user, {accessToken : res.data.data.accessToken}))
-            navigate('/comment')
+            navigate(from, {replace: true})
         } catch (error) {
             setLoading(false)
-            dispatch(logout())
             if (isCancel(error)) {
                 console.log('Request canceled:', error.message);
             } else {

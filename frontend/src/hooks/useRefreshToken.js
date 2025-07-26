@@ -1,6 +1,5 @@
 import api from '../api/api.js'
 import { useDispatch, useSelector } from 'react-redux'
-import { refreshAccessToken } from '../store/authSlice.js'
 
 const useRefreshToken = () => {
     const dispatch = useDispatch()
