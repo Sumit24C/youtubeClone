@@ -9,8 +9,10 @@ import fs from "fs";
 
 const OPTIONS = {
     httpOnly: true,
-    secure: true
+    secure: true, 
 }
+const accessTokenExpiry = parseInt(process.env.ACCESS_TOKEN_EXPIRY)
+const refreshTokenExpiry = parseInt(process.env.REFRESH_TOKEN_EXPIRY)
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -62,8 +64,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(200)
-        .cookie("accessToken",accessToken, OPTIONS)
-        .cookie("refreshToken",refreshToken, OPTIONS)
+        .cookie("accessToken",accessToken, {...OPTIONS, maxAge:accessTokenExpiry })
+        .cookie("refreshToken",refreshToken, {...OPTIONS, maxAge: refreshTokenExpiry})
         .json(
             new ApiResponse(200, createdUser, "User is created successfully")
     )
@@ -95,8 +97,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, OPTIONS)
-        .cookie("refreshToken", refreshToken, OPTIONS)
+        .cookie("accessToken",accessToken, {...OPTIONS, maxAge:accessTokenExpiry })
+        .cookie("refreshToken",refreshToken, {...OPTIONS, maxAge: refreshTokenExpiry})
         .json(
             new ApiResponse(200,
                 {
@@ -120,8 +122,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     })
 
     res.status(200)
-        .clearCookie("accessToken", OPTIONS)
-        .clearCookie("refreshToken", OPTIONS)
+        .clearCookie("accessToken", {...OPTIONS, maxAge: accessTokenExpiry})
+        .clearCookie("refreshToken",{...OPTIONS, maxAge: refreshTokenExpiry})
         .json(
             new ApiResponse(
                 200,
@@ -150,8 +152,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const refreshToken = user.refreshToken
 
     res.status(200)
-        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: parseInt(process.env.ACCESS_TOKEN_EXPIRY) })
-        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: parseInt(process.env.REFRESH_TOKEN_EXPIRY) })
+        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
         .json(
             new ApiResponse(
                 200,
