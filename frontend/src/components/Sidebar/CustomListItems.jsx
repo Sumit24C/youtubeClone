@@ -1,58 +1,30 @@
-import React from 'react';
-import {
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  useTheme,
-} from '@mui/material';
 import { NavLink, useLocation } from 'react-router-dom';
+import {
+  StyledListItem,
+  StyledListItemButton,
+  StyledListItemIcon,
+  StyledListItemText,
+} from '../../styles/MuiStyles';
 
 function CustomListItems({ item, open }) {
   const location = useLocation();
-  const theme = useTheme();
-
   const isActive = location.pathname === item.path;
 
   return (
-    <ListItem disablePadding sx={{ display: 'block' }}>
-      <ListItemButton
+    <StyledListItem>
+      <StyledListItemButton
         component={NavLink}
         to={item.path}
-        selected={isActive}
-        sx={{
-          minHeight: 48,
-          margin:1,
-          borderRadius: !open ? 100 : 30,
-          justifyContent: open ? 'initial' : 'center',
-          px: 2.5,
-          color: isActive ? theme.palette.primary.main : theme.palette.text.primary,
-          '&.Mui-selected': {
-            backgroundColor: theme.palette.action.selected,
-            '&:hover': {
-              backgroundColor: theme.palette.action.hover,
-            },
-          },
-        }}
+        open={open}
+        isActive={isActive}
+        disableRipple
       >
-        <ListItemIcon
-          sx={{
-            minWidth: 0,
-            mr: open ? 3 : 'auto',
-            justifyContent: 'center',
-            color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
-          }}
-        >
+        <StyledListItemIcon open={open} isActive={isActive}>
           {item.icon}
-        </ListItemIcon>
-        <ListItemText
-          primary={item.name}
-          sx={{
-            opacity: open ? 1 : 0,
-          }}
-        />
-      </ListItemButton>
-    </ListItem>
+        </StyledListItemIcon>
+        <StyledListItemText primary={item.name} open={open} />
+      </StyledListItemButton>
+    </StyledListItem>
   );
 }
 

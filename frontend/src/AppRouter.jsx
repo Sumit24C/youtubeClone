@@ -6,7 +6,7 @@ import Comments from './pages/Comments'
 import AuthLayout from './components/AuthLayout'
 import PersistLogin from './components/PersistLogin'
 import NotFound from './components/NotFound'
-
+import Home from './pages/Home'
 function AppRouter() {
     return (
         <Routes>
@@ -14,7 +14,7 @@ function AppRouter() {
             <Route element={<PersistLogin />}>
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
-                        <Route path="comment" element={<Comments />} />
+                        <Route path="/home" element={<Home />} />
                     </Route>
                 </Route>
 
@@ -24,7 +24,7 @@ function AppRouter() {
                     <Route path="/signup" element={<Signup />} />
                 </Route>
             </Route>
-            <Route path='*' element={<NotFound/>} />
+            <Route path='*' element={<NotFound />} />
 
         </Routes>
     )
