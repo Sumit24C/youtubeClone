@@ -1,12 +1,15 @@
 import React from 'react';
-import { Box, Typography, Avatar } from '@mui/material';
+import { Box, Typography, Avatar, darkScrollbar } from '@mui/material';
 import { Link } from 'react-router-dom';
-
+import { displayCreatedAt } from '../../utils/displayCreatedAt';
 function CardContainer({ video }) {
+
+  console.log("cardVideo: ",video)
   return (
     <Box
       component={Link}
-      to={`/video/${video.id || 'default'}`}
+      to={`/v/${video._id || 'default'}`}
+      state={{video}}
       sx={{
         textDecoration: 'none',
         color: 'inherit',
@@ -15,7 +18,6 @@ function CardContainer({ video }) {
         '&:hover .thumbnail': { transform: 'scale(1.03)' },
       }}
     >
-      {/* Thumbnail */}
       <Box
         component="img"
         src={video.thumbnail}
@@ -46,7 +48,7 @@ function CardContainer({ video }) {
             {video.channel}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {video.views.toLocaleString()} views • {video.createdAt}
+            {video.views.toLocaleString()} views • {displayCreatedAt(video.createdAt)}
           </Typography>
         </Box>
       </Box>

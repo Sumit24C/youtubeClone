@@ -1,4 +1,3 @@
-// Sidebar.js - Clean and organized drawer component
 import {
   Drawer as MuiDrawer,
   List,
@@ -15,7 +14,6 @@ import {
 import { Link } from 'react-router-dom';
 import CustomListItems from './CustomListItems';
 import { StyledDrawer, SectionTitle } from '../../styles/MuiStyles';
-
 
 const primaryMenuItems = [
   { name: 'Home', path: '/home', icon: <HomeIcon /> },

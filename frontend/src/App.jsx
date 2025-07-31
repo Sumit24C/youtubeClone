@@ -1,4 +1,3 @@
-// App.js - Fixed layout to eliminate empty space
 import { Outlet } from 'react-router-dom';
 import { useState } from 'react';
 import Sidebar from './components/Sidebar/Sidebar';

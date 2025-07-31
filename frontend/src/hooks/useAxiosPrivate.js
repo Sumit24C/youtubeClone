@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { axiosPrivate } from "../api/api.js";
 import { useRefreshToken } from "./useRefreshToken.js";
-import { useSelector } from "react-redux";
 const useAxiosPrivate = () => {
 
     const refresh = useRefreshToken()
@@ -33,4 +32,4 @@ const useAxiosPrivate = () => {
     return axiosPrivate
 }
 
-export { useAxiosPrivate }
+export { useAxiosPrivate}

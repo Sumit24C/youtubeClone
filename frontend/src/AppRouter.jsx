@@ -7,6 +7,8 @@ import AuthLayout from './components/AuthLayout'
 import PersistLogin from './components/PersistLogin'
 import NotFound from './components/NotFound'
 import Home from './pages/Home'
+import VideoPage from './pages/VideoPage'
+
 function AppRouter() {
     return (
         <Routes>
@@ -15,6 +17,7 @@ function AppRouter() {
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
                         <Route path="/home" element={<Home />} />
+                        <Route path="/v/:id" element={<VideoPage/>} />
                     </Route>
                 </Route>
 

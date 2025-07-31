@@ -1,7 +1,5 @@
-// MuiStyles.jsx - Updated with fixed Main component
 import { styled } from '@mui/material/styles';
 import {
-  Box,
   Drawer as MuiDrawer,
   ListItem,
   ListItemButton,
@@ -25,16 +23,6 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
   minHeight: HEADER_HEIGHT,
   height: HEADER_HEIGHT,
 }));
-
-export const ContentWrapper = styled(Box)({
-  width: '100%',
-  maxWidth: '100%',
-  height: '100%',
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
-  flexGrow: 1,
-});
 
 // ==================== SIDEBAR STYLES ====================
 export const StyledDrawer = styled(MuiDrawer, {
@@ -117,8 +105,6 @@ export const StyledListItemText = styled(ListItemText, {
     fontWeight: 400,
   },
 }));
-
-// ==================== THEME MIXINS ====================
 
 // ==================== RESPONSIVE BREAKPOINTS ====================
 export const breakpoints = {
