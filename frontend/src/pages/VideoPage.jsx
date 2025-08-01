@@ -1,62 +1,44 @@
-import React from 'react'
-import { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom'
-import extractErrorMsg from '../utils/extractErrorMsg.js'
-import VideoPlayer from '../components/videoJS/VideoPlayer';
+import React from 'react';
+import { Box } from '@mui/material';
+import LeftContainer from '../components/Video/LeftContainer';
+import RightContainer from '../components/Video/RightContainer';
 
 function VideoPage() {
-  const videoId = useParams();
-  const location = useLocation();
-  const [video, setVideo] = useState(location.state?.video || null);
-  const [errorMsg, setErrorMsg] = useState("")
-  const [loading, setLoading] = useState(false)
-
-  console.log('workin')
-  console.log(video)
-  useEffect(() => {
-    if (video) return;
-
-    console.log("WOrking")
-    setLoading(true);
-    const controller = new AbortController();
-    ; (async () => {
-      try {
-        const response = await axiosPrivate.get(`/videos/${videoId}`, {
-          signal: controller.signal
-        });
-
-        console.log("videoData: ", response.data.data)
-        setVideo(response.data.data);
-
-      } catch (error) {
-        if (isCancel(error)) {
-          console.log("MainError :: error :: ", error)
-        } else {
-          console.error(error);
-          setErrorMsg(extractErrorMsg(error));
-        }
-      } finally {
-        setLoading(false);
-      }
-    })()
-
-    return () => {
-      controller.abort();
-    }
-
-  }, [])
-
-  if (loading) {
-    return <>loading...</>
-  }
   return (
-    <>
-        {video && (
-          <VideoPlayer videoFile={video.videoFile} />
-        )}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: 2,
+        px: { xs: 1, md: 3 },
+        py: 2,
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      {/* LeftContainer: Video + Info */}
+      <Box
+        sx={{
+          flex: 3,
+          width: { xs: '100%', md: '70%' },
+        }}
+      >
+        <LeftContainer />
+      </Box>
 
-    </>
-  )
+      {/* RightContainer: Recommendations */}
+      <Box
+        sx={{
+          flex: 1,
+          width: { xs: '100%', md: '30%' },
+          maxHeight: '100vh',
+          overflowY: 'auto',
+        }}
+      >
+        <RightContainer />
+      </Box>
+    </Box>
+  );
 }
 
-export default VideoPage
+export default VideoPage;

@@ -1,5 +1,4 @@
-export const displayCreatedAt = (createdAt) => {
-
+const displayCreatedAt = (createdAt) => {
     const created = new Date(createdAt)
     const current = new Date()
 
@@ -27,5 +26,6 @@ export const displayCreatedAt = (createdAt) => {
     } else {
         return `just now`;
     }
-
 }
+
+export default displayCreatedAt;

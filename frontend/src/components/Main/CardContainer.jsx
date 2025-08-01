@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Avatar, darkScrollbar } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { displayCreatedAt } from '../../utils/displayCreatedAt';
+import { displayCreatedAt } from '../../utils/index';
 function CardContainer({ video }) {
 
   console.log("cardVideo: ",video)
