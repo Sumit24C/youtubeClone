@@ -1,70 +1,63 @@
-import React, { useEffect, useState } from 'react'
-import CardContainer from './CardContainer'
-import { Grid, Box } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import CardContainer from './CardContainer';
+import { Box, Typography } from '@mui/material';
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
 import { isCancel } from 'axios';
 import extractErrorMsg from '../../utils/extractErrorMsg';
+
 function MainContainer() {
+  const axiosPrivate = useAxiosPrivate();
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-    const axiosPrivate = useAxiosPrivate();
-    const [videos, setVideos] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-
-    useEffect(() => {
-        setLoading(true);
-        const controller = new AbortController();
-        ; (async () => {
-            try {
-                const response = await axiosPrivate.get("/videos", {
-                    signal: controller.signal
-                });
-                console.log(response.data.data)
-                setVideos(response.data.data);
-
-            } catch (error) {
-                if (isCancel(error)) {
-                    console.log("MainError :: error :: ", error)
-                } else {
-                    console.error(error);
-                    setErrorMsg(extractErrorMsg(error));
-                }
-            } finally {
-                setLoading(false);
-            }
-        })()
-
-        return () => {
-            controller.abort();
+  useEffect(() => {
+    setLoading(true);
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const response = await axiosPrivate.get("/videos", {
+          signal: controller.signal,
+        });
+        setVideos(response.data.data);
+      } catch (error) {
+        if (!isCancel(error)) {
+          setErrorMsg(extractErrorMsg(error));
         }
-    }, [])
+      } finally {
+        setLoading(false);
+      }
+    })();
 
-    if (loading) {
-        return <>Loading ...</>
-    }
+    return () => controller.abort();
+  }, []);
 
-    return (
-        <>
-            <Box
-                display="grid"
-                gridTemplateColumns="repeat(3, 1fr)"
-                gap={2}
-                minHeight="200px"
-            >
-                {videos && videos.length > 0 && (
-                    videos.map((video, index) => (
-                        <CardContainer video={video} key={index} />
-                    ))
-                )}
-                {videos.length === 0 && (
-                    <Box gridColumn="span 1" textAlign="center">
-                        No videos available.
-                    </Box>
-                )}
-            </Box>
+  if (loading) return <>Loading...</>;
 
-        </>
-    )
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        p: 2,
+        gap: 2,
+        minHeight: '300px',
+        width: '100%',
+      }}
+    >
+      {videos && videos.length > 0 ? (
+        videos.map((video, index) => (
+          <CardContainer key={index} video={video} />
+        ))
+      ) : (
+        [...Array(3)].map((_, idx) => (
+          <Box key={idx} sx={{ visibility: idx === 0 ? 'visible' : 'hidden' }}>
+            <Typography textAlign="center">No videos available</Typography>
+          </Box>
+        ))
+      )}
+    </Box>
+  );
 }
 
-export default MainContainer
+export default MainContainer;

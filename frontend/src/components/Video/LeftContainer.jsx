@@ -1,23 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom'
-import {extractErrorMsg, displayCreatedAt} from '../../utils/index.js'
+import { extractErrorMsg, displayCreatedAt } from '../../utils/index.js'
 import { isCancel } from 'axios'
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate.js'
-import VideoPlayer from './VideoPlayer.jsx';
 import { Box, Typography, Divider } from '@mui/material';
-
+import CloudinaryPlayer from './CloudinaryPlayer.jsx'
+import VideoDetails from './VideoDetails.jsx';
 function LeftContainer() {
 
   const { id } = useParams();
-  console.log(id);
-  const location = useLocation();
-  const [video, setVideo] = useState(location.state?.video || null);
+  const [video, setVideo] = useState(null);
   const [errorMsg, setErrorMsg] = useState("")
   const [loading, setLoading] = useState(false)
   const axiosPrivate = useAxiosPrivate()
 
   useEffect(() => {
-    if (video) return;
     setLoading(true);
     const controller = new AbortController();
     ; (async () => {
@@ -25,7 +22,6 @@ function LeftContainer() {
         const response = await axiosPrivate.get(`/videos/${id}`, {
           signal: controller.signal
         });
-
         console.log("videoData: ", response.data.data)
         setVideo(response.data.data);
 
@@ -44,8 +40,7 @@ function LeftContainer() {
     return () => {
       controller.abort();
     }
-
-  }, [])
+  }, [id])
 
   if (loading) {
     return <div>Loading...</div>
@@ -53,22 +48,40 @@ function LeftContainer() {
 
   return (
     <>
-      <Box>
-        
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '900px',
+          mx: 'auto',
+        }}
+      >
         {video && (
-          <VideoPlayer videoFile={video.videoFile} thumbnail={video.thumbnail} />
+          <Box>
+            <Box
+              sx={{
+                width: '100%',
+                mb: 1,
+              }}
+            >
+              <CloudinaryPlayer videoFile={video.videoFile} thumbnail={video.thumbnail} />
+            </Box>
+
+            <Typography variant="h6" fontWeight={'bold'} mt={1}>
+              {video.title}
+            </Typography>
+
+            <Box>
+              <VideoDetails channel={video.channel[0]} isLiked={video.isLiked} likesCount={video.likesCount} />
+            </Box>
+
+            {/* <Typography variant="body2" color="gray" mb={1}>
+              {video.views} views • {displayCreatedAt(video.createdAt)}
+            </Typography> */}
+          </Box>
         )}
-
-        <Typography variant="h6" mt={2}>
-          {video.title}
-        </Typography>
-
-        <Typography variant="body2" color="gray">
-          {video.views} views • {displayCreatedAt(video.createdAt || 'now')}
-        </Typography>
-
         <Divider sx={{ my: 2 }} />
       </Box>
+
     </>
   )
 }

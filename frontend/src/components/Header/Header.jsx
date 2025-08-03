@@ -22,6 +22,7 @@ function Header({ setOpen, open }) {
         bgcolor: (theme) => theme.palette.background.paper,
         color: (theme) => theme.palette.text.primary,
         height: '8vh',
+        minHeight: '50px',
       }}
     >
       <Toolbar sx={{ height: '100%', minHeight: '0', px: 2 }}>

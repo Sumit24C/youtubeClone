@@ -9,7 +9,7 @@ function VideoPage() {
       sx={{
         display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
-        gap: 2,
+        gap: 1,
         px: { xs: 1, md: 3 },
         py: 2,
         width: '100%',
@@ -19,7 +19,7 @@ function VideoPage() {
       {/* LeftContainer: Video + Info */}
       <Box
         sx={{
-          flex: 3,
+          flex: 2,
           width: { xs: '100%', md: '70%' },
         }}
       >
@@ -29,6 +29,7 @@ function VideoPage() {
       {/* RightContainer: Recommendations */}
       <Box
         sx={{
+          p: 0,
           flex: 1,
           width: { xs: '100%', md: '30%' },
           maxHeight: '100vh',

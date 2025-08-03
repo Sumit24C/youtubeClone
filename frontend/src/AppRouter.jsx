@@ -8,6 +8,7 @@ import PersistLogin from './components/PersistLogin'
 import NotFound from './components/NotFound'
 import Home from './pages/Home'
 import VideoPage from './pages/VideoPage'
+import CloudinaryPlayer from './components/Video/CloudinaryPlayer'
 
 function AppRouter() {
     return (
@@ -18,6 +19,7 @@ function AppRouter() {
                     <Route path="/" element={<App />}>
                         <Route path="/home" element={<Home />} />
                         <Route path="/v/:id" element={<VideoPage/>} />
+                        <Route path='/test' element={<CloudinaryPlayer/>}/>
                     </Route>
                 </Route>
 

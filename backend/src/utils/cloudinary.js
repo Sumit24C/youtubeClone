@@ -24,13 +24,31 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-const deleteFromCloudinary = async (imageURL) => {
+const uploadVideoOnCloudinary = async (localFilePath) => {
     try {
-        const public_id = imageURL.split('/upload/')[1]
-            .split('/')
-            .slice(1)
-            .join('/')
-            .replace(/\.[^/.]+$/, "")
+        if (!localFilePath) return null
+        const response = await cloudinary.uploader.upload(localFilePath, {
+            resource_type: 'auto',
+            eager: [{
+                streaming_profile: 'auto',
+                format: "m3u8",
+            }],
+            eager_async:true,
+            eager_notification_url: "https://mysite.example.com/notify_endpoint", 
+        })
+        console.log("response: ", response)
+        // const hlsUrl = response.eager[0];
+        fs.unlinkSync(localFilePath)
+        return response
+    } catch (error) {
+        console.log("error: ",error)
+        fs.unlinkSync(localFilePath)
+        return null
+    }
+}
+
+const deleteFromCloudinary = async (public_id) => {
+    try {
         const res = await cloudinary.uploader.destroy(public_id, { invalidate: true })
         return res
     } catch (error) {
@@ -38,4 +56,4 @@ const deleteFromCloudinary = async (imageURL) => {
     }
 }
 
-export { uploadOnCloudinary , deleteFromCloudinary}
+export { uploadOnCloudinary , deleteFromCloudinary, uploadVideoOnCloudinary}
