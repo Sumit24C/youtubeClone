@@ -39,7 +39,7 @@ function RightContainer() {
         videos
           .filter((video) => video._id !== id)
           .map((video, index) => (
-            <CardContainer key={index} video={video} horizontal />
+            <CardContainer key={index} video={video} vertical />
           ))
       ) : (
         <Typography color="gray" textAlign="center">No videos available.</Typography>

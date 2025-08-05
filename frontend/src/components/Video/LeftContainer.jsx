@@ -73,10 +73,6 @@ function LeftContainer() {
             <Box>
               <VideoDetails channel={video.channel[0]} isLiked={video.isLiked} likesCount={video.likesCount} />
             </Box>
-
-            {/* <Typography variant="body2" color="gray" mb={1}>
-              {video.views} views • {displayCreatedAt(video.createdAt)}
-            </Typography> */}
           </Box>
         )}
         <Divider sx={{ my: 2 }} />

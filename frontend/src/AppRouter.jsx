@@ -9,6 +9,7 @@ import NotFound from './components/NotFound'
 import Home from './pages/Home'
 import VideoPage from './pages/VideoPage'
 import CloudinaryPlayer from './components/Video/CloudinaryPlayer'
+import Channel from './pages/Channel'
 
 function AppRouter() {
     return (
@@ -18,6 +19,7 @@ function AppRouter() {
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
                         <Route path="/home" element={<Home />} />
+                        <Route path="/c/:id" element={<Channel/>} />
                         <Route path="/v/:id" element={<VideoPage/>} />
                         <Route path='/test' element={<CloudinaryPlayer/>}/>
                     </Route>

@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { deleteFromCloudinary, uploadOnCloudinary, uploadVideoOnCloudinary } from "../utils/cloudinary.js"
+import { channel } from "diagnostics_channel"
 
 const getAllHomeVideos = asyncHandler(async (req, res) => {
 
@@ -14,7 +15,24 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
     const videos = await Video.aggregate([
         {
             $limit: limitNumber
-        }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "channel",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            username: 1,
+                            avatar: 1,
+                        }
+                    }
+                ]
+            }
+        }, 
     ])
 
     if (!(videos.length > 0)) {

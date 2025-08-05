@@ -50,11 +50,7 @@ function MainContainer() {
           <CardContainer key={index} video={video} />
         ))
       ) : (
-        [...Array(3)].map((_, idx) => (
-          <Box key={idx} sx={{ visibility: idx === 0 ? 'visible' : 'hidden' }}>
             <Typography textAlign="center">No videos available</Typography>
-          </Box>
-        ))
       )}
     </Box>
   );
