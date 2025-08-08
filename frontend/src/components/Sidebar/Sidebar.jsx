@@ -16,14 +16,14 @@ import CustomListItems from './CustomListItems';
 import { StyledDrawer, SectionTitle } from '../../styles/MuiStyles';
 
 const primaryMenuItems = [
-  { name: 'Home', path: '/home', icon: <HomeIcon /> },
+  { name: 'Home', path: '/', icon: <HomeIcon /> },
   { name: 'Subscriptions', path: '/subscriptions', icon: <SubscriptionsIcon /> },
 ];
 
 const secondaryMenuItems = [
   { name: 'History', path: '/history', icon: <HistoryIcon /> },
-  { name: 'Playlists', path: '/playlists', icon: <PlaylistIcon /> },
-  { name: 'Liked Videos', path: '/liked', icon: <LikedIcon /> },
+  { name: 'Playlists', path: '/playlist', icon: <PlaylistIcon /> },
+  { name: 'Liked Videos', path: '/liked-videos', icon: <LikedIcon /> },
 ];
 
 export default function Sidebar({ open }) {

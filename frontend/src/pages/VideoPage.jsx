@@ -32,8 +32,6 @@ function VideoPage() {
           p: 0,
           flex: 1,
           width: { xs: '100%', md: '30%' },
-          maxHeight: '100vh',
-          overflowY: 'auto',
         }}
       >
         <RightContainer />

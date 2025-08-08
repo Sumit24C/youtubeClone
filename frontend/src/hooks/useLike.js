@@ -5,7 +5,7 @@ import { useAxiosPrivate } from './useAxiosPrivate';
 
 function useLike(isLiked, likesCount, isDisliked = false) {
     const { id } = useParams();
-    const [loading, setLoading] = useState(false);
+    const [likeLoading, setLikeLoading] = useState(false);
     const [liked, setLiked] = useState(isLiked);
     const [countOfLikes, setCountOfLikes] = useState(likesCount);
     const axiosPrivate = useAxiosPrivate();
@@ -13,7 +13,7 @@ function useLike(isLiked, likesCount, isDisliked = false) {
     controller.current = new AbortController();
 
     const handleLike = async () => {
-        setLoading(true);
+        setLikeLoading(true);
         try {
             const response = await axiosPrivate.post(`/likes/toggle/v/${id}`, {
                 signal: controller.current.signal
@@ -29,13 +29,14 @@ function useLike(isLiked, likesCount, isDisliked = false) {
             }
 
         } catch (error) {
+            setLikeLoading(false);
             if (isCancel(error)) {
                 console.error("likedAxios :: error :: ", error)
             } else {
                 console.error("liked :: error :: ", error)
             }
         } finally {
-            setLoading(false)
+            setLikeLoading(false)
         }
     }
 
@@ -45,7 +46,7 @@ function useLike(isLiked, likesCount, isDisliked = false) {
         }
     }, [])
 
-    return { loading, liked, countOfLikes, handleLike }
+    return { likeLoading, liked, countOfLikes, handleLike }
 }
 
 export { useLike };

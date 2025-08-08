@@ -1,15 +1,25 @@
 import { Routes, Route } from 'react-router-dom'
 import App from './App'
-import Signup from './pages/Signup'
-import Login from './pages/Login'
-import Comments from './pages/Comments'
+
 import AuthLayout from './components/AuthLayout'
 import PersistLogin from './components/PersistLogin'
 import NotFound from './components/NotFound'
-import Home from './pages/Home'
-import VideoPage from './pages/VideoPage'
 import CloudinaryPlayer from './components/Video/CloudinaryPlayer'
-import Channel from './pages/Channel'
+import {
+    Home,
+    You,
+    Channel,
+    Comments,
+    WatchHistory,
+    LikedVideos,
+    Login,
+    Playlist,
+    Signup,
+    Subscription,
+    VideoPage
+} from "../src/pages/index"
+
+import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
 
 function AppRouter() {
     return (
@@ -18,10 +28,20 @@ function AppRouter() {
             <Route element={<PersistLogin />}>
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
-                        <Route path="/home" element={<Home />} />
-                        <Route path="/c/:id" element={<Channel/>} />
-                        <Route path="/v/:id" element={<VideoPage/>} />
-                        <Route path='/test' element={<CloudinaryPlayer/>}/>
+                        <Route index path="/" element={<Home />} />
+                        <Route index path="/you" element={<You />} />
+                        <Route index path="/playlist" element={<Playlist/>} />
+                        <Route index path="/liked-videos" element={<LikedVideos/>} />
+                        <Route index path="/history" element={<WatchHistory/>} />
+                        <Route index path="/subscriptions" element={<Subscription/>} />
+                        <Route path="/c/:id" element={<Channel />} >
+                            <Route index element={<ChannelVideos />} />
+                            <Route path='posts' element={<ChannelPosts />} />
+                            <Route path='playlists' element={<ChannelPlaylist />} />
+                            <Route path='about' element={<ChannelAbout />} />
+                        </Route>
+                        <Route path="/v/:id" element={<VideoPage />} />
+                        <Route path='/test' element={<CloudinaryPlayer />} />
                     </Route>
                 </Route>
 

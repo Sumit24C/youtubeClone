@@ -32,7 +32,7 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
                     }
                 ]
             }
-        }, 
+        },
     ])
 
     if (!(videos.length > 0)) {
@@ -90,21 +90,46 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 })
 
+const getChannelVideo = asyncHandler(async (req, res) => {
+    const { username } = req.params;
+
+    if (!username) {
+        throw new ApiError(401, "username is required");
+    }
+
+    const user = await User.findOne({username: username}).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "user not found");
+    }
+
+    const video = await Video.find({owner: user._id});
+    
+    if (!video) {
+        throw new ApiError(404, "Videos not found");
+    }
+    
+    return res.status(200).json(
+        new ApiResponse(200, video, "Channel Videos fetched successfully")
+    )
+})
+
 const publishAVideo = asyncHandler(async (req, res) => {
     // TODO: get video, upload to cloudinary, create video
-    
+
     const { title, description } = req.body
 
     if ([title, description].some((field) => !field || field.trim() === "")) {
         throw new ApiError(401, "All fields are required")
     }
     const videoLocalPath = req.files?.videoFile[0]?.path
+    console.log(req.files)
     console.log(videoLocalPath)
     const thumbnailLocalPath = req.files?.thumbnail[0]?.path
-    console.log(thumbnailLocalPath)
+    console.log("thumbnail: ",thumbnailLocalPath)
 
     if (!videoLocalPath || !thumbnailLocalPath) {
-        throw new ApiError(401, "All Video files are required")
+        throw new ApiError(401, "All files are required")
     }
 
     const videoCloud = await uploadVideoOnCloudinary(videoLocalPath);
@@ -187,7 +212,7 @@ const getVideoById = asyncHandler(async (req, res) => {
                                 }
                             }
                         }
-                    }, 
+                    },
                     {
                         $project: {
                             subscribersCount: 1,
@@ -318,5 +343,6 @@ export {
     getVideoById,
     updateVideo,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
+    getChannelVideo,
 }

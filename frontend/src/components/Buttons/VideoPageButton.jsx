@@ -39,6 +39,7 @@ function VideoPageButton({
 
   return (
     <Button
+      disabled={loading}
       loading={loading}
       onClick={onClick}
       variant={variant}

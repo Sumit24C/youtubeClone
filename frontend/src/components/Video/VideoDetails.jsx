@@ -53,7 +53,9 @@ const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
             {`${subscribersCount} subscriber${subscribersCount > 1 ? 's' : ''}`}
           </Typography>
         </Box>
-        <VideoPageButton active={subscribed} onClick={handleSubscribe} loading={subscribeLoading} > {subscribed ? "Subscribed" : "Subscribe"}</VideoPageButton>
+        <VideoPageButton active={subscribed} onClick={handleSubscribe} loading={subscribeLoading} >
+          {subscribed ? "Subscribed" : "Subscribe"}
+        </VideoPageButton>
       </Box>
 
       {/* Action Buttons */}

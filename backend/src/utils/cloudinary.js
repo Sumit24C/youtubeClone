@@ -10,15 +10,16 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
     try {
+        console.log("working");
         if (!localFilePath) return null
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: 'auto',
         })
-        console.log("response: ", response)
+        console.log("response of image: ", response)
         fs.unlinkSync(localFilePath)
         return response
     } catch (error) {
-        console.log("error: ",error)
+        console.log("error of image: ",error)
         fs.unlinkSync(localFilePath)
         return null
     }
@@ -26,6 +27,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const uploadVideoOnCloudinary = async (localFilePath) => {
     try {
+        console.log("wokring video");
         if (!localFilePath) return null
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: 'auto',
@@ -36,12 +38,11 @@ const uploadVideoOnCloudinary = async (localFilePath) => {
             eager_async:true,
             eager_notification_url: "https://mysite.example.com/notify_endpoint", 
         })
-        console.log("response: ", response)
-        // const hlsUrl = response.eager[0];
+        console.log("response of video: ", response)
         fs.unlinkSync(localFilePath)
         return response
     } catch (error) {
-        console.log("error: ",error)
+        console.log("error of image: ",error)
         fs.unlinkSync(localFilePath)
         return null
     }

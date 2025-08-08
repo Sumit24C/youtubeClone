@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 
 const createPlaylist = asyncHandler(async (req, res) => {
-    const { name, description } = req.body
+    const { name, description, videoId } = req.body
     //TODO: create playlist
 
     if (!(name && description)) {
@@ -13,8 +13,8 @@ const createPlaylist = asyncHandler(async (req, res) => {
     }
 
     const playlist = await Playlist.create({
-        name, description, owner: req.user._id
-    })
+        name, description, videos: [videoId], owner: req.user._id
+    });
 
     if (!playlist) {
         throw new ApiError(500, "Failed to create playlist")
@@ -92,14 +92,14 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params
     // TODO: remove video from playlist
 
-     if (!(playlistId && videoId)) {
+    if (!(playlistId && videoId)) {
         throw new ApiError(401, "All fields are required")
     }
 
-     const playlist = await Playlist.findByIdAndUpdate(
+    const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            $pull:{
+            $pull: {
                 videos: videoId
             }
         },
@@ -120,7 +120,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
     // TODO: delete playlist
 
-     if (!playlistId) {
+    if (!playlistId) {
         throw new ApiError(401, "PlaylistId is required")
     }
 
@@ -138,19 +138,19 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     if (!(name || description)) {
         throw new ApiError(401, "Atleast one field is required")
     }
-    const updatedData ={}
+    const updatedData = {}
 
-    if (typeof(name) === "string" && name.trim()) updatedData.name = name
-    if (typeof(description) === "string" && description.trim()) updatedData.description = description
+    if (typeof (name) === "string" && name.trim()) updatedData.name = name
+    if (typeof (description) === "string" && description.trim()) updatedData.description = description
 
     const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
             $set: updatedData
         }, {
-            new: true
-        }
-    )    
+        new: true
+    }
+    )
 
     if (!playlist) {
         throw new ApiError(500, "Failed to update playlist")

@@ -2,7 +2,7 @@ import { useAxiosPrivate } from './useAxiosPrivate';
 import { isCancel } from 'axios';
 import { useEffect, useState, useRef } from 'react';
 const useSubscribe = (channel) => {
-    const [loading, setLoading] = useState(false);
+    const [subscribeLoading, setSubscribeLoading] = useState(false);
     const [subscribed, setSubscribed] = useState(channel.isSubscribed);
     const [subscribersCount, setSubscribersCount] = useState(channel.subscribersCount);
     const channelId = channel._id;
@@ -11,7 +11,7 @@ const useSubscribe = (channel) => {
     controller.current = new AbortController();
 
     const handleSubscribe = async () => {
-        setLoading(true);
+        setSubscribeLoading(true);
         try {
             const response = await axiosPrivate.post(`/subscriptions/c/${channelId}`, {
                 signal: controller.current.signal
@@ -27,13 +27,14 @@ const useSubscribe = (channel) => {
             }
 
         } catch (error) {
+            setSubscribeLoading(false)
             if (isCancel(error)) {
                 console.error("subscribeAxios :: error :: ", error)
             } else {
                 console.error("subscribe :: error :: ", error)
             }
         } finally {
-            setLoading(false)
+            setSubscribeLoading(false)
         }
     }
 
@@ -43,7 +44,7 @@ const useSubscribe = (channel) => {
         }
     }, [])
 
-    return { loading, subscribed, subscribersCount, handleSubscribe };
+    return { subscribeLoading, subscribed, subscribersCount, handleSubscribe };
 
 };
 

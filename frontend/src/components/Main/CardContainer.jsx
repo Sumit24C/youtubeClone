@@ -4,6 +4,7 @@ import { displayCreatedAt } from '../../utils/index';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
+import MenuButton from '../Buttons/MenuButton';
 
 function CardContainer({ video, vertical = false }) {
   const {
@@ -14,26 +15,18 @@ function CardContainer({ video, vertical = false }) {
     views,
     createdAt,
   } = video;
-  const [anchorEl, setAnchorE1] = useState(null);
-  const open = Boolean(anchorEl);
-  const handleMenuClose = (e) => {
-    setAnchorE1(null);
-  }
-
-  const handleMenuOpen = (e) => {
-    setAnchorE1(e.currentTarget);
-  }
 
   console.log(video);
   return (
     <Box
       position="relative"
       display={vertical ? 'flex' : 'block'}
-      justifyContent={vertical ? 'space-between' : 'initial'}
-      alignItems="flex-start"
+      justifyContent={vertical ? 'flex-start' : 'initial'}
+      alignItems={vertical ? 'flex-start' : 'initial'}
+      width="100%"
     >
       {/* Thumbnail (Link to video) */}
-      <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none' }}>
+      <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', flexShrink: 0 }}>
         <Box
           component="img"
           src={thumbnailUrl}
@@ -44,17 +37,17 @@ function CardContainer({ video, vertical = false }) {
             height: vertical ? '94px' : 200,
             borderRadius: 2,
             objectFit: 'cover',
-            flexShrink: 0,
           }}
         />
       </Link>
 
       {/* Info */}
       {vertical ? (
-        <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <Box display="flex" alignItems="flex-start" justifyContent="space-between" mt={0.5} width="100%">
-            <Box display="flex" flexDirection="column" ml={1} flex={1} minWidth={0} maxWidth="60%">
-              {/* Title (Link to video) */}
+        <Box display="flex" alignItems="flex-start" justifyContent="space-between" width="100%" ml={1}>
+          {/* Content Section */}
+          <Box display="flex" flexDirection="column" flex={1} minWidth={0} pr={1}>
+            {/* Title (Link to video) */}
+            <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography
                 fontSize="0.95rem"
                 fontWeight={600}
@@ -66,33 +59,43 @@ function CardContainer({ video, vertical = false }) {
                   WebkitBoxOrient: 'vertical',
                   whiteSpace: 'normal',
                   lineHeight: 1.3,
+                  mb: 0.5,
                 }}
               >
                 {title}
               </Typography>
+            </Link>
 
-              <Typography fontSize="0.95rem" color="gray" noWrap>
+            <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography fontSize="0.95rem" color="gray" noWrap sx={{ mb: 0.25 }}>
                 {channel[0].username || "unknown"}
               </Typography>
+            </Link>
 
+            <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography fontSize="0.8rem" color="gray">
                 {views.toLocaleString()} views • {displayCreatedAt(createdAt)}
               </Typography>
-            </Box>
+            </Link>
           </Box>
-        </Link>
+
+          {/* Menu Button */}
+          <Box flexShrink={0} ml={1}>
+            <MenuButton videoId={_id} />
+          </Box>
+        </Box>
       ) : (
         <Box display="flex" alignItems="flex-start" mt={1}>
           {/* Avatar Link */}
-          <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
+          {channel && <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
             <Avatar
               src={channel[0].avatar || ""}
               alt={channel[0].username || "unknown"}
               sx={{ width: 36, height: 36, mr: 1.5 }}
             />
-          </Link>
+          </Link>}
 
-          <Box minWidth={0}>
+          <Box minWidth={0} flex={1}>
             {/* Title (Video Link) */}
             <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography
@@ -114,11 +117,11 @@ function CardContainer({ video, vertical = false }) {
             </Link>
 
             {/* Channel Link */}
-            <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
+            {channel && <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
               <Typography display={"inline-block"} fontSize="0.95rem" color="gray" noWrap>
                 {channel[0].username || "unknown"}
               </Typography>
-            </Link>
+            </Link>}
 
             <Link to={`/v/${_id || 'default'}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography fontSize="0.9rem" color="gray">
@@ -126,35 +129,13 @@ function CardContainer({ video, vertical = false }) {
               </Typography>
             </Link>
           </Box>
+
+          {/* Menu Icon for non-vertical layout */}
+          <Box position="absolute" bottom={8} right={0}>
+            <MenuButton videoId={_id} />
+          </Box>
         </Box>
       )}
-
-      {/* Menu Icon */}
-      <Box
-        position="absolute"
-        top={vertical ? 0 : 'auto'}
-        bottom={vertical ? 'auto' : 8}
-        right={0}
-      >
-        <IconButton onClick={handleMenuOpen} size="small">
-          <MoreVertIcon />
-        </IconButton>
-      </Box>
-
-      {/* Menu Items */}
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleMenuClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <MenuItem onClick={handleMenuClose}>Save to Playlist</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Share</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Not Interested</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Download</MenuItem>
-        <MenuItem onClick={handleMenuClose}>Save to Watch Later</MenuItem>
-      </Menu>
     </Box>
   );
 }
