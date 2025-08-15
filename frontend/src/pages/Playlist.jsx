@@ -3,10 +3,8 @@ import { Outlet, useParams } from 'react-router-dom';
 import { extractErrorMsg } from '../utils/index.js';
 import { isCancel } from 'axios';
 import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js';
-import ChannelHeader from '../components/Channel/ChannelHeader.jsx';
-import ChannelTabs from '../components/Channel/ChannelTabs.jsx';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import PlaylistCard from '../components/Playlist/PlaylistCard.jsx';
+import PlaylistContainer from '../components/Playlist/PlaylistContainer.jsx';
 
 function Playlist() {
   const [playlistInfo, setPlaylistInfo] = useState(null);
@@ -69,7 +67,7 @@ function Playlist() {
     >
       {playlistInfo && playlistInfo.length > 0 ? (
         playlistInfo.map((playlist, index) => (
-          <PlaylistCard key={index} playlist={playlist} />
+          <PlaylistContainer key={index} playlist={playlist} />
         ))
       ) : (
         <Typography textAlign="center">No playlist available</Typography>

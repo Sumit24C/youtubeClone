@@ -97,18 +97,18 @@ const getChannelVideo = asyncHandler(async (req, res) => {
         throw new ApiError(401, "username is required");
     }
 
-    const user = await User.findOne({username: username}).select("-password -refreshToken");
+    const user = await User.findOne({ username: username }).select("-password -refreshToken");
 
     if (!user) {
         throw new ApiError(404, "user not found");
     }
 
-    const video = await Video.find({owner: user._id});
-    
+    const video = await Video.find({ owner: user._id });
+
     if (!video) {
         throw new ApiError(404, "Videos not found");
     }
-    
+
     return res.status(200).json(
         new ApiResponse(200, video, "Channel Videos fetched successfully")
     )
@@ -126,7 +126,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     console.log(req.files)
     console.log(videoLocalPath)
     const thumbnailLocalPath = req.files?.thumbnail[0]?.path
-    console.log("thumbnail: ",thumbnailLocalPath)
+    console.log("thumbnail: ", thumbnailLocalPath)
 
     if (!videoLocalPath || !thumbnailLocalPath) {
         throw new ApiError(401, "All files are required")
@@ -236,6 +236,10 @@ const getVideoById = asyncHandler(async (req, res) => {
                         then: true,
                         else: false
                     }
+                },
+                viewsCount: { $size: "$views" },
+                isViewed: {
+                    $in: [req.user._id, "$views"]
                 }
             }
         },
@@ -249,6 +253,20 @@ const getVideoById = asyncHandler(async (req, res) => {
 
     if (!video[0]) {
         throw new ApiError(404, "Video not found")
+    }
+
+    const updatedVideo = await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $addToSet: {
+                views: req.user._id
+            }
+        },
+        { new: true }
+    )
+
+    if (!updatedVideo) {
+        throw new ApiError(500, "Failed to update views list")
     }
 
 

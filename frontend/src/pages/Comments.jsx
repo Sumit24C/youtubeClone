@@ -1,29 +1,64 @@
 import React, { useEffect, useState } from 'react'
-import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js'
-import {useNavigate, useLocation} from 'react-router-dom'
-import { useSelector } from 'react-redux'
-import api from '../api/api.js'
+import { useParams } from 'react-router-dom';
+import { useAxiosPrivate } from '../hooks/useAxiosPrivate';
+import { extractErrorMsg } from '../utils';
+import { isCancel } from 'axios';
+import { Box, Typography } from '@mui/material';
+import CommentCard from '../components/Comments/CommentCard';
+import CreateComment from '../components/Comments/CreateComment';
 function Comments() {
 
-    const navigate = useNavigate()
-const axiosPrivate = useAxiosPrivate()
-    useEffect(() => {
+    const { id } = useParams();
+    const [comments, setComments] = useState(null);
+    const [errorMsg, setErrorMsg] = useState("")
+    const [loading, setLoading] = useState(false)
+    const axiosPrivate = useAxiosPrivate()
 
-        (async () => {
+    useEffect(() => {
+        setLoading(true);
+        const controller = new AbortController();
+        ; (async () => {
             try {
-                const res = await axiosPrivate.get('/users/current-user')
-                console.log(res.data.data)
+                const response = await axiosPrivate.get(`/comments/${id}`, {
+                    signal: controller.signal
+                });
+                setComments(response.data.data);
+
             } catch (error) {
-                console.log(error)
-                navigate('/login')
+                if (isCancel(error)) {
+                    console.log("MainError :: error :: ", error)
+                } else {
+                    console.error(error);
+                    setErrorMsg(extractErrorMsg(error));
+                }
+            } finally {
+                setLoading(false);
             }
         })()
-    }, [])
+
+        return () => {
+            controller.abort();
+        }
+    }, [id])
+
+    if (loading) {
+        return <div>Loading...</div>
+    }
 
     return (
         <>
-            <div>Hello, from comment</div>
-            <div>user</div>
+            <Box>
+                <CreateComment setComments={setComments}/>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {comments && comments.length > 0 ? (
+                    comments.map((comment, index) => (
+                        <CommentCard key={index} comment={comment} />
+                    ))
+                ) : (
+                    <Typography color="gray" textAlign="center">No comments available.</Typography>
+                )}
+            </Box>
         </>
     )
 }

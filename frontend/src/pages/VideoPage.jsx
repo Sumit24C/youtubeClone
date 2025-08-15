@@ -1,9 +1,12 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme, useMediaQuery } from '@mui/material';
 import LeftContainer from '../components/Video/LeftContainer';
 import RightContainer from '../components/Video/RightContainer';
 
 function VideoPage() {
+  const theme = useTheme();
+  const isWideScreen = useMediaQuery(theme.breakpoints.up('md'));
+
   return (
     <Box
       sx={{
@@ -23,7 +26,7 @@ function VideoPage() {
           width: { xs: '100%', md: '70%' },
         }}
       >
-        <LeftContainer />
+        <LeftContainer isWideScreen={isWideScreen} />
       </Box>
 
       {/* RightContainer: Recommendations */}

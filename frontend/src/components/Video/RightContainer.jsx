@@ -4,13 +4,14 @@ import { isCancel } from 'axios';
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
 import { Box, Typography } from '@mui/material';
 import CardContainer from '../Main/CardContainer';
+import PlaylistVideo from '../Playlist/PlaylistVideo';
 
 function RightContainer() {
   const { id } = useParams();
+  const { p_id } = useParams();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const axiosPrivate = useAxiosPrivate();
-
   useEffect(() => {
     setLoading(true);
     const controller = new AbortController();
@@ -35,9 +36,12 @@ function RightContainer() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {videos.length > 0 ? (
+      <Box>
+        {p_id && (<PlaylistVideo />)}
+      </Box>
+      {videos && videos.length > 0 ? (
         videos
-          .filter((video) => video._id !== id)
+          .filter((video) => p_id || video._id !== id)
           .map((video, index) => (
             <CardContainer key={index} video={video} vertical />
           ))

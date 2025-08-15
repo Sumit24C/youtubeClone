@@ -1,89 +1,130 @@
-import React from "react";
-import {
-  Card,
-  CardMedia,
-  CardContent,
-  CardHeader,
-  Typography,
-  Chip,
-  Box
-} from "@mui/material";
-import { displayCreatedAt } from "../../utils";
+import { Box, Typography, IconButton } from '@mui/material';
+import { Link, useParams } from 'react-router-dom';
+import { displayCreatedAt, displayDuration, displayViews } from '../../utils/index';
+import MenuButton from '../Buttons/MenuButton';
+import { useEffect } from 'react';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
-function PlaylistCard({ playlist }) {
-  const {
-    name,
-    lastVideo,
-    videosCount,
-    updatedAt,
-    privacy = "Private"
-  } = playlist;
-  console.log(playlist);
-console.log(name);
+function PlaylistCard({ p_id, videoInfo, setCurrentVideo, isCurrentVideo }) {
+  const { _id, thumbnailUrl, title, channel, views, createdAt, duration } = videoInfo.video;
+  const path = `/v/${_id}/Pl=/${p_id}`;
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (id === _id) {
+      setCurrentVideo(videoInfo.index + 1);
+    }
+  }, [id, _id, setCurrentVideo, videoInfo.index]);
+
   return (
-    <Card sx={{ width: 288, backgroundColor: "black", color: "white" }}>
-      {/* Header with title */}
-      <CardHeader
-        title={
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{ fontWeight: "bold", color: "white" }}
-          >
-            {name}
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: 1.5,
+        p: 1.5,
+        bgcolor: isCurrentVideo ? "rgba(187, 5, 5, 0.37)" : "transparent",
+        "&:hover": {  
+          bgcolor: isCurrentVideo ? "rgba(182, 0, 0, 0.3)" : "#1a1a1a",
+          cursor: "pointer"
+        },
+        transition: "all 0.2s ease"
+      }}
+    >
+      {/* Index or Play Icon */}
+      <Box
+        sx={{
+          width: "20px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          color: isCurrentVideo ? "#fff" : "#aaa"
+        }}
+      >
+        {isCurrentVideo ? (
+          <PlayArrowIcon sx={{ fontSize: "16px", color: "#fff" }} />
+        ) : (
+          <Typography sx={{ fontSize: "0.8rem", color: "#aaa" }}>
+            {videoInfo.index + 1}
           </Typography>
-        }
-        subheader={
-          <Typography variant="body2" sx={{ color: "gray.400" }}>
-            {privacy} • Playlist
-          </Typography>
-        }
-        sx={{ pb: 0 }}
-      />
-
-      {/* Thumbnail */}
-      <Box sx={{ position: "relative" }}>
-        <CardMedia
-          component="img"
-          height="176"
-          image={
-            lastVideo?.thumbnailUrl ||
-            "https://res.cloudinary.com/youtube236/image/upload/v1754666950/vzjt10az7ntuzzb08k6n.jpg"
-          }
-          alt={`${name} thumbnail`}
-        />
-
-        {/* Video count badge */}
-        <Chip
-          label={`${videosCount || 0} videos`}
-          size="small"
-          sx={{
-            position: "absolute",
-            bottom: 8,
-            right: 8,
-            backgroundColor: "rgba(0,0,0,0.7)",
-            color: "white"
-          }}
-        />
+        )}
       </Box>
 
-      {/* Card Content */}
-      <CardContent>
-        <Typography
-          variant="caption"
-          sx={{ color: "gray.400", display: "block", mb: 1 }}
-        >
-          Updated {displayCreatedAt(updatedAt)}
-        </Typography>
+      {/* Thumbnail with Duration */}
+      <Link to={path} style={{ textDecoration: 'none', flexShrink: 0 }}>
+        <Box sx={{ position: "relative" }}>
+          <Box
+            component="img"
+            src={thumbnailUrl}
+            alt={title}
+            sx={{
+              width: '120px',
+              height: '68px',
+              borderRadius: 1,
+              objectFit: 'cover',
+            }}
+          />
+          {/* Duration overlay */}
+          {duration && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: "8px",
+                right: "4px",
+                bgcolor: "rgba(0, 0, 0, 0.47)",
+                color: "#fff",
+                px: 0.5,
+                py: 0.25,
+                borderRadius: "4px",
+                fontSize: "0.7rem",
+                fontWeight: 500
+              }}
+            >
+              {displayDuration(duration)}
+            </Box>
+          )}
+        </Box>
+      </Link>
+
+      {/* Video Info */}
+      <Box sx={{ flex: 1, minWidth: 0, mr: 1 }}>
+        <Link to={path} style={{ textDecoration: 'none' }}>
+          <Typography
+            sx={{
+              fontSize: "0.85rem",
+              fontWeight: 500,
+              color: "#fff",
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: 1.3,
+              mb: 0.5,
+            }}
+          >
+            {title}
+          </Typography>
+        </Link>
 
         <Typography
-          variant="body2"
-          sx={{ color: "skyblue", cursor: "pointer" }}
+          sx={{
+            fontSize: "0.75rem",
+            color: "#aaa",
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}
         >
-          View full playlist
+          {channel[0]?.username || "Unknown"}
         </Typography>
-      </CardContent>
-    </Card>
+      </Box>
+
+      {/* Menu Button */}
+      <Box flexShrink={0} ml={1}>
+        <MenuButton videoId={_id} />
+      </Box>
+    </Box>
   );
 }
 

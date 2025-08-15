@@ -16,7 +16,7 @@ import {
     Playlist,
     Signup,
     Subscription,
-    VideoPage
+    VideoPage,
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
@@ -40,6 +40,7 @@ function AppRouter() {
                             <Route path='playlists' element={<ChannelPlaylist />} />
                             <Route path='about' element={<ChannelAbout />} />
                         </Route>
+                        <Route path="/v/:id/Pl=/:p_id" element={<VideoPage />} />
                         <Route path="/v/:id" element={<VideoPage />} />
                         <Route path='/test' element={<CloudinaryPlayer />} />
                     </Route>

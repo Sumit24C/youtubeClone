@@ -1,22 +1,22 @@
-import mongoose, {isValidObjectId} from "mongoose"
-import {Like} from "../models/like.model.js"
-import {ApiError} from "../utils/ApiError.js"
-import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHandler.js"
+import mongoose, { isValidObjectId } from "mongoose"
+import { Like } from "../models/like.model.js"
+import { ApiError } from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
-    const {videoId} = req.params
+    const { videoId } = req.params
     //TODO: toggle like on video
-    
+
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
     }
-    const isLiked = await Like.findOne({video: videoId, likedBy: req.user._id})
+    const isLiked = await Like.findOne({ video: videoId, likedBy: req.user._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
         return res.status(200).json(
-            new ApiResponse(200, {isLiked: false}, "Unliked video successfully")
+            new ApiResponse(200, { isLiked: false }, "Unliked video successfully")
         )
     }
 
@@ -30,24 +30,24 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {isLiked: true}, "Liked video successfully")
+        new ApiResponse(200, { isLiked: true }, "Liked video successfully")
     )
 
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
-    const {commentId} = req.params
+    const { commentId } = req.params
     //TODO: toggle like on comment
 
     if (!commentId) {
         throw new ApiError(401, "CommentId is required")
     }
-    const isLiked = await Like.findOne({comment: commentId})
+    const isLiked = await Like.findOne({ comment: commentId, likedBy: req.user._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
         return res.status(200).json(
-            new ApiResponse(200, {}, "Unliked comment successfully")
+            new ApiResponse(200, { isLiked: false }, "Unliked comment successfully")
         )
     }
 
@@ -61,27 +61,27 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, likeComment, "Liked comment successfully")
+        new ApiResponse(200, { isLiked: true }, "Liked comment successfully")
     )
 })
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
-    const {tweetId} = req.params
+    const { tweetId } = req.params
     //TODO: toggle like on tweet
-     if (!tweetId) {
+    if (!tweetId) {
         throw new ApiError(401, "TweetId is required")
     }
-    const isLiked = await Like.findOne({tweet: tweetId})
+    const isLiked = await Like.findOne({ tweet: tweetId, likedBy: req.user._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
         return res.status(200).json(
-            new ApiResponse(200, {}, "Unliked tweet successfully")
+            new ApiResponse(200, {isLiked: false}, "Unliked tweet successfully")
         )
     }
 
     const likeTweet = await Like.create({
-       tweet: tweetId,
+        tweet: tweetId,
         likedBy: req.user._id
     })
 
@@ -90,7 +90,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, likeTweet, "Liked tweet successfully")
+        new ApiResponse(200, {isLiked: true}, "Liked tweet successfully")
     )
 }
 )
@@ -124,19 +124,19 @@ const getLikedVideos = asyncHandler(async (req, res) => {
 })
 
 const getLikeCountByVideoId = asyncHandler(async (req, res) => {
-    const {videoId} = req.params;
+    const { videoId } = req.params;
     if (!videoId) {
         throw new ApiError(401, "VideoId is required");
     }
 
-    const likeCount = await Like.find({video: videoId})
+    const likeCount = await Like.find({ video: videoId, likedBy: req.user._id })
     if (!likeCount) {
         throw new ApiError(404, "Liked Not found for this video")
-    } 
+    }
 
     const totalLikeCount = likeCount?.length || 0
 
-    return res.status(200).json(new ApiResponse(200,{totalLikeCount},  "Successfully fetched video liked count"))
+    return res.status(200).json(new ApiResponse(200, { totalLikeCount }, "Successfully fetched video liked count"))
 })
 
 export {

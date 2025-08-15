@@ -3,10 +3,11 @@ import { useLocation, useParams } from 'react-router-dom'
 import { extractErrorMsg, displayCreatedAt } from '../../utils/index.js'
 import { isCancel } from 'axios'
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate.js'
-import { Box, Typography, Divider } from '@mui/material';
+import { Box, Typography, Divider, useMediaQuery } from '@mui/material';
 import CloudinaryPlayer from './CloudinaryPlayer.jsx'
 import VideoDetails from './VideoDetails.jsx';
-function LeftContainer() {
+import Comments from '../../pages/Comments.jsx';
+function LeftContainer({isWideScreen}) {
 
   const { id } = useParams();
   const [video, setVideo] = useState(null);
@@ -22,7 +23,6 @@ function LeftContainer() {
         const response = await axiosPrivate.get(`/videos/${id}`, {
           signal: controller.signal
         });
-        console.log("videoData: ", response.data.data)
         setVideo(response.data.data);
 
       } catch (error) {
@@ -76,6 +76,10 @@ function LeftContainer() {
           </Box>
         )}
         <Divider sx={{ my: 2 }} />
+
+        {isWideScreen && <Box>
+          <Comments />
+        </Box>}
       </Box>
 
     </>

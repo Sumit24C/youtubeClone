@@ -3,7 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { isCancel } from 'axios';
 import { useAxiosPrivate } from './useAxiosPrivate';
 
-function useLike(isLiked, likesCount, isDisliked = false) {
+function useLike(
+    isLiked,
+    likesCount,
+    isDisliked = false,
+    type,
+    commentId = ""
+) {
+    console.log(type);
     const { id } = useParams();
     const [likeLoading, setLikeLoading] = useState(false);
     const [liked, setLiked] = useState(isLiked);
@@ -11,14 +18,22 @@ function useLike(isLiked, likesCount, isDisliked = false) {
     const axiosPrivate = useAxiosPrivate();
     const controller = useRef(null);
     controller.current = new AbortController();
+    let endPoint;
+
+    if (commentId) {
+        endPoint = `/likes/toggle/${type[0]}/${commentId}`
+    } else {
+        endPoint = `/likes/toggle/${type[0]}/${id}`
+    }
 
     const handleLike = async () => {
         setLikeLoading(true);
         try {
-            const response = await axiosPrivate.post(`/likes/toggle/v/${id}`, {
+            const response = await axiosPrivate.post(endPoint, {
                 signal: controller.current.signal
             });
 
+            console.log(response.data.data);
             const likedRes = response.data.data.isLiked
             setLiked(likedRes);
 

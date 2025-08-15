@@ -10,8 +10,8 @@ import VideoPageButton from '../Buttons/VideoPageButton';
 const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
 
   const { subscribeLoading, subscribed, subscribersCount, handleSubscribe } = useSubscribe(channel);
-  const { likeLoading, liked, countOfLikes, disliked, handleLike } = useLike(isLiked, likesCount, isDisliked = false);
-
+  const { likeLoading, liked, countOfLikes, disliked, handleLike } = useLike(isLiked, likesCount, isDisliked = false, "video");
+  
   return (
     <Box
       sx={{
@@ -82,7 +82,7 @@ const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
               color: 'white',
               bgcolor: 'transparent',
               '&:hover': {
-                bgcolor: liked ? '#3a3a3aff' : "#e5e5e5",
+                bgcolor: '#565656ff',
               },
             }}
           >

@@ -60,7 +60,7 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                videosCount: {$size: "$videos"},
+                videosCount: { $size: "$videos" },
                 videos: {
                     $arrayElemAt: ["$videos", -1]
                 }
@@ -71,7 +71,7 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
                 from: "videos",
                 localField: "videos",
                 foreignField: "_id",
-                as: "lastVideo", 
+                as: "lastVideo",
                 pipeline: [
                     {
                         $project: {
@@ -87,7 +87,7 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
                 path: "$lastVideo",
                 preserveNullAndEmptyArrays: true,
             }
-        }, 
+        },
         {
             $project: {
                 videos: 0,
@@ -157,13 +157,15 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, playlist, "Playlist fetched successfully")
+        new ApiResponse(200, playlist[0], "Playlist fetched successfully")
     )
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params
 
+    console.log("playlist",playlistId);
+    console.log("video",videoId);
     if (!(playlistId && videoId)) {
         throw new ApiError(401, "All fields are required")
     }
@@ -172,7 +174,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         playlistId,
         {
             $push: {
-                videos: videoId
+                videos: new mongoose.Types.ObjectId(videoId)
             }
         },
         { new: true }

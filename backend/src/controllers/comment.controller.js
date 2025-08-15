@@ -23,8 +23,54 @@ const getVideoComments = asyncHandler(async (req, res) => {
             }
         },
         {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "comment",
+                as: "like"
+            }
+        },
+        {
+            $addFields: {
+                likesCount: {
+                    $size: "$like"
+                },
+                isLiked: {
+                    $cond: {
+                        if: { $in: [req.user?._id, "$like.likedBy"] },
+                        then: true,
+                        else: false
+                    }
+                },
+            },
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            username: 1,
+                            avatar: 1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
             $skip: (pageNumber - 1) * limitNumber
         },
+        {
+            $project: {
+                like: 0
+            }
+        }
     ])
 
     if (!(comments.length > 0)) {
@@ -48,16 +94,72 @@ const addComment = asyncHandler(async (req, res) => {
     if (!videoId) {
         throw new ApiError(401, "videoID is required")
     }
-
+    
     const comment = await Comment.create({
         content,
         video: videoId,
         owner: req.user?._id
     })
-
+    
     if (!comment) {
         throw new ApiError(500, "Failed to upload comment")
     }
+
+    // const resComment = await Comment.aggregate([
+    //     {
+    //         $match: {
+    //             _id: new mongoose.Types.ObjectId(comment._id)
+    //         }
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "likes",
+    //             localField: "_id",
+    //             foreignField: "comment",
+    //             as: "like"
+    //         }
+    //     },
+    //     {
+    //         $addFields: {
+    //             likesCount: {
+    //                 $size: "$like"
+    //             },
+    //             isLiked: {
+    //                 $cond: {
+    //                     if: { $in: [req.user?._id, "$like.likedBy"] },
+    //                     then: true,
+    //                     else: false
+    //                 }
+    //             },
+    //         },
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: "users",
+    //             localField: "owner",
+    //             foreignField: "_id",
+    //             as: "owner",
+    //             pipeline: [
+    //                 {
+    //                     $project: {
+    //                         username: 1,
+    //                         avatar: 1,
+    //                     }
+    //                 }
+    //             ]
+    //         }
+    //     },
+    //     {
+    //         $project: {
+    //             like: 0
+    //         }
+    //     }
+    // ])
+
+    // if (!(resComment.length > 0)) {
+    //     throw new ApiError(401, "failed to aggregate comment")
+    // }
+
 
     return res.status(200).json(
         new ApiResponse(200, comment, "Comment uploaded successfully")
@@ -68,7 +170,7 @@ const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
     const { commentId } = req.params
 
-    const {content} = req.body
+    const { content } = req.body
 
     if (!content) {
         throw new ApiError(401, "Comtent is required")
