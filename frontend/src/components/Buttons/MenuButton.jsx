@@ -1,39 +1,50 @@
-import React from 'react'
-import { useState } from 'react';
+import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Box, IconButton, Menu, MenuItem, Dialog, DialogContent } from '@mui/material';
-import CreatePlaylist from "../Playlist/CreatePlaylist"
+import CreatePlaylist from "../Playlist/CreatePlaylist";
+import PlaylistForm from '../Playlist/PlaylistForm';
 
-function MenuButton({ videoId }) {
-    const [anchorEl, setAnchorE1] = useState(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
+function MenuButton({ type, videoId, playlist, setPlaylist }) {
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [dialogOpen, setDialogOpen] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [errMsg, setErrMsg] = useState("");
+
     const open = Boolean(anchorEl);
-
-    const handleMenuClose = (e) => {
-        setAnchorE1(null);
-    }
 
     const handleMenuOpen = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        setAnchorE1(e.currentTarget);
-    }
+        setAnchorEl(e.currentTarget);
+    };
 
-    const handleDialogOpen = (type) => {
+    const handleMenuClose = () => setAnchorEl(null);
+
+    const handleDialogOpen = (dialog) => {
         handleMenuClose();
-        setDialogOpen(true);
-    }
+        setDialogOpen(dialog);
+    };
 
-    const handleDialogClose = () => {
-        setDialogOpen(false);
-    }
+    const handleDialogClose = () => setDialogOpen(null);
+
+    const cardMenuOption = [
+        { text: "Save to Playlist", dialog: "playlist" },
+        { text: "Save to Watch Later" },
+        { text: "Share" },
+        { text: "Not Interested" },
+        { text: "Download" },
+    ];
+
+    const playlistMenuOption = [
+        { text: "Edit", dialog: "edit" },
+        { text: "Delete" },
+    ];
+
+    const menuOptions = type === "playlist" ? playlistMenuOption : cardMenuOption;
 
     return (
         <Box>
-            <IconButton 
-                onClick={handleMenuOpen} 
-                size="small"
-            >
+            <IconButton onClick={handleMenuOpen} size="small">
                 <MoreVertIcon />
             </IconButton>
 
@@ -44,29 +55,34 @@ function MenuButton({ videoId }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <MenuItem onClick={() => handleDialogOpen('playlist')}>Save to Playlist</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Share</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Not Interested</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Download</MenuItem>
-                <MenuItem onClick={handleMenuClose}>Save to Watch Later</MenuItem>
+                {menuOptions.map((option) => (
+                    <MenuItem
+                        key={option.text}
+                        onClick={() => option.dialog && handleDialogOpen(option.dialog)}
+                    >
+                        {option.text}
+                    </MenuItem>
+                ))}
             </Menu>
 
-            <Dialog 
-                open={dialogOpen} 
-                onClose={handleDialogClose}
-                maxWidth="sm"
-                fullWidth
-                disableRestoreFocus={true} 
-            >
+            <Dialog open={Boolean(dialogOpen)} onClose={handleDialogClose} disableRestoreFocus>
                 <DialogContent sx={{ p: 0 }}>
-                    <CreatePlaylist 
-                        videoId={videoId} 
-                        handleDialogClose={handleDialogClose}
-                    />
+                    {dialogOpen === 'edit' && playlist ? (
+                        <PlaylistForm
+                            prev={playlist}
+                            setPlaylist={setPlaylist}
+                            handleDialogClose={handleDialogClose}
+                            loading={loading}
+                            setLoading={setLoading}
+                            setErrMsg={setErrMsg}
+                        />
+                    ) : dialogOpen === 'playlist' ? (
+                        <CreatePlaylist videoId={videoId} handleDialogClose={handleDialogClose} />
+                    ) : null}
                 </DialogContent>
             </Dialog>
         </Box>
-    )
+    );
 }
 
-export default MenuButton
+export default MenuButton;

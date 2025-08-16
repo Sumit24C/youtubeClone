@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 const createPlaylist = asyncHandler(async (req, res) => {
-    const { name, description, videoId } = req.body
+    const { name, description, videoId, privacy } = req.body
     //TODO: create playlist
 
     if (!(name && description)) {
@@ -12,7 +12,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     }
 
     const playlist = await Playlist.create({
-        name, description, videos: [videoId], owner: req.user._id
+        name, description, videos: [videoId], owner: req.user._id, private: privacy
     });
 
     if (!playlist) {
@@ -105,6 +105,18 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
 
 })
 
+const getCurrentUserPlaylistsTitle = asyncHandler(async (req, res) => {
+    const playlist = await Playlist.find({ owner: req.user._id })
+
+    if (!playlist) {
+        throw new ApiError(404, "playlist not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, playlist, "playlist title fetched successfully")
+    )
+})
+
 const getPlaylistById = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
     //TODO: get playlist by id
@@ -161,16 +173,37 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     )
 })
 
-const addVideoToPlaylist = asyncHandler(async (req, res) => {
+const toggleVideoToPlaylist = asyncHandler(async (req, res) => {
     const { playlistId, videoId } = req.params
 
-    console.log("playlist",playlistId);
-    console.log("video",videoId);
     if (!(playlistId && videoId)) {
         throw new ApiError(401, "All fields are required")
     }
 
-    const playlist = await Playlist.findByIdAndUpdate(
+    const playlist = await Playlist.findOne({ _id: playlistId, videos: videoId, owner: req.user._id })
+
+    if (playlist) {
+        const removedPlaylist = await Playlist.findByIdAndUpdate(
+            playlist._id,
+            {
+                $pull: {
+                    videos: videoId
+                }
+            },
+            { new: true }
+        )
+
+        if (!removedPlaylist) {
+            throw new ApiError(500, "Failed to remove video from the playlist")
+        }
+
+        return res.status(200).json(
+            new ApiResponse(200, removedPlaylist, "Video removed from the playlist successfully")
+        )
+
+    }
+
+    const addedPlaylist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
             $push: {
@@ -180,12 +213,12 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
         { new: true }
     )
 
-    if (!playlist) {
+    if (!addedPlaylist) {
         throw new ApiError(500, "Failed to add video to the playlist")
     }
 
     return res.status(200).json(
-        new ApiResponse(200, playlist, "Video added to the playlist successfully")
+        new ApiResponse(200, addedPlaylist, "Video added to the playlist successfully")
     )
 })
 
@@ -234,20 +267,20 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    const { name, description } = req.body
+    const { name, description, privacy } = req.body
     //TODO: update playlist
-    if (!(name || description)) {
+    if (!name && !description) {
         throw new ApiError(401, "Atleast one field is required")
     }
-    const updatedData = {}
-
-    if (typeof (name) === "string" && name.trim()) updatedData.name = name
-    if (typeof (description) === "string" && description.trim()) updatedData.description = description
 
     const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            $set: updatedData
+            $set: {
+                name: name,
+                description: description,
+                private: privacy,
+            }
         }, {
         new: true
     }
@@ -264,10 +297,11 @@ const updatePlaylist = asyncHandler(async (req, res) => {
 
 export {
     createPlaylist,
+    getCurrentUserPlaylistsTitle,
     getCurrentUserPlaylists,
     getUserPlaylists,
     getPlaylistById,
-    addVideoToPlaylist,
+    toggleVideoToPlaylist,
     removeVideoFromPlaylist,
     deletePlaylist,
     updatePlaylist

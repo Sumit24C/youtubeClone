@@ -1,87 +1,54 @@
-import React from "react";
-import {
-  Card,
-  CardMedia,
-  CardContent,
-  CardHeader,
-  Typography,
-  Chip,
-  Box
-} from "@mui/material";
-import { displayCreatedAt } from "../../utils";
+import React, { useState } from "react";
+import { Card, CardMedia, CardContent, CardHeader, Typography, Chip, Box } from "@mui/material";
 import { Link } from "react-router-dom";
+import { displayCreatedAt } from "../../utils";
+import MenuButton from "../Buttons/MenuButton";
 
-function PlaylistContainer({ playlist }) {
-  const {
-    _id,
-    name,
-    lastVideo,
-    videosCount,
-    updatedAt,
-    privacy = "Private"
-  } = playlist;
+function PlaylistContainer({ playlist: initialPlaylist }) {
+  const [playlistState, setPlaylistState] = useState(initialPlaylist);
 
-  console.log(_id);
-  
   return (
-    <Box
-      component={Link}
-      to={`/v/${lastVideo._id}/Pl=/${_id}`}
-      sx={{ textDecoration: 'none' }}
-    >
-      <Card sx={{ width: 288, backgroundColor: "black", color: "white" }}>
-        {/* Thumbnail at top */}
+    <Card sx={{ background: "transparent", color: "white", display: "flex", flexDirection: "column" }}>
+      <Box component={Link} to={`/v/${playlistState.lastVideo?._id}/Pl=/${playlistState._id}`} sx={{ textDecoration: "none", color: "inherit" }}>
         <Box sx={{ position: "relative" }}>
           <CardMedia
             component="img"
             height="176"
-            image={
-              lastVideo?.thumbnailUrl ||
-              "https://res.cloudinary.com/youtube236/image/upload/v1754666950/vzjt10az7ntuzzb08k6n.jpg"
-            }
-            alt={`${name} thumbnail`}
+            image={playlistState.lastVideo?.thumbnailUrl}
+            alt={`${playlistState.name} thumbnail`}
+            sx={{ borderRadius: '10px' }}
           />
-          {/* Video count badge */}
           <Chip
-            label={`${videosCount || 0} videos`}
+            label={`${playlistState.videosCount || 0} videos`}
             size="small"
-            sx={{
-              position: "absolute",
-              bottom: 8,
-              right: 8,
-              backgroundColor: "rgba(0,0,0,0.7)",
-              color: "white"
-            }}
+            sx={{ position: "absolute", bottom: 8, right: 8, backgroundColor: "rgba(0,0,0,0.7)", color: "white" }}
           />
         </Box>
+      </Box>
 
-        {/* All text content below thumbnail */}
-        <CardContent sx={{ pt: 2 }}>
-          <Typography
-            variant="h6"
-            noWrap
-            sx={{ fontWeight: "bold", color: "white", mb: 0.5 }}
-          >
-            {name}
+      <CardHeader
+        title={
+          <Typography variant="h6" noWrap sx={{ fontWeight: "bold", color: "white" }}>
+            {playlistState.name}
           </Typography>
-          <Typography variant="body2" sx={{ color: "gray.400", mb: 1 }}>
-            {privacy} • Playlist
+        }
+        subheader={
+          <Typography variant="body2" sx={{ color: "gray.400" }}>
+            {playlistState.private ? "Private" : "Public"} • Playlist
           </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: "gray.400", display: "block", mb: 1 }}
-          >
-            Updated {displayCreatedAt(updatedAt)}
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{ color: "skyblue", cursor: "pointer" }}
-          >
-            View full playlist
-          </Typography>
-        </CardContent>
-      </Card>
-    </Box>
+        }
+        action={
+          <MenuButton type="playlist" playlist={playlistState} setPlaylist={setPlaylistState} />
+        }
+        sx={{ p: 2 }}
+      />
+
+      <CardContent sx={{ pt: 0 }}>
+        <Typography variant="caption" sx={{ color: "gray.400", display: "block" }}>
+          Updated {displayCreatedAt(playlistState.updatedAt)}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 }
 

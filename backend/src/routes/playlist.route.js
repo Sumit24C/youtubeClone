@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import {
-    addVideoToPlaylist,
     createPlaylist,
     deletePlaylist,
     getCurrentUserPlaylists,
+    getCurrentUserPlaylistsTitle,
     getPlaylistById,
     getUserPlaylists,
     removeVideoFromPlaylist,
+    toggleVideoToPlaylist,
     updatePlaylist,
 } from "../controllers/playlist.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
@@ -17,6 +18,7 @@ router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router.route("/").post(createPlaylist)
 router.route("/current-user").get(getCurrentUserPlaylists);
+router.route("/current-user/t").get(getCurrentUserPlaylistsTitle);
 
 router
     .route("/:playlistId")
@@ -24,7 +26,7 @@ router
     .patch(updatePlaylist)
     .delete(deletePlaylist);
 
-router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
+router.route("/toggle/:videoId/:playlistId").patch(toggleVideoToPlaylist);
 router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
 
 router.route("/user/:userId").get(getUserPlaylists);
