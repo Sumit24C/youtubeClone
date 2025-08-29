@@ -20,7 +20,8 @@ import {
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
-
+import {Dashboard, Community, Content, Analytics} from "../src/components/Studio"
+import Studio from './pages/Studio'
 function AppRouter() {
     return (
         <Routes>
@@ -29,7 +30,13 @@ function AppRouter() {
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
                         <Route index path="/" element={<Home />} />
-                        <Route index path="/you" element={<You />} />
+                        <Route path="/you" element={<You />} />
+                        <Route path="/studio" element={<Studio />} >
+                            <Route index path='dashboard' element={<Dashboard/>}/>
+                            <Route path='content' element={<Content/>}/>
+                            <Route path='analytics' element={<Analytics/>}/>
+                            <Route path='community' element={<Community/>}/>
+                        </Route>
                         <Route index path="/playlist" element={<Playlist/>} />
                         <Route index path="/liked-videos" element={<LikedVideos/>} />
                         <Route index path="/history" element={<WatchHistory/>} />

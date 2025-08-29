@@ -4,11 +4,14 @@ import {
     Avatar,
     Typography,
     Container,
+    Button,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useSubscribe } from '../../hooks/useSubscribe';
 import VideoPageButton from '../Buttons/VideoPageButton';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 const darkTheme = createTheme({
     palette: {
@@ -28,13 +31,6 @@ const darkTheme = createTheme({
 
 const ChannelHeader = ({ channelInfo }) => {
     const {
-        subscribeLoading,
-        subscribed,
-        subscribersCount,
-        handleSubscribe,
-    } = useSubscribe(channelInfo);
-
-    const {
         coverImage,
         avatar,
         username,
@@ -42,92 +38,136 @@ const ChannelHeader = ({ channelInfo }) => {
         videosCount = 0,
     } = channelInfo;
 
+    const {
+        subscribeLoading,
+        subscribed,
+        subscribersCount,
+        handleSubscribe,
+    } = useSubscribe(channelInfo);
+
+    const userData = useSelector((state) => state.auth.userData);
+
     return (
         <ThemeProvider theme={darkTheme}>
 
-                {/* Banner */}
-                <Box
-                    component="img"
-                    src={coverImage || 'https://res.cloudinary.com/youtube236/image/upload/v1754237354/xwd482mt0jae4d5xblr5.png'}
-                    alt="Banner"
+            {/* Banner */}
+            <Box
+                component="img"
+                src={coverImage || 'https://res.cloudinary.com/youtube236/image/upload/v1754237354/xwd482mt0jae4d5xblr5.png'}
+                alt="Banner"
+                sx={{
+                    borderRadius: "20px",
+                    width: "100%",
+                    height: "20%",
+                    objectFit: 'cover',
+                    mt: 2,
+                }}
+            />
+
+            {/* Channel Info */}
+            <Box
+                display="flex"
+                gap={3}
+                alignItems="center"
+                py={4}
+            >
+                {/* Avatar */}
+                <Avatar
+                    src={avatar}
+                    alt={username}
                     sx={{
-                        borderRadius: "20px",
-                        width: "100%",
-                        height: "20%",
-                        objectFit: 'cover',
-                        mt: 2,
+                        width: 140,
+                        height: 140,
                     }}
                 />
 
-                {/* Channel Info */}
-                <Box
-                    display="flex"
-                    gap={3}
-                    alignItems="center"
-                    py={4}
-                >
-                    {/* Avatar */}
-                    <Avatar
-                        src={avatar}
-                        alt={username}
+                {/* Info Section */}
+                <Box flex={1}>
+                    {/* Username + Verified */}
+                    <Typography
+                        variant="h5"
+                        fontSize="2rem"
+                        fontWeight="bold"
+                        display="flex"
+                        alignItems="center"
+                        gap={1}
+                    >
+                        {username}
+                        <CheckCircleIcon fontSize="small" color="action" />
+                    </Typography>
+
+                    {/* Handle, subs, videos */}
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        mt={0.5}
+                        mb={1}
+                    >
+                        @{username} · {subscribersCount} {subscribersCount === 1 ? "subscriber" : "subscribers"} · {videosCount} {videosCount === 1 ? "video" : "videos"}
+                    </Typography>
+
+
+                    {/* Description */}
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
                         sx={{
-                            width: 140,
-                            height: 140,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
                         }}
-                    />
+                    >
+                        {description} <Box component="span" fontWeight="bold" color="white">...more</Box>
+                    </Typography>
 
-                    {/* Info Section */}
-                    <Box flex={1}>
-                        {/* Username + Verified */}
-                        <Typography
-                            variant="h5"
-                            fontSize="2rem"
-                            fontWeight="bold"
-                            display="flex"
-                            alignItems="center"
-                            gap={1}
-                        >
-                            {username}
-                            <CheckCircleIcon fontSize="small" color="action" />
-                        </Typography>
-
-                        {/* Handle, subs, videos */}
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            mt={0.5}
-                            mb={1}
-                        >
-                            @{username} · {subscribersCount} {subscribersCount === 1 ? "subscriber" : "subscribers"} · {videosCount} {videosCount === 1 ? "video" : "videos"}
-                        </Typography>
-
-
-                        {/* Description */}
-                        <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                            }}
-                        >
-                            {description} <Box component="span" fontWeight="bold" color="white">...more</Box>
-                        </Typography>
-
-                        {/* Subscribe Button */}
-                        <Box mt={2}>
+                    {/* Subscribe / Manage Button */}
+                    <Box mt={3}>
+                        {userData.username === username ? (
+                            <Button
+                                component={Link}
+                                to="/studio/content"
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: "#515151ff",
+                                    color: "#fff",
+                                    textTransform: "none",
+                                    fontWeight: "bold",
+                                    borderRadius: "20px",
+                                    px: 3,
+                                    py: 1,
+                                    "&:hover": {
+                                        backgroundColor: "#3d3d3dff",
+                                    },
+                                }}
+                            >
+                                Manage Videos
+                            </Button>
+                        ) : (
                             <VideoPageButton
                                 active={subscribed}
                                 onClick={handleSubscribe}
                                 loading={subscribeLoading}
+                                sx={{
+                                    backgroundColor: subscribed ? "#303030" : "#ffffffff",
+                                    color: subscribed ? "#fff" : "#000",
+                                    textTransform: "none",
+                                    fontWeight: "bold",
+                                    borderRadius: "20px",
+                                    px: 3,
+                                    py: 1,
+                                    "&:hover": {
+                                        backgroundColor: subscribed ? "#505050" : "#b5b5b5ff",
+                                    },
+                                }}
                             >
                                 {subscribed ? "Subscribed" : "Subscribe"}
                             </VideoPageButton>
-                        </Box>
+                        )}
                     </Box>
+
                 </Box>
+            </Box>
         </ThemeProvider>
     );
 };

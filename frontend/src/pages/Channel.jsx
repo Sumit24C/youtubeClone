@@ -6,6 +6,7 @@ import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js';
 import ChannelHeader from '../components/Channel/ChannelHeader.jsx';
 import ChannelTabs from '../components/Channel/ChannelTabs.jsx';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
 
 function Channel() {
   const { id } = useParams();

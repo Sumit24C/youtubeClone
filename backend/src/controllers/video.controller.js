@@ -10,7 +10,7 @@ import { channel } from "diagnostics_channel"
 const getAllHomeVideos = asyncHandler(async (req, res) => {
 
     const page = 1;
-    const limitNumber = 10;
+    const limitNumber = 9;
 
     const videos = await Video.aggregate([
         {
@@ -45,7 +45,7 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
 })
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy = "createdAt", sortType = "asc", userId } = req.query
+    const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "asc", userId } = req.query
     //TODO: get all videos based on query, sort, pagination
 
     if (!userId.trim()) {
@@ -120,7 +120,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body
 
     if ([title, description].some((field) => !field || field.trim() === "")) {
-        throw new ApiError(401, "All fields are required")
+        throw new ApiError(403, "All fields are required")
     }
     const videoLocalPath = req.files?.videoFile[0]?.path
     console.log(req.files)

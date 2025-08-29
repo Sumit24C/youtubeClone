@@ -7,6 +7,9 @@ import Typography from '@mui/material/Typography';
 import SearchBar from './SearchBar';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import CreateButton from './CreateButton';
+import Badge from '@mui/material/Badge';
+import AccountButton from './AccountButton';
 
 function Header({ setOpen, open }) {
   const handleToggleDrawer = () => setOpen(prev => !prev);
@@ -16,8 +19,8 @@ function Header({ setOpen, open }) {
       position="fixed"
       elevation={1}
       sx={{
-        display:'flex',
-        justifyContent:'center',
+        display: 'flex',
+        justifyContent: 'center',
         zIndex: (theme) => theme.zIndex.drawer + 1,
         bgcolor: (theme) => theme.palette.background.paper,
         color: (theme) => theme.palette.text.primary,
@@ -40,7 +43,7 @@ function Header({ setOpen, open }) {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" noWrap>
-              MyApp
+              MyTube
             </Typography>
           </Box>
 
@@ -59,12 +62,16 @@ function Header({ setOpen, open }) {
 
           {/* Right */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* Create Button */}
+            <CreateButton />
+
             <IconButton color="inherit">
-              <NotificationsIcon />
+              <Badge badgeContent={0} color="error">
+                <NotificationsIcon />
+              </Badge>
             </IconButton>
-            <IconButton color="inherit">
-              <AccountCircleIcon />
-            </IconButton>
+
+            <AccountButton/>
           </Box>
         </Box>
       </Toolbar>
