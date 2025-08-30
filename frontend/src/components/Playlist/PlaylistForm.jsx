@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { Box, TextField, Button, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate.js";
 import extractErrorMsg from "../../utils/extractErrorMsg.js";
+import { useSnackbar } from 'notistack';
 
 function PlaylistForm({
     videoId,
@@ -23,6 +24,7 @@ function PlaylistForm({
 
     const axiosPrivate = useAxiosPrivate();
     const controller = useRef(null);
+    const { enqueueSnackbar } = useSnackbar();
 
     const createOrEdit = async (data) => {
         setLoading(true);
@@ -39,13 +41,14 @@ function PlaylistForm({
             };
 
             const response = await axiosPrivate[method](url, payload, { signal: controller.current.signal });
-
+            enqueueSnackbar(response.data.message)
             if (prev?._id) {
                 setPlaylist(prev => ({
                     ...prev,
                     name: response.data.data.name,
                     description: response.data.data.description,
                     private: response.data.data.private,
+                    updatedAt: response.data.data.updatedAt,
                 }))
             } else {
                 setPlaylist(prevState => [...prevState, response.data.data]);
@@ -56,6 +59,7 @@ function PlaylistForm({
         } catch (error) {
             const errorMessage = extractErrorMsg(error);
             setErrMsg(errorMessage);
+            enqueueSnackbar(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -102,7 +106,7 @@ function PlaylistForm({
                     </Select>
                 </FormControl>
 
-                <Box sx={{ display: "flex", justifyContent:"center", gap: 1, mt: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mt: 2 }}>
                     {!prev._id && <Button
                         variant="outlined"
                         onClick={() => setShowForm(false)}

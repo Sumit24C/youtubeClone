@@ -3,8 +3,9 @@ import { Card, CardMedia, CardContent, CardHeader, Typography, Chip, Box } from 
 import { Link } from "react-router-dom";
 import { displayCreatedAt } from "../../utils";
 import MenuButton from "../Buttons/MenuButton";
+import PlaylistMenu from "../Buttons/PlaylistMenu";
 
-function PlaylistContainer({ playlist: initialPlaylist }) {
+function PlaylistContainer({ playlist: initialPlaylist, setPlaylistInfo }) {
   const [playlistState, setPlaylistState] = useState(initialPlaylist);
 
   return (
@@ -38,7 +39,7 @@ function PlaylistContainer({ playlist: initialPlaylist }) {
           </Typography>
         }
         action={
-          <MenuButton type="playlist" playlist={playlistState} setPlaylist={setPlaylistState} />
+          <PlaylistMenu playlist={playlistState} setPlaylist={setPlaylistState} setPlaylistInfo={setPlaylistInfo}/>
         }
         sx={{ p: 2 }}
       />

@@ -11,6 +11,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { isCancel } from "axios";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate.js";
 import extractErrorMsg from "../../utils/extractErrorMsg.js";
+import { useSnackbar } from "notistack";
 
 function PlaylistSelector({ playlist, videoId }) {
 
@@ -20,6 +21,7 @@ function PlaylistSelector({ playlist, videoId }) {
 
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
+    const { enqueueSnackbar } = useSnackbar();
 
     useEffect(() => {
         const initiallySelectedId = playlist
@@ -47,6 +49,7 @@ function PlaylistSelector({ playlist, videoId }) {
                 { signal: controller.current.signal }
             );
             console.log(response.data.data)
+            enqueueSnackbar(response.data.message)
             handleToggle(pId)
         } catch (error) {
             if (isCancel(error)) {
@@ -55,6 +58,7 @@ function PlaylistSelector({ playlist, videoId }) {
                 const errorMessage = extractErrorMsg(error);
                 console.error(errorMessage);
                 setErrMsg(errorMessage);
+                enqueueSnackbar(extractErrorMsg(error))
             }
         } finally {
             setLoading(false);

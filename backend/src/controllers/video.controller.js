@@ -8,41 +8,62 @@ import { deleteFromCloudinary, uploadOnCloudinary, uploadVideoOnCloudinary } fro
 import { channel } from "diagnostics_channel"
 
 const getAllHomeVideos = asyncHandler(async (req, res) => {
+  const { page = 1 } = req.query;
+  const pageNumber = parseInt(page);
+  const limitNumber = 9;
 
-    const page = 1;
-    const limitNumber = 9;
-
-    const videos = await Video.aggregate([
-        {
-            $limit: limitNumber
-        },
-        {
+  const response = await Video.aggregate([
+    {
+      $facet: {
+        videos: [
+          { $sort: { createdAt: -1 } },
+          { $skip: (pageNumber - 1) * limitNumber },
+          { $limit: limitNumber },
+          {
             $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "channel",
-                pipeline: [
-                    {
-                        $project: {
-                            _id: 0,
-                            username: 1,
-                            avatar: 1,
-                        }
-                    }
-                ]
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "channel",
+              pipeline: [
+                { $project: { _id: 0, username: 1, avatar: 1 } }
+              ]
             }
-        },
-    ])
-
-    if (!(videos.length > 0)) {
-        throw new ApiError(401, "Videos not found")
+          }
+        ],
+        totalCount: [{ $count: "count" }]
+      }
+    },
+    {
+      $addFields: {
+        totalVideos: { $arrayElemAt: ["$totalCount.count", 0] },
+        totalPages: {
+          $ceil: {
+            $divide: [
+              { $arrayElemAt: ["$totalCount.count", 0] },
+              limitNumber
+            ]
+          }
+        }
+      }
     }
+  ]);
 
-    return res.status(200).json(
-        new ApiResponse(200, videos, "All Videos fetched successfully")
-    )
-})
+  const result = response[0];
+  if (!(result.videos.length > 0)) {
+    throw new ApiError(401, "Videos not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      videos: result.videos,
+      totalVideos: result.totalVideos,   
+      totalPages: result.totalPages,    
+    //   currentPage: pageNumber
+    }, "All Videos fetched successfully")
+  );
+});
+
 
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "asc", userId } = req.query

@@ -4,6 +4,7 @@ import { displayCreatedAt, displayDuration, displayViews } from '../../utils/ind
 import MenuButton from '../Buttons/MenuButton';
 import { useEffect } from 'react';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PlaylistMenu from '../Buttons/PlaylistMenu';
 
 function PlaylistCard({ p_id, videoInfo, setCurrentVideo, isCurrentVideo }) {
   const { _id, thumbnailUrl, title, channel, views, createdAt, duration } = videoInfo.video;

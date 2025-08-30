@@ -2,13 +2,10 @@ import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Box, IconButton, Menu, MenuItem, Dialog, DialogContent } from '@mui/material';
 import CreatePlaylist from "../Playlist/CreatePlaylist";
-import PlaylistForm from '../Playlist/PlaylistForm';
 
-function MenuButton({ type, videoId, playlist, setPlaylist }) {
+function MenuButton({ videoId }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [errMsg, setErrMsg] = useState("");
 
     const open = Boolean(anchorEl);
 
@@ -27,6 +24,7 @@ function MenuButton({ type, videoId, playlist, setPlaylist }) {
 
     const handleDialogClose = () => setDialogOpen(null);
 
+    // 🎯 Only card menu options here
     const cardMenuOption = [
         { text: "Save to Playlist", dialog: "playlist" },
         { text: "Save to Watch Later" },
@@ -34,13 +32,6 @@ function MenuButton({ type, videoId, playlist, setPlaylist }) {
         { text: "Not Interested" },
         { text: "Download" },
     ];
-
-    const playlistMenuOption = [
-        { text: "Edit", dialog: "edit" },
-        { text: "Delete" },
-    ];
-
-    const menuOptions = type === "playlist" ? playlistMenuOption : cardMenuOption;
 
     return (
         <Box>
@@ -55,7 +46,7 @@ function MenuButton({ type, videoId, playlist, setPlaylist }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                {menuOptions.map((option) => (
+                {cardMenuOption.map((option) => (
                     <MenuItem
                         key={option.text}
                         onClick={() => option.dialog && handleDialogOpen(option.dialog)}
@@ -65,20 +56,12 @@ function MenuButton({ type, videoId, playlist, setPlaylist }) {
                 ))}
             </Menu>
 
+            {/* Playlist dialog (only when user selects "Save to Playlist") */}
             <Dialog open={Boolean(dialogOpen)} onClose={handleDialogClose} disableRestoreFocus>
                 <DialogContent sx={{ p: 0 }}>
-                    {dialogOpen === 'edit' && playlist ? (
-                        <PlaylistForm
-                            prev={playlist}
-                            setPlaylist={setPlaylist}
-                            handleDialogClose={handleDialogClose}
-                            loading={loading}
-                            setLoading={setLoading}
-                            setErrMsg={setErrMsg}
-                        />
-                    ) : dialogOpen === 'playlist' ? (
+                    {dialogOpen === 'playlist' && (
                         <CreatePlaylist videoId={videoId} handleDialogClose={handleDialogClose} />
-                    ) : null}
+                    )}
                 </DialogContent>
             </Dialog>
         </Box>

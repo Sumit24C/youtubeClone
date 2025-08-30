@@ -12,8 +12,6 @@ function Playlist() {
   const [loading, setLoading] = useState(false);
   const axiosPrivate = useAxiosPrivate();
 
-  console.log(playlistInfo);
-
   useEffect(() => {
     setLoading(true);
     const controller = new AbortController();
@@ -67,7 +65,7 @@ function Playlist() {
     >
       {playlistInfo && playlistInfo.length > 0 ? (
         playlistInfo.map((playlist, index) => (
-          <PlaylistContainer key={index} playlist={playlist} />
+          <PlaylistContainer key={index} playlist={playlist} setPlaylistInfo={setPlaylistInfo}/>
         ))
       ) : (
         <Typography textAlign="center">No playlist available</Typography>
