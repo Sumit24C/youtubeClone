@@ -8,62 +8,61 @@ import { deleteFromCloudinary, uploadOnCloudinary, uploadVideoOnCloudinary } fro
 import { channel } from "diagnostics_channel"
 
 const getAllHomeVideos = asyncHandler(async (req, res) => {
-  const { page = 1 } = req.query;
-  const pageNumber = parseInt(page);
-  const limitNumber = 9;
+    const { page = 1 } = req.query;
+    const pageNumber = parseInt(page);
+    const limitNumber = 9;
 
-  const response = await Video.aggregate([
-    {
-      $facet: {
-        videos: [
-          { $sort: { createdAt: -1 } },
-          { $skip: (pageNumber - 1) * limitNumber },
-          { $limit: limitNumber },
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "channel",
-              pipeline: [
-                { $project: { _id: 0, username: 1, avatar: 1 } }
-              ]
+    const response = await Video.aggregate([
+        {
+            $facet: {
+                videos: [
+                    { $sort: { createdAt: -1 } },
+                    { $skip: (pageNumber - 1) * limitNumber },
+                    { $limit: limitNumber },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "channel",
+                            pipeline: [
+                                { $project: { _id: 0, username: 1, avatar: 1 } }
+                            ]
+                        }
+                    }
+                ],
+                totalCount: [{ $count: "count" }]
             }
-          }
-        ],
-        totalCount: [{ $count: "count" }]
-      }
-    },
-    {
-      $addFields: {
-        totalVideos: { $arrayElemAt: ["$totalCount.count", 0] },
-        totalPages: {
-          $ceil: {
-            $divide: [
-              { $arrayElemAt: ["$totalCount.count", 0] },
-              limitNumber
-            ]
-          }
+        },
+        {
+            $addFields: {
+                totalVideos: { $arrayElemAt: ["$totalCount.count", 0] },
+                totalPages: {
+                    $ceil: {
+                        $divide: [
+                            { $arrayElemAt: ["$totalCount.count", 0] },
+                            limitNumber
+                        ]
+                    }
+                }
+            }
         }
-      }
+    ]);
+
+    const result = response[0];
+    if (!(result.videos.length > 0)) {
+        throw new ApiError(401, "Videos not found");
     }
-  ]);
 
-  const result = response[0];
-  if (!(result.videos.length > 0)) {
-    throw new ApiError(401, "Videos not found");
-  }
-
-  return res.status(200).json(
-    new ApiResponse(200, {
-      videos: result.videos,
-      totalVideos: result.totalVideos,   
-      totalPages: result.totalPages,    
-    //   currentPage: pageNumber
-    }, "All Videos fetched successfully")
-  );
+    return res.status(200).json(
+        new ApiResponse(200, {
+            videos: result.videos,
+            totalVideos: result.totalVideos,
+            totalPages: result.totalPages,
+            currentPage: pageNumber
+        }, "All Videos fetched successfully")
+    );
 });
-
 
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "asc", userId } = req.query
@@ -290,6 +289,27 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to update views list")
     }
 
+    const updateWatchHistory = await User.findByIdAndUpdate(
+        req.user._id,
+        [{
+            $set: {
+                watchHistory: {
+                    $cond: [
+                        "$isHistory",
+                        { $setUnion: ["$watchHistory", [updatedVideo._id]] },
+                        "$watchHistory"
+                    ]
+                }
+            }
+        }],
+        {
+            new: true
+        }
+    )
+
+    if (!updateWatchHistory) {
+        throw new ApiError(500, "Failed to update watchHistory")
+    }
 
     return res.status(200).json(
         new ApiResponse(200, video[0], "Video fetched successfully")

@@ -101,7 +101,7 @@ export const StyledListItemText = styled(ListItemText, {
 })(({ theme, open }) => ({
   opacity: open ? 1 : 0,
   '& .MuiListItemText-primary': {
-    fontSize: '0.875rem',
+    fontSize: '1rem',
     fontWeight: 400,
   },
 }));

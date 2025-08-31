@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 
-function CollapsedContainer({ playlist, videos, currentVideo, setIsCollapsed }) {
+function CollapsedContainer({ videos, currentVideo, setIsCollapsed }) {
     const nextVideoIndex = currentVideo || 1;
     const nextVideo = videos?.[nextVideoIndex - 1];
 

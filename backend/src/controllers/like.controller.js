@@ -32,7 +32,6 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, { isLiked: true }, "Liked video successfully")
     )
-
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -76,7 +75,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
         return res.status(200).json(
-            new ApiResponse(200, {isLiked: false}, "Unliked tweet successfully")
+            new ApiResponse(200, { isLiked: false }, "Unliked tweet successfully")
         )
     }
 
@@ -90,7 +89,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {isLiked: true}, "Liked tweet successfully")
+        new ApiResponse(200, { isLiked: true }, "Liked tweet successfully")
     )
 }
 )
@@ -98,28 +97,53 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos
 
-    const likedVideos = await Like.aggregate([
+    const response = await Like.aggregate([
         {
             $match: {
                 likedBy: req.user._id,
-                video: {
-                    $ne: null
-                }
+                video: {$exists: true}
             }
         },
         {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "video",
+                foreignField: "_id",
+                as: "video",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "channel",
+                            pipeline: [
+                                { $project: { _id: 0, username: 1, avatar: 1 } }
+                            ]
+                        }
+                    },
+                ]
+            }
+        },
+        {
+            $unwind: "$video"
+        },
+        {
             $project: {
-                video: 1, createdAt: 1, updatedAt: 1
+                video: 1
             }
         }
     ])
 
-    if (!likedVideos) {
-        throw new ApiError(401, "No liked videos")
+    if (!response) {
+        throw new ApiError(404, "No liked videos");
     }
 
     return res.status(200).json(
-        new ApiResponse(200, likedVideos, "Successfully fetched liked videos")
+        new ApiResponse(200, response, "Successfully fetched liked videos")
     )
 })
 

@@ -13,7 +13,7 @@ import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
 import PlaylistCard from "./PlaylistCard";
 import CollapsedContainer from "./CollapsedContainer";
 
-function PlaylistVideo() {
+function PlaylistVideo({ isFromLiked }) {
     const { id } = useParams();
     const { p_id } = useParams();
     const axiosPrivate = useAxiosPrivate();
@@ -22,22 +22,38 @@ function PlaylistVideo() {
     const [loading, setLoading] = useState(false);
     const [currentVideo, setCurrentVideo] = useState(null);
     const [isCollapsed, setIsCollapsed] = useState(false);
-    console.log(playlist);
+
     useEffect(() => {
         setLoading(true);
         const controller = new AbortController();
-
+        let url
         (async () => {
-            try {
-                const response = await axiosPrivate.get(`/playlist/${p_id}`, {
-                    signal: controller.signal,
-                });
-                setPlaylist(response.data.data);
-                setVideos(response.data.data.playlistVideo);
-            } catch (error) {
-                if (!isCancel(error)) console.error(error);
-            } finally {
-                setLoading(false);
+            if (isFromLiked) {
+                try {
+                    const response = await axiosPrivate.get(`/likes/videos`, {
+                        signal: controller.signal,
+                    });
+                    setPlaylist({ name: "liked Videos" })
+                    const likes = response.data.data
+                    setVideos(likes.map((l) => l.video));
+                } catch (error) {
+                    if (!isCancel(error)) console.error(error);
+                } finally {
+                    setLoading(false);
+                }
+            } else {
+                try {
+                    const response = await axiosPrivate.get(`/playlist/${p_id}`, {
+                        signal: controller.signal,
+                    });
+
+                    setPlaylist(response.data.data);
+                    setVideos(response.data.data.playlistVideo);
+                } catch (error) {
+                    if (!isCancel(error)) console.error(error);
+                } finally {
+                    setLoading(false);
+                }
             }
         })();
 
@@ -63,7 +79,6 @@ function PlaylistVideo() {
     if (isCollapsed) {
         return (
             <CollapsedContainer
-                playlist={playlist}
                 videos={videos}
                 currentVideo={currentVideo}
                 setIsCollapsed={setIsCollapsed}

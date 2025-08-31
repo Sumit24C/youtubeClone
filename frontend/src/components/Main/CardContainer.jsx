@@ -1,11 +1,12 @@
-import { Box, Typography, Avatar } from '@mui/material';
+import { Box, Typography, Avatar, Button } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
 import MenuButton from '../Buttons/MenuButton';
-import {displayViews, displayDuration, displayCreatedAt} from '../../utils';
-function CardContainer({ p_id, video, vertical = false }) {
+import { displayViews, displayDuration, displayCreatedAt } from '../../utils';
+import DeleteVideoWatchHistory from '../Buttons/DeleteVideoWatchHistory';
+function CardContainer({ p_id, video, vertical = false, size = "medium", history = false, setVideos, isLiked = false }) {
   const {
     _id,
     thumbnailUrl,
@@ -16,6 +17,15 @@ function CardContainer({ p_id, video, vertical = false }) {
     duration,
   } = video;
   const path = p_id ? `/v/${_id}/Pl=/${p_id}` : `/v/${_id}`;
+  const sizes = {
+    "medium": {
+      width: "168px", height: "94px"
+    },
+    "large": {
+      width: "200px", height: "120px"
+    }
+  }
+  const [loading, setLoading] = useState(false);
 
   return (
     <Box
@@ -28,15 +38,14 @@ function CardContainer({ p_id, video, vertical = false }) {
       {/* Thumbnail (Link to video) */}
       <Link to={path || 'default'} style={{ textDecoration: 'none', flexShrink: 0 }}>
         <Box sx={{ position: "relative" }}>
-
           <Box
             component="img"
             src={thumbnailUrl}
             alt={title}
             className="thumbnail"
             sx={{
-              width: vertical ? '168px' : '100%',
-              height: vertical ? '94px' : 200,
+              width: vertical ? sizes[size].width : '100%',
+              height: vertical ? sizes[size].height : 250,
               borderRadius: 2,
               objectFit: 'cover',
             }}
@@ -100,29 +109,41 @@ function CardContainer({ p_id, video, vertical = false }) {
             </Link>
           </Box>
 
+          {history && <Box flexShrink={0} ml={1}>
+            <DeleteVideoWatchHistory
+              videoId={video._id}
+              setVideos={setVideos}
+            />
+          </Box>}
           {/* Menu Button */}
           <Box flexShrink={0} ml={1}>
-            <MenuButton videoId={_id} />
+            <MenuButton videoId={_id} isLiked={true} setVideos={setVideos} />
           </Box>
         </Box>
       ) : (
-        <Box display="flex" alignItems="flex-start" mt={1}>
+        <Box display="flex" alignItems="flex-start" mt={1} position="relative">
           {/* Avatar Link */}
-          {channel && <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
-            <Avatar
-              src={channel[0].avatar || ""}
-              alt={channel[0].username || "unknown"}
-              sx={{ width: 36, height: 36, mr: 1.5 }}
-            />
-          </Link>}
+          {channel && (
+            <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
+              <Avatar
+                src={channel[0].avatar || ""}
+                alt={channel[0].username || "unknown"}
+                sx={{ width: 36, height: 36, mr: 1.5 }}
+              />
+            </Link>
+          )}
 
+          {/* Text Content */}
           <Box minWidth={0} flex={1}>
             {/* Title (Video Link) */}
-            <Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link
+              to={path || 'default'}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
               <Typography
                 variant="subtitle1"
                 fontWeight={600}
-                fontSize="0.95rem"
+                fontSize="1rem"
                 sx={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -130,7 +151,8 @@ function CardContainer({ p_id, video, vertical = false }) {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   whiteSpace: 'normal',
-                  lineHeight: 1.3,
+                  lineHeight: 1.25,
+                  mb: 0.3,
                 }}
               >
                 {title}
@@ -138,24 +160,40 @@ function CardContainer({ p_id, video, vertical = false }) {
             </Link>
 
             {/* Channel Link */}
-            {channel && <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
-              <Typography display={"inline-block"} fontSize="0.95rem" color="gray" noWrap>
-                {channel[0].username || "unknown"}
-              </Typography>
-            </Link>}
+            {channel && (
+              <Link
+                to={`/c/${channel[0].username}`}
+                style={{ textDecoration: 'none' }}
+              >
+                <Typography
+                  display="inline-block"
+                  fontSize="0.95rem"
+                  color="gray"
+                  noWrap
+                  sx={{ lineHeight: 1.2, mb: 0.2 }}
+                >
+                  {channel[0].username || "unknown"}
+                </Typography>
+              </Link>
+            )}
 
-            <Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <Typography fontSize="0.9rem" color="gray">
+            {/* Views + CreatedAt */}
+            <Link
+              to={path || 'default'}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <Typography fontSize="0.9rem" color="gray" sx={{ lineHeight: 1.2 }}>
                 {displayViews(views)} • {displayCreatedAt(createdAt)}
               </Typography>
             </Link>
           </Box>
 
-          {/* Menu Icon for non-vertical layout */}
-          <Box position="absolute" bottom={8} right={0}>
+          {/* MenuButton in top-right corner */}
+          <Box position="absolute" top={0} right={0}>
             <MenuButton videoId={_id} />
           </Box>
         </Box>
+
       )}
     </Box>
   );

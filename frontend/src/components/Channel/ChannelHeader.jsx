@@ -49,7 +49,6 @@ const ChannelHeader = ({ channelInfo }) => {
 
     return (
         <ThemeProvider theme={darkTheme}>
-
             {/* Banner */}
             <Box
                 component="img"
@@ -58,7 +57,7 @@ const ChannelHeader = ({ channelInfo }) => {
                 sx={{
                     borderRadius: "20px",
                     width: "100%",
-                    height: "20%",
+                    height: "15%",
                     objectFit: 'cover',
                     mt: 2,
                 }}

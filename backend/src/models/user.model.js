@@ -24,6 +24,9 @@ const userSchema = new Schema({
         trim: true,
         index: true,
     },
+    description:{
+        type: String,
+    },
     avatar: {
         type: String,
     },
@@ -36,6 +39,10 @@ const userSchema = new Schema({
             ref: 'Video',
         }
     ],
+    isHistory: {
+        type: Boolean,
+        default: true
+    },
     password: {
         type: String,
         required: [true, "Password is required"]
@@ -43,9 +50,14 @@ const userSchema = new Schema({
     refreshToken: {
         type: String,
     },
+    likedVideos: {
+        type: Schema.Types.ObjectId,
+        ref: "playlists"
+    },
+    
 }, { timestamps: true })
 
-userSchema.pre("save",async function (next) {
+userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next()
     this.password = await bcrypt.hash(this.password, 10)
     next()

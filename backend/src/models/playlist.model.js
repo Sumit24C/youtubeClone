@@ -20,7 +20,7 @@ const playlistSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User" 
     },
-    private: {
+    isPrivate: {
         type: Boolean,
         default: true,
     }

@@ -8,10 +8,9 @@ function useLike(
     likesCount,
     isDisliked = false,
     type,
-    commentId = ""
+    id = "",
 ) {
-    console.log(type);
-    const { id } = useParams();
+    const { id: videoId } = useParams();
     const [likeLoading, setLikeLoading] = useState(false);
     const [liked, setLiked] = useState(isLiked);
     const [countOfLikes, setCountOfLikes] = useState(likesCount);
@@ -20,10 +19,10 @@ function useLike(
     controller.current = new AbortController();
     let endPoint;
 
-    if (commentId) {
-        endPoint = `/likes/toggle/${type[0]}/${commentId}`
-    } else {
+    if (id) {
         endPoint = `/likes/toggle/${type[0]}/${id}`
+    } else {
+        endPoint = `/likes/toggle/${type[0]}/${videoId}`
     }
 
     const handleLike = async () => {

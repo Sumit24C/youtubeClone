@@ -10,6 +10,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import CreateButton from './CreateButton';
 import Badge from '@mui/material/Badge';
 import AccountButton from './AccountButton';
+import { Link } from 'react-router-dom';
 
 function Header({ setOpen, open }) {
   const handleToggleDrawer = () => setOpen(prev => !prev);
@@ -42,9 +43,11 @@ function Header({ setOpen, open }) {
             <IconButton color="inherit" onClick={handleToggleDrawer} sx={{ ml: -1 }}>
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap>
-              MyTube
-            </Typography>
+            <Link to="/" style={{ textDecoration: "none", color: "white" }}>
+              <Typography variant="h6" noWrap>
+                MyTube
+              </Typography>
+            </Link>
           </Box>
 
           {/* Center */}
@@ -71,7 +74,7 @@ function Header({ setOpen, open }) {
               </Badge>
             </IconButton>
 
-            <AccountButton/>
+            <AccountButton />
           </Box>
         </Box>
       </Toolbar>

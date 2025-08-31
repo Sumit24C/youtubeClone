@@ -20,8 +20,9 @@ import {
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
-import {Dashboard, Community, Content, Analytics} from "../src/components/Studio"
+import { Dashboard, Community, Content, Analytics } from "../src/components/Studio"
 import Studio from './pages/Studio'
+import SubscribedChannel from './pages/SubscribedChannel'
 function AppRouter() {
     return (
         <Routes>
@@ -32,21 +33,22 @@ function AppRouter() {
                         <Route index path="/" element={<Home />} />
                         <Route path="/you" element={<You />} />
                         <Route path="/studio" element={<Studio />} >
-                            <Route index path='dashboard' element={<Dashboard/>}/>
-                            <Route path='content' element={<Content/>}/>
-                            <Route path='analytics' element={<Analytics/>}/>
-                            <Route path='community' element={<Community/>}/>
+                            <Route index path='dashboard' element={<Dashboard />} />
+                            <Route path='content' element={<Content />} />
+                            <Route path='analytics' element={<Analytics />} />
+                            <Route path='community' element={<Community />} />
                         </Route>
-                        <Route index path="/playlist" element={<Playlist/>} />
-                        <Route index path="/liked-videos" element={<LikedVideos/>} />
-                        <Route index path="/history" element={<WatchHistory/>} />
-                        <Route index path="/subscriptions" element={<Subscription/>} />
+                        <Route index path="/playlist" element={<Playlist />} />
+                        <Route index path="/liked-videos" element={<LikedVideos />} />
+                        <Route index path="/history" element={<WatchHistory />} />
+                        <Route index path="/subscriptions" element={<Subscription />} />
                         <Route path="/c/:id" element={<Channel />} >
                             <Route index element={<ChannelVideos />} />
                             <Route path='posts' element={<ChannelPosts />} />
                             <Route path='playlists' element={<ChannelPlaylist />} />
                             <Route path='about' element={<ChannelAbout />} />
                         </Route>
+                        <Route path='/feed/channel' element={<SubscribedChannel />} />
                         <Route path="/v/:id/Pl=/:p_id" element={<VideoPage />} />
                         <Route path="/v/:id" element={<VideoPage />} />
                         <Route path='/test' element={<CloudinaryPlayer />} />

@@ -1,15 +1,56 @@
-import { Box, Typography, Avatar, IconButton } from '@mui/material';
-import { ThumbUpOutlined, ThumbUp, ThumbDown, ThumbDownOutlined, Share, Download, MoreHoriz } from '@mui/icons-material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Link } from 'react-router-dom';
-import { displayCreatedAt } from '../../utils';
+import { Box, Typography, Avatar, TextField, Button } from '@mui/material';
+import { ThumbUpOutlined, ThumbUp } from '@mui/icons-material';
+import { displayCreatedAt, extractErrorMsg } from '../../utils';
 import { useLike } from '../../hooks/useLike';
 import VideoPageButton from '../Buttons/VideoPageButton';
+import CommentMenu from '../Buttons/CommentMenu';
+import { useState } from 'react';
+import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
+import { useSnackbar } from 'notistack';
 
-function CommentCard({ comment }) {
+function CommentCard({ comment, setComments }) {
   const { owner, createdAt, content, repliesCount = 0 } = comment;
-  const { likeLoading, liked, countOfLikes, handleLike } = useLike(comment.isLiked, comment.likesCount, false, "comment", comment._id);
-  console.log(comment);
+  const { likeLoading, liked, countOfLikes, handleLike } = useLike(
+    comment.isLiked,
+    comment.likesCount,
+    false,
+    "comment",
+    comment._id
+  );
+
+  const [isEdit, setIsEdit] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [editingContent, setEditingContent] = useState(content);
+  const axiosPrivate = useAxiosPrivate();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const handleSave = async () => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      const response = await axiosPrivate.patch(`/comments/c/${comment._id}`, {
+        content: editingContent,
+      });
+      const newComment = response.data.data
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === comment._id ? { ...c, content: newComment.content } : c
+        )
+      );
+
+      enqueueSnackbar(response.data.message, { variant: "success" });
+      setIsEdit(false);
+    } catch (error) {
+      enqueueSnackbar(extractErrorMsg(error), { variant: "error" });
+      setErrorMsg(extractErrorMsg(error))
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingContent(content);
+    setIsEdit(false);
+  };
 
   return (
     <Box
@@ -42,49 +83,87 @@ function CommentCard({ comment }) {
           </Typography>
         </Box>
 
-        {/* Comment Text */}
-        <Typography
-          sx={{
-            fontSize: '0.85rem',
-            color: '#fff',
-            whiteSpace: 'pre-line',
-            mt: 0.5
-          }}
-        >
-          {content}
-        </Typography>
-
-        {/* Actions (Like, Reply count) */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-          <VideoPageButton
-            onClick={handleLike}
-            loading={likeLoading}
-            icon={liked ? <ThumbUp fontSize="small" sx={{ color: 'white' }} /> : <ThumbUpOutlined fontSize="small" sx={{ color: 'white' }} />}
-            iconOnly={false}
+        {/* Editable or Static Comment */}
+        {isEdit ? (
+          <Box sx={{ mt: 0.5 }}>
+            <TextField
+              fullWidth
+              multiline
+              autoFocus
+              variant="standard"
+              value={editingContent}
+              onChange={(e) => setEditingContent(e.target.value)}
+              size="small"
+              sx={{
+                '& .MuiInputBase-root': {
+                  color: 'white',
+                  fontSize: '0.85rem',
+                },
+              }}
+            />
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSave}
+              >
+                Save
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Typography
             sx={{
-              color: 'white',
-              bgcolor: 'transparent',
-              '&:hover': {
-                bgcolor: '#565656ff',
-              },
+              fontSize: '0.85rem',
+              color: '#fff',
+              whiteSpace: 'pre-line',
+              mt: 0.5
             }}
           >
-            {countOfLikes}
-          </VideoPageButton>
+            {content}
+          </Typography>
+        )}
 
-          {repliesCount > 0 && (
-            <Typography sx={{ fontSize: '0.75rem', color: '#aaa', cursor: 'pointer' }}>
-              {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'}
-            </Typography>
-          )}
-        </Box>
+        {/* Actions (Like, Reply count) */}
+        {!isEdit && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+            <VideoPageButton
+              onClick={handleLike}
+              loading={likeLoading}
+              icon={liked
+                ? <ThumbUp fontSize="small" sx={{ color: 'white' }} />
+                : <ThumbUpOutlined fontSize="small" sx={{ color: 'white' }} />}
+              iconOnly={false}
+              sx={{
+                color: 'white',
+                bgcolor: 'transparent',
+                '&:hover': {
+                  bgcolor: '#565656ff',
+                },
+              }}
+            >
+              {countOfLikes}
+            </VideoPageButton>
+
+            {repliesCount > 0 && (
+              <Typography sx={{ fontSize: '0.75rem', color: '#aaa', cursor: 'pointer' }}>
+                {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
 
       {/* Menu Button */}
       <Box flexShrink={0}>
-        <IconButton size="small" sx={{ color: '#aaa' }}>
-          <MoreVertIcon />
-        </IconButton>
+        <CommentMenu comment={comment} setComments={setComments} isEdit={isEdit} setIsEdit={setIsEdit} />
       </Box>
     </Box>
   );

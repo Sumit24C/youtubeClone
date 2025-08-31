@@ -13,72 +13,106 @@ const getVideoComments = asyncHandler(async (req, res) => {
         throw new ApiError(401, "videoId is required")
     }
 
-    const pageNumber = Number(page)
-    const limitNumber = Number(limit)
+    const pageNumber = parseInt(page)
+    const limitNumber = parseInt(limit)
 
-    const comments = await Comment.aggregate([
+    const response = await Comment.aggregate([
         {
-            $match: {
-                video: new mongoose.Types.ObjectId(videoId)
-            }
-        },
-        {
-            $lookup: {
-                from: "likes",
-                localField: "_id",
-                foreignField: "comment",
-                as: "like"
-            }
-        },
-        {
-            $addFields: {
-                likesCount: {
-                    $size: "$like"
-                },
-                isLiked: {
-                    $cond: {
-                        if: { $in: [req.user?._id, "$like.likedBy"] },
-                        then: true,
-                        else: false
+            $facet: {
+                comments: [
+                    {
+                        $match: {
+                            video: new mongoose.Types.ObjectId(videoId)
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "likes",
+                            localField: "_id",
+                            foreignField: "comment",
+                            as: "like"
+                        }
+                    },
+                    {
+                        $addFields: {
+                            likesCount: {
+                                $size: "$like"
+                            },
+                            isLiked: {
+                                $cond: {
+                                    if: { $in: [req.user?._id, "$like.likedBy"] },
+                                    then: true,
+                                    else: false
+                                }
+                            },
+                        },
+                    },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        username: 1,
+                                        avatar: 1,
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $sort: { createdAt: -1 }
+                    },
+                    {
+                        $skip: (pageNumber - 1) * limitNumber
+                    },
+                    {
+                        $project: {
+                            like: 0
+                        }
                     }
-                },
+                ],
+                totalCount: [
+                    {
+                        $count: "count"
+                    }
+                ]
             },
         },
         {
-            $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "owner",
-                pipeline: [
-                    {
-                        $project: {
-                            username: 1,
-                            avatar: 1,
-                        }
+            $addFields: {
+                totalComments: {
+                    $arrayElemAt: ["$totalCount.count", 0]
+                },
+                totalPages: {
+                    $ceil: {
+                        $divide: [
+                            {
+                                $arrayElemAt: ["$totalCount.count", 0]
+                            },
+                            limitNumber
+                        ]
                     }
-                ]
-            }
-        },
-        {
-            $sort: { createdAt: -1 }
-        },
-        {
-            $skip: (pageNumber - 1) * limitNumber
-        },
-        {
-            $project: {
-                like: 0
+                }
             }
         }
     ])
 
-    if (!(comments.length > 0)) {
+    const result = response[0]
+    if (!(result.comments.length > 0)) {
         throw new ApiError(401, "Video comments not found")
     }
 
     return res.status(200).json(
-        new ApiResponse(200, comments, "Video comments fetched successfully")
+        new ApiResponse(200, {
+            comments: result.comments,
+            totalComments: result.totalComments,
+            totalPages: result.totalPages,
+            currentPage: result.pageNumber,
+        }, "Video comments fetched successfully")
     )
 })
 
@@ -94,13 +128,13 @@ const addComment = asyncHandler(async (req, res) => {
     if (!videoId) {
         throw new ApiError(401, "videoID is required")
     }
-    
+
     const comment = await Comment.create({
         content,
         video: videoId,
         owner: req.user?._id
     })
-    
+
     if (!comment) {
         throw new ApiError(500, "Failed to upload comment")
     }
@@ -169,33 +203,28 @@ const addComment = asyncHandler(async (req, res) => {
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
     const { commentId } = req.params
-
     const { content } = req.body
 
     if (!content) {
         throw new ApiError(401, "Comtent is required")
     }
+
     if (!commentId) {
         throw new ApiError(401, "ComtentId is required")
     }
+    const updatedComment = await Comment.findOneAndUpdate(
+        { _id: commentId, owner: req.user._id },
+        { $set: { content } },
+        { new: true } 
+    );
 
-    const comment = await Comment.findByIdAndUpdate(
-        commentId,
-        {
-            $set: {
-                content: content
-            }
-        },
-        { new: true }
-    )
-
-    if (!comment) {
-        throw new ApiError(500, "Failed to update comment")
+    if (!updatedComment) {
+        throw new ApiError(404, "Comment not found or you are not the owner");
     }
 
     return res.status(200).json(
-        new ApiResponse(200, comment, "Comment updated successfully")
-    )
+        new ApiResponse(200, updatedComment, "Comment updated successfully")
+    );
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
@@ -206,7 +235,9 @@ const deleteComment = asyncHandler(async (req, res) => {
         throw new ApiError(401, "ComtentId is required")
     }
 
-    await Comment.findByIdAndDelete(commentId)
+    await Comment.findOneAndDelete({
+        _id: commentId, owner: req.user._id
+    })
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Comment deleted successfully")

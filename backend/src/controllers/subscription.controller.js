@@ -21,7 +21,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     if (isSubscribed) {
         await Subscription.findByIdAndDelete(isSubscribed._id)
         return res.status(200).json(
-            new ApiResponse(200, {isSubscribed: false}, "UnSubscribed successfully")
+            new ApiResponse(200, { isSubscribed: false }, "UnSubscribed successfully")
         )
     }
 
@@ -32,7 +32,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     }
 
     return res.status(200).json(
-        new ApiResponse(200, {isSubscribed: true}, "Subscribed successfully")
+        new ApiResponse(200, { isSubscribed: true }, "Subscribed successfully")
     )
 
 })
@@ -57,25 +57,115 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
-    const { subscriberId } = req.params
-    if (!subscriberId) {
-        throw new ApiError(401, "subscriberId is required")
-    }
 
-    const subscribedChannels = await Subscription.find({ subscriber: subscriberId })
+    const subscribedChannels = await Subscription.aggregate([
+        {
+            $match: {
+                subscriber: req.user._id
+            }
+        }, 
+        {
+            $lookup: {
+                from: "users",
+                localField: "channel",
+                foreignField: "_id",
+                as: "channel",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 0,
+                            username: 1,
+                            avatar: 1,
+                            description: 1
+                        }
+                    }
+                ]
+            }
+        }, 
+        {
+            $unwind: "$channel"
+        },
+        {
+            $project: {
+                subscriber: 0
+            }
+        }
+    ])
 
     if (!subscribedChannels) {
         throw new ApiError(401, "subscribedChannels not found")
     }
 
-    console.log("sub",subscribedChannels)
+    console.log("sub", subscribedChannels)
     return res.status(200).json(
         new ApiResponse(200, subscribedChannels, "Successfully fetched subscribedChannels")
+    )
+})
+
+const getSubscribedChannelsVideos = asyncHandler(async (req, res) => {
+
+    const subscribedChannelVideos = await Subscription.aggregate([
+        {
+            $match: {
+                subscriber: req.user._id
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "channel",
+                foreignField: "owner",
+                as: "videos",
+                pipeline: [
+                    {
+                        $sort: { createdAt: -1 }
+                    },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "channel",
+                            pipeline: [
+                                {
+                                    $project: {
+                                        _id: 0,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: "$videos"
+        },
+        {
+            $project: {
+                videos: 1
+            }
+        }
+    ])
+
+    if (!subscribedChannelVideos) {
+        throw new ApiError(404, "subscribedChannels video not found")
+    }
+
+    console.log("sub", subscribedChannelVideos)
+    return res.status(200).json(
+        new ApiResponse(200, subscribedChannelVideos, "Successfully fetched subscribedChannels videos")
     )
 })
 
 export {
     toggleSubscription,
     getUserChannelSubscribers,
-    getSubscribedChannels
+    getSubscribedChannels,
+    getSubscribedChannelsVideos,
 }

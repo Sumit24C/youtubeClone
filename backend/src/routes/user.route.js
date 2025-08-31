@@ -1,13 +1,16 @@
 import { Router } from "express";
 import {
     changeCurrentPassword,
+    clearWatchHistory,
     getCurrentUser,
     getUserChannelInfo,
     getWatchHistory,
     loginUser,
     logoutUser,
+    playPauseWatchHistory,
     refreshAccessToken,
     registerUser,
+    removeVideoFromWatchHistory,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage
@@ -47,6 +50,8 @@ router.route('/update-coverImage').patch(
     updateUserCoverImage)
 
 router.route('/channel-profile/:username').get(verifyJWT, getUserChannelInfo)
-router.route('/watch-history').get(verifyJWT, getWatchHistory)
+router.route('/watch-history').get(verifyJWT, getWatchHistory).patch(verifyJWT, clearWatchHistory)
+router.route('/watch-history/p').patch(verifyJWT, playPauseWatchHistory)
+router.route('/watch-history/v/:videoId').patch(verifyJWT, removeVideoFromWatchHistory)
 
 export default router

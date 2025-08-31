@@ -9,8 +9,9 @@ import fs from "fs";
 
 const OPTIONS = {
     httpOnly: true,
-    secure: true, 
+    secure: true,
 }
+
 const accessTokenExpiry = parseInt(process.env.ACCESS_TOKEN_EXPIRY)
 const refreshTokenExpiry = parseInt(process.env.REFRESH_TOKEN_EXPIRY)
 
@@ -64,11 +65,11 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(200)
-        .cookie("accessToken",accessToken, {...OPTIONS, maxAge:accessTokenExpiry })
-        .cookie("refreshToken",refreshToken, {...OPTIONS, maxAge: refreshTokenExpiry})
+        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
+        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(200, createdUser, "User is created successfully")
-    )
+        )
 
 });
 
@@ -97,8 +98,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken",accessToken, {...OPTIONS, maxAge:accessTokenExpiry })
-        .cookie("refreshToken",refreshToken, {...OPTIONS, maxAge: refreshTokenExpiry})
+        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
+        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(200,
                 {
@@ -122,8 +123,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     })
 
     res.status(200)
-        .clearCookie("accessToken", {...OPTIONS, maxAge: accessTokenExpiry})
-        .clearCookie("refreshToken",{...OPTIONS, maxAge: refreshTokenExpiry})
+        .clearCookie("accessToken", { ...OPTIONS, maxAge: accessTokenExpiry })
+        .clearCookie("refreshToken", { ...OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(
                 200,
@@ -322,6 +323,7 @@ const getUserChannelInfo = asyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
+
     const user = await User.aggregate([
         {
             $match: {
@@ -336,15 +338,18 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                 as: "watchHistory",
                 pipeline: [
                     {
+                        $sort: { createdAt: -1 }
+                    },
+                    {
                         $lookup: {
                             from: "users",
                             localField: "owner",
                             foreignField: "_id",
-                            as: "owner",
+                            as: "channel",
                             pipeline: [
                                 {
                                     $project: {
-                                        fullName: 1,
+                                        _id: 0,
                                         username: 1,
                                         avatar: 1,
                                     }
@@ -352,23 +357,86 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             ]
                         }
                     },
-                    {
-                        $addFields: {
-                            owner: {
-                                $first: "$owner",
-                            }
-                        }
-                    }
                 ]
             }
         },
+
     ])
+
+    if (!user[0].watchHistory) {
+        throw new ApiError(404, "watchHistory not found");
+    }
 
     return res.status(200)
         .json(
             new ApiResponse(200, user[0].watchHistory, "watchHistory fetched successfully")
         )
 
+});
+
+const removeVideoFromWatchHistory = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(401, "VideoId is required");
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $pull: { watchHistory: videoId }
+        },
+        { new: true }
+    );
+
+    if (!user) {
+        throw new ApiError(500, "Failed to remove video from WatchHistory");
+    }
+
+    return res.json(
+        new ApiResponse(200, {}, "Successfully removed video from watch history")
+    );
+});
+
+const clearWatchHistory = asyncHandler(async (req, res) => {
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { watchHistory: [] } },
+        {
+            new: true
+        }
+    );
+    console.log(user)
+
+    if (!user) {
+        throw new ApiError(500, "Failed to clear WatchHistory");
+    }
+
+    return res.json(
+        new ApiResponse(200, { cleared: true }, "Successfully cleared watch history")
+    );
+});
+
+const playPauseWatchHistory = asyncHandler(async (req, res) => {
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        [
+            { $set: { isHistory: { $not: "$isHistory" } } }
+        ],
+        {
+            new: true
+        }
+    );
+
+    if (!user) {
+        throw new ApiError(500, "Failed to play-pause WatchHistory");
+    }
+    const status = user.isHistory ? "play" : "paused"
+    return res.json(
+        new ApiResponse(200, { isHistory: user.isHistory }, `Successfully ${status} watch history`)
+    );
 });
 
 export {
@@ -383,4 +451,7 @@ export {
     updateUserCoverImage,
     getUserChannelInfo,
     getWatchHistory,
+    removeVideoFromWatchHistory,
+    clearWatchHistory,
+    playPauseWatchHistory
 }

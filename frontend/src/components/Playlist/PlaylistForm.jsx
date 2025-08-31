@@ -36,7 +36,7 @@ function PlaylistForm({
             const payload = {
                 name: data.name,
                 description: data.description,
-                privacy: data.private,
+                isPrivate: data.isPrivate,
                 ...(!prev._id && { videoId })
             };
 
@@ -47,7 +47,7 @@ function PlaylistForm({
                     ...prev,
                     name: response.data.data.name,
                     description: response.data.data.description,
-                    private: response.data.data.private,
+                    isPrivate: response.data.data.isPrivate,
                     updatedAt: response.data.data.updatedAt,
                 }))
             } else {
@@ -98,8 +98,8 @@ function PlaylistForm({
                     <Select
                         labelId="private-label"
                         id="private"
-                        defaultValue={prev.private || true}
-                        {...register("private")}
+                        defaultValue={prev.isPrivate || true}
+                        {...register("isPrivate")}
                     >
                         <MenuItem value={true}>Private</MenuItem>
                         <MenuItem value={false}>Public</MenuItem>

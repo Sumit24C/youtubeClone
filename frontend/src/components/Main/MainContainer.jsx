@@ -42,7 +42,7 @@ function MainContainer() {
   };
 
   useEffect(() => {
-    (async function () {
+    ;(async function () {
       await fetchVideos(1);
     })();
   }, []);
@@ -96,12 +96,10 @@ function MainContainer() {
         width: '100%',
       }}
     >
-      {videos && videos.length > 0 ? (
+      {videos && videos.length > 0 && (
         videos.map((video, index) => (
           <CardContainer key={index} video={video} />
         ))
-      ) : (
-        <Typography textAlign="center">No videos available</Typography>
       )}
 
       <div id="scroll-anchor" style={{ height: '20px' }}></div>

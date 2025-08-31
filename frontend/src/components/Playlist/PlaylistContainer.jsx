@@ -35,7 +35,7 @@ function PlaylistContainer({ playlist: initialPlaylist, setPlaylistInfo }) {
         }
         subheader={
           <Typography variant="body2" sx={{ color: "gray.400" }}>
-            {playlistState.private ? "Private" : "Public"} • Playlist
+            {playlistState.isPrivate ? "Private" : "Public"} • Playlist
           </Typography>
         }
         action={

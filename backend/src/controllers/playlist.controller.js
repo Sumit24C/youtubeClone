@@ -12,7 +12,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     }
 
     const playlist = await Playlist.create({
-        name, description, videos: [videoId], owner: req.user._id, private: privacy
+        name, description, videos: [videoId], owner: req.user._id, isPrivate: isPrivate
     });
 
     if (!playlist) {
@@ -222,33 +222,52 @@ const toggleVideoToPlaylist = asyncHandler(async (req, res) => {
     )
 })
 
-const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
-    const { playlistId, videoId } = req.params
-    // TODO: remove video from playlist
+//for future use case:
+const toggleVideoLikePlaylist = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
 
-    if (!(playlistId && videoId)) {
-        throw new ApiError(401, "All fields are required")
-    }
-
-    const playlist = await Playlist.findByIdAndUpdate(
-        playlistId,
-        {
-            $pull: {
-                videos: videoId
+    const updatedPlaylist = await Playlist.findOneAndUpdate(
+        { name: "likes",owner: req.user._id },
+        [
+            {
+                $set: {
+                    videos: {
+                        $cond: [
+                            { $in: [videoId, "$videos"] }, 
+                            { 
+                                $filter: {
+                                    input: "$videos",
+                                    cond: { $ne: ["$$this", videoId] }
+                                }
+                            },
+                            {
+                                $concatArrays: ["$videos", [videoId]]
+                            }
+                        ]
+                    }
+                }
             }
-        },
-        { new: true }
-    )
+        ],
+        {
+            new: true,
+            upsert: true, 
+        }
+    );
 
-    if (!playlist) {
-        throw new ApiError(500, "Failed to remove video from the playlist")
+    if (!updatedPlaylist) {
+        throw new ApiError(500, "Failed to toggle video like");
     }
+
+    const isLiked = updatedPlaylist.videos.includes(videoId);
 
     return res.status(200).json(
-        new ApiResponse(200, playlist, "Video removed from the playlist successfully")
-    )
-
-})
+        new ApiResponse(
+            200,
+            { isLiked },
+            isLiked ? "Liked video successfully" : "Unliked video successfully"
+        )
+    );
+});
 
 const deletePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
@@ -267,7 +286,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 
 const updatePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    const { name, description, privacy } = req.body
+    const { name, description, isPrivate } = req.body
     //TODO: update playlist
     if (!name && !description) {
         throw new ApiError(401, "Atleast one field is required")
@@ -279,7 +298,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
             $set: {
                 name: name,
                 description: description,
-                private: privacy,
+                isPrivate: isPrivate,
             }
         }, {
         new: true
@@ -302,7 +321,7 @@ export {
     getUserPlaylists,
     getPlaylistById,
     toggleVideoToPlaylist,
-    removeVideoFromPlaylist,
     deletePlaylist,
-    updatePlaylist
+    updatePlaylist,
+    toggleVideoLikePlaylist
 }

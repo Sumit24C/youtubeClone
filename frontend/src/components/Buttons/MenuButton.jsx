@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Box, IconButton, Menu, MenuItem, Dialog, DialogContent } from '@mui/material';
+import { Box, IconButton, Menu, MenuItem, Dialog, DialogContent, CircularProgress } from '@mui/material';
 import CreatePlaylist from "../Playlist/CreatePlaylist";
-
-function MenuButton({ videoId }) {
+import { useLike } from '../../hooks/useLike';
+function MenuButton({ videoId, isLiked, setVideos }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(null);
+    const { likeLoading, liked, countOfLikes, disliked, handleLike } = useLike(isLiked, 0, false, "video", videoId);
 
     const open = Boolean(anchorEl);
 
@@ -23,6 +24,11 @@ function MenuButton({ videoId }) {
     };
 
     const handleDialogClose = () => setDialogOpen(null);
+    const handleRemoveLike = async () => {
+        await handleLike();
+        setVideos((prevVideo) => prevVideo.filter((v) => v._id !== videoId))
+        handleMenuClose();
+    }
 
     // 🎯 Only card menu options here
     const cardMenuOption = [
@@ -54,6 +60,20 @@ function MenuButton({ videoId }) {
                         {option.text}
                     </MenuItem>
                 ))}
+                {isLiked && (
+                    <MenuItem
+                        onClick={handleRemoveLike}
+                        disabled={likeLoading}
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                    >
+                        {likeLoading ? (
+                            <CircularProgress size={18} thickness={5} />
+                        ) : (
+                            "Remove Like"
+                        )}
+                    </MenuItem>
+                )}
+
             </Menu>
 
             {/* Playlist dialog (only when user selects "Save to Playlist") */}
