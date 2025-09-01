@@ -18,7 +18,8 @@ import { useEffect, useState } from 'react';
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate"
 import { extractErrorMsg } from "../../utils"
 import { isCancel } from 'axios';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { setChannels } from '../../store/channelSlice';
 export default function Sidebar({ open }) {
   const primaryMenuItems = [
     { name: 'Home', path: '/', icon: <HomeIcon /> },
@@ -33,20 +34,23 @@ export default function Sidebar({ open }) {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [channels, setChannels] = useState([]);
+  const dispatch = useDispatch();
+  const { channelData } = useSelector((state) => state.channel)
   const axiosPrivate = useAxiosPrivate();
-  console.log(channels)
+
   useEffect(() => {
     setLoading(true);
     setErrorMsg("");
     const controller = new AbortController();
-    
-    ;(async function () {
+
+    ; (async function () {
       try {
         const response = await axiosPrivate.get(`/subscriptions/u`, {
           signal: controller.signal
         })
-        setChannels(response.data.data);
+        const subscription = response.data.data
+        const channels = subscription.map((s) => s.channel)
+        dispatch(setChannels(channels));
 
       } catch (error) {
         if (!isCancel(error)) {
@@ -85,14 +89,15 @@ export default function Sidebar({ open }) {
             ))}
           </List>
           <Divider sx={{ mx: 1, my: 1 }} />
-          <SectionTitle variant="subtitle2" component={Link} to="/feed/channel">
-            Subscriptions
-          </SectionTitle>
-          <List sx={{ pt: 0 }}>
-            {channels.map((item) => (
-              <CustomListItems key={item._id} channel={item.channel} open={open} type={"channel"}/>
+          {channelData && channelData.length > 0 && <List sx={{ pt: 0 }}>
+            <SectionTitle variant="subtitle2" component={Link} to="/feed/channel">
+              Subscriptions
+            </SectionTitle>
+            {channelData.map((item) => (
+              <CustomListItems key={item._id} channel={item} open={open} type={"channel"} />
             ))}
           </List>
+          }
         </>
       )}
     </StyledDrawer>

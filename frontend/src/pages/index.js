@@ -5,7 +5,7 @@ import LikedVideos from "./LikedVideos"
 import Login from "./Login";
 import Playlist from "./Playlist"
 import Signup from "./Signup";
-import Subscription from "./Subscription"
+import SubscriptionVideos from "./SubscriptionVideos"
 import VideoPage from "./VideoPage";
 import Home from "./Home"
 import You from "./You"
@@ -20,6 +20,6 @@ export{
     Login,
     Playlist,
     Signup,
-    Subscription,
+    SubscriptionVideos,
     VideoPage,
 }

@@ -25,6 +25,7 @@ import commentRouter from "./routes/comment.route.js"
 import likeRouter from "./routes/like.route.js"
 import playlistRouter from "./routes/playlist.route.js"
 import dashboardRouter from "./routes/dashboard.route.js"
+import viewRouter from "./routes/view.route.js"
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
@@ -35,6 +36,7 @@ app.use("/api/v1/comments", commentRouter)
 app.use("/api/v1/likes", likeRouter)
 app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
+app.use("/api/v1/views", viewRouter)
 
 import errorHandler from "./middlewares/error.middleware.js"
 app.use(errorHandler)

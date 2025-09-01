@@ -57,6 +57,7 @@ const updateTweet = asyncHandler(async (req, res) => {
     if (!content) {
         throw new ApiError(401, "Content is required")
     }
+    
     const { tweetId } = req.params
 
     if (!tweetId) {

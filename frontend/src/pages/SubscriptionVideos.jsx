@@ -15,7 +15,7 @@ import extractErrorMsg from '../utils/extractErrorMsg';
 import { useRef } from 'react';
 import { useSelector } from 'react-redux';
 
-function Subscription() {
+function SubscriptionVideos() {
   const userData = useSelector((state) => state.auth.userData);
   const axiosPrivate = useAxiosPrivate();
   const [loading, setLoading] = useState(false);
@@ -47,35 +47,18 @@ function Subscription() {
     return () => controller.abort();
   }, []);
 
-  const handleUnSubscribe = async () => {
-    setLoading(true);
-    setErrorMsg("");
 
-    controllerRef.current = new AbortController();
-
-    try {
-      const response = await axiosPrivate.patch(`/users/watch-history`,
-        {}, {
-        signal: controllerRef.current.signal
-      })
-
-      if (response.data.data.cleared) {
-        setVideos([]);
-      }
-
-    } catch (error) {
-      if (!isCancel(error)) {
-        setErrorMsg(extractErrorMsg(error))
-      }
-    } finally {
-      setLoading(false);
-    }
-
-  }
-
-  if (loading) {
+  if (loading && videos.length === 0) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '60vh',
+          width: '100%',
+        }}
+      >
         <CircularProgress />
       </Box>
     );
@@ -92,21 +75,15 @@ function Subscription() {
         width: '100%',
       }}
     >
-      {videos && videos.length > 0 && (
+      {videos && videos.length > 0 ? (
         videos.map((video, index) => (
           <CardContainer key={index} video={video} />
         ))
-      )}
-
-      <div id="scroll-anchor" style={{ height: '20px' }}></div>
-
-      {loading && videos.length > 0 && (
-        <Box sx={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', py: 2 }}>
-          <CircularProgress size={30} />
-        </Box>
+      ) : (
+        <p>No subscribed channel videos available</p>
       )}
     </Box>
   );
 }
 
-export default Subscription;
+export default SubscriptionVideos;

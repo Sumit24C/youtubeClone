@@ -1,7 +1,5 @@
-import { Box, Typography, Avatar, Button } from '@mui/material';
+import { Box, Typography, Avatar, Button, CardMedia } from '@mui/material';
 import { Link, useParams } from 'react-router-dom';
-import { IconButton, Menu, MenuItem } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useState } from 'react';
 import MenuButton from '../Buttons/MenuButton';
 import { displayViews, displayDuration, displayCreatedAt } from '../../utils';
@@ -12,10 +10,12 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
     thumbnailUrl,
     title,
     channel,
-    views,
+    views = [],
     createdAt,
     duration,
   } = video;
+
+
   const path = p_id ? `/v/${_id}/Pl=/${p_id}` : `/v/${_id}`;
   const sizes = {
     "medium": {
@@ -38,14 +38,14 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
       {/* Thumbnail (Link to video) */}
       <Link to={path || 'default'} style={{ textDecoration: 'none', flexShrink: 0 }}>
         <Box sx={{ position: "relative" }}>
-          <Box
+          <CardMedia
             component="img"
             src={thumbnailUrl}
             alt={title}
             className="thumbnail"
             sx={{
               width: vertical ? sizes[size].width : '100%',
-              height: vertical ? sizes[size].height : 250,
+              height: vertical ? sizes[size].height : 260,
               borderRadius: 2,
               objectFit: 'cover',
             }}
@@ -121,7 +121,7 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
           </Box>
         </Box>
       ) : (
-        <Box display="flex" alignItems="flex-start" mt={1} position="relative">
+        <Box display="flex" alignItems="flex-start" mt={1}>
           {/* Avatar Link */}
           {channel && (
             <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
@@ -135,36 +135,37 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
 
           {/* Text Content */}
           <Box minWidth={0} flex={1}>
-            {/* Title (Video Link) */}
-            <Link
-              to={path || 'default'}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}
-                fontSize="1rem"
-                sx={{
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  whiteSpace: 'normal',
-                  lineHeight: 1.25,
-                  mb: 0.3,
-                }}
+            {/* MenuButton at the top right inside flex */}
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Link
+                to={path || 'default'}
+                style={{ textDecoration: 'none', color: 'inherit', flex: 1 }}
               >
-                {title}
-              </Typography>
-            </Link>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight={600}
+                  fontSize="1rem"
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    whiteSpace: 'normal',
+                    lineHeight: 1.25,
+                    mb: 0.3,
+                  }}
+                >
+                  {title}
+                </Typography>
+              </Link>
+
+              <MenuButton videoId={_id} />
+            </Box>
 
             {/* Channel Link */}
             {channel && (
-              <Link
-                to={`/c/${channel[0].username}`}
-                style={{ textDecoration: 'none' }}
-              >
+              <Link to={`/c/${channel[0].username}`} style={{ textDecoration: 'none' }}>
                 <Typography
                   display="inline-block"
                   fontSize="0.95rem"
@@ -178,21 +179,14 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
             )}
 
             {/* Views + CreatedAt */}
-            <Link
-              to={path || 'default'}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
+            <Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography fontSize="0.9rem" color="gray" sx={{ lineHeight: 1.2 }}>
                 {displayViews(views)} • {displayCreatedAt(createdAt)}
               </Typography>
             </Link>
           </Box>
-
-          {/* MenuButton in top-right corner */}
-          <Box position="absolute" top={0} right={0}>
-            <MenuButton videoId={_id} />
-          </Box>
         </Box>
+
 
       )}
     </Box>

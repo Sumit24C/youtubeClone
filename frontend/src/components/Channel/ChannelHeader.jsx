@@ -105,7 +105,6 @@ const ChannelHeader = ({ channelInfo }) => {
                         @{username} · {subscribersCount} {subscribersCount === 1 ? "subscriber" : "subscribers"} · {videosCount} {videosCount === 1 ? "video" : "videos"}
                     </Typography>
 
-
                     {/* Description */}
                     <Typography
                         variant="body2"

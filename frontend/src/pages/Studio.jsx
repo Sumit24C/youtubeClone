@@ -11,7 +11,7 @@ export default function Studio() {
 
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "dashboard" },
-    { text: "Content", icon: <GroupsIcon />, path: "content" },
+    { text: "Channel Content", icon: <GroupsIcon />, path: "content" },
     { text: "Analytics", icon: <AnalyticsIcon />, path: "analytics" },
     { text: "Community", icon: <GroupsIcon />, path: "community" },
   ];

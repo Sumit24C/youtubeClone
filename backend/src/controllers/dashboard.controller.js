@@ -87,7 +87,79 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     )
 })
 
+const getVideoAnalytics = asyncHandler(async (req, res) => {
+    // const { videoId } = req.params
+
+    // if (!videoId) {
+    //     throw new ApiError(403, "VideoId is required")
+    // }
+
+    const video = await Video.aggregate([
+        {
+            $match: {
+                owner: req.user._id
+            }
+        },
+        {
+            $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "videoId",
+                as: "views"
+            }
+        },
+        {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        },
+        {
+            $lookup: {
+                from: "comments",
+                localField: "_id",
+                foreignField: "video",
+                as: "comments"
+            }
+        }
+    ])
+
+    if (!video) {
+        throw new ApiError(500, "Failed to fetch Video Analytics")
+    }
+
+    return res.json(
+        new ApiResponse(200, video, "successfully fetched videos analytics")
+    )
+})
+
+const deleteVideo = asyncHandler(async (req, res) => {
+    // TODO: delete a comment
+    const { videoId } = req.params
+    console.log(videoId)
+    if (!videoId) {
+        throw new ApiError(403, "VideoId is required")
+    }
+
+    await Video.findOneAndDelete({
+        _id: videoId, owner: req.user._id
+    })
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Video deleted successfully")
+    )
+
+})
+
+//last video performance, which includes views,likes, average-view-duration, comments, 
+//channel analytics, subscribers, views, watch-time, 
+//video details:  analytics, details, {views, watch-time}, comments
+
 export {
     getChannelStats,
-    getChannelVideos
+    getChannelVideos,
+    getVideoAnalytics,
+    deleteVideo
 }

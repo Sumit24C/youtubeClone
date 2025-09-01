@@ -63,7 +63,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
             $match: {
                 subscriber: req.user._id
             }
-        }, 
+        },
         {
             $lookup: {
                 from: "users",
@@ -72,22 +72,35 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
                 as: "channel",
                 pipeline: [
                     {
+                        $lookup: {
+                            from: "subscriptions",
+                            localField: "_id",
+                            foreignField: "channel",
+                            as: "subscribers",
+                        }
+                    },
+                    {
+                        $addFields: {
+                            subscribersCount: { $size: "$subscribers" }
+                        }
+                    },
+                    {
                         $project: {
-                            _id: 0,
                             username: 1,
                             avatar: 1,
-                            description: 1
+                            description: 1,
+                            subscribersCount: 1
                         }
                     }
                 ]
             }
-        }, 
+        },
         {
             $unwind: "$channel"
         },
         {
             $project: {
-                subscriber: 0
+                channel: 1
             }
         }
     ])
@@ -96,7 +109,6 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         throw new ApiError(401, "subscribedChannels not found")
     }
 
-    console.log("sub", subscribedChannels)
     return res.status(200).json(
         new ApiResponse(200, subscribedChannels, "Successfully fetched subscribedChannels")
     )
@@ -157,7 +169,6 @@ const getSubscribedChannelsVideos = asyncHandler(async (req, res) => {
         throw new ApiError(404, "subscribedChannels video not found")
     }
 
-    console.log("sub", subscribedChannelVideos)
     return res.status(200).json(
         new ApiResponse(200, subscribedChannelVideos, "Successfully fetched subscribedChannels videos")
     )

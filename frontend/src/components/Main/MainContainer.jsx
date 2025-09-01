@@ -96,10 +96,12 @@ function MainContainer() {
         width: '100%',
       }}
     >
-      {videos && videos.length > 0 && (
+      {videos && videos.length > 0 ? (
         videos.map((video, index) => (
           <CardContainer key={index} video={video} />
         ))
+      ) : (
+        <p>No videos available</p>
       )}
 
       <div id="scroll-anchor" style={{ height: '20px' }}></div>

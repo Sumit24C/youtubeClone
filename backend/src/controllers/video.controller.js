@@ -26,8 +26,19 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
                             foreignField: "_id",
                             as: "channel",
                             pipeline: [
-                                { $project: { _id: 0, username: 1, avatar: 1 } }
+                                { $project: { _id: 0, username: 1, avatar: 1, description: 1 } }
                             ]
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "views",
+                            localField: "_id",
+                            foreignField: "videoId",
+                            pipeline: [
+                                { $match: { isCompleted: true } }
+                            ],
+                            as: "views"
                         }
                     }
                 ],
@@ -97,6 +108,17 @@ const getAllVideos = asyncHandler(async (req, res) => {
         },
         {
             $limit: limitNumber
+        },
+        {
+            $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "videoId",
+                pipeline: [
+                    { $match: { isCompleted: true } }
+                ],
+                as: "views"
+            }
         }
     ])
 
@@ -123,7 +145,24 @@ const getChannelVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "user not found");
     }
 
-    const video = await Video.find({ owner: user._id });
+    const video = await Video.aggregate([
+        {
+            $match: {
+                owner: user._id
+            }
+        },
+        {
+            $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "videoId",
+                pipeline: [
+                    { $match: { isCompleted: true } }
+                ],
+                as: "views"
+            }
+        }
+    ]);
 
     if (!video) {
         throw new ApiError(404, "Videos not found");
@@ -143,10 +182,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(403, "All fields are required")
     }
     const videoLocalPath = req.files?.videoFile[0]?.path
-    console.log(req.files)
-    console.log(videoLocalPath)
     const thumbnailLocalPath = req.files?.thumbnail[0]?.path
-    console.log("thumbnail: ", thumbnailLocalPath)
 
     if (!videoLocalPath || !thumbnailLocalPath) {
         throw new ApiError(401, "All files are required")
@@ -240,9 +276,21 @@ const getVideoById = asyncHandler(async (req, res) => {
                             username: 1,
                             avatar: 1,
                             fullName: 1,
+                            description: 1,
                         }
                     }
                 ]
+            }
+        },
+        {
+            $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "videoId",
+                pipeline: [
+                    { $match: { isCompleted: true } }
+                ],
+                as: "views",
             }
         },
         {
@@ -258,9 +306,6 @@ const getVideoById = asyncHandler(async (req, res) => {
                     }
                 },
                 viewsCount: { $size: "$views" },
-                isViewed: {
-                    $in: [req.user._id, "$views"]
-                }
             }
         },
         {
@@ -275,19 +320,19 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found")
     }
 
-    const updatedVideo = await Video.findByIdAndUpdate(
-        videoId,
-        {
-            $addToSet: {
-                views: req.user._id
-            }
-        },
-        { new: true }
-    )
+    // const updatedVideo = await Video.findByIdAndUpdate(
+    //     videoId,
+    //     {
+    //         $addToSet: {
+    //             views: req.user._id
+    //         }
+    //     },
+    //     { new: true }
+    // )
 
-    if (!updatedVideo) {
-        throw new ApiError(500, "Failed to update views list")
-    }
+    // if (!updatedVideo) {
+    //     throw new ApiError(500, "Failed to update views list")
+    // }
 
     const updateWatchHistory = await User.findByIdAndUpdate(
         req.user._id,
@@ -296,7 +341,7 @@ const getVideoById = asyncHandler(async (req, res) => {
                 watchHistory: {
                     $cond: [
                         "$isHistory",
-                        { $setUnion: ["$watchHistory", [updatedVideo._id]] },
+                        { $setUnion: ["$watchHistory", [video[0]._id]] },
                         "$watchHistory"
                     ]
                 }
