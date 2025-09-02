@@ -4,11 +4,12 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import AnalyticsIcon from "@mui/icons-material/Analytics";
 import GroupsIcon from "@mui/icons-material/Groups";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function Studio() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const userData = useSelector((state) => state.auth.userData)
   const menuItems = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "dashboard" },
     { text: "Channel Content", icon: <GroupsIcon />, path: "content" },
@@ -28,6 +29,7 @@ export default function Studio() {
             }
           </h2>
           <Button
+            onClick={() => navigate(`/c/${userData.username}`)}
             variant="contained"
             sx={{ bgcolor: "#3ea6ff", "&:hover": { bgcolor: "#65b9ff" } }}
           >

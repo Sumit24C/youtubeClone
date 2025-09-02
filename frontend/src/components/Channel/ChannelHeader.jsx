@@ -38,6 +38,8 @@ const ChannelHeader = ({ channelInfo }) => {
         videosCount = 0,
     } = channelInfo;
 
+    console.log(channelInfo);
+    
     const {
         subscribeLoading,
         subscribed,

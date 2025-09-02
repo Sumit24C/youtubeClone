@@ -287,6 +287,14 @@ const getUserChannelInfo = asyncHandler(async (req, res) => {
             }
         },
         {
+            $lookup: {
+                from: "videos",
+                localField: "_id",
+                foreignField: "owner",
+                as: "videos"
+            }
+        },
+        {
             $addFields: {
                 subscribersCount: {
                     $size: "$subscribers"
@@ -300,6 +308,9 @@ const getUserChannelInfo = asyncHandler(async (req, res) => {
                         then: true,
                         else: false
                     }
+                },
+                videosCount: {
+                    $size: "$videos"
                 }
             }
         },
@@ -313,6 +324,7 @@ const getUserChannelInfo = asyncHandler(async (req, res) => {
                 email: 1,
                 avatar: 1,
                 coverImage: 1,
+                videosCount: 1
             }
         }
     ])

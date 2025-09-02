@@ -6,6 +6,7 @@ import { isCancel } from 'axios';
 import { extractErrorMsg } from '../../utils';
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
 import { useSnackbar } from 'notistack';
+import { useSelector } from 'react-redux';
 
 function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -16,7 +17,7 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
     const axiosPrivate = useAxiosPrivate();
     const open = Boolean(anchorEl);
     const { enqueueSnackbar } = useSnackbar();
-
+    const { userData } = useSelector((state) => state.auth);
     const handleMenuOpen = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -33,6 +34,8 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
     const handleDialogClose = () => setDialogOpen(null);
 
     const deletePlaylist = async () => {
+        if (playlist.owner !== userData._id) return
+
         setLoading(true);
         if (controllerRef.current) controllerRef.current.abort();
         controllerRef.current = new AbortController();
@@ -44,15 +47,16 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
             console.log(response.data.message);
             enqueueSnackbar(response.data.message);
             setPlaylistInfo((prev) => prev.filter((p) => p._id !== playlist._id));
+            handleMenuClose();
         } catch (error) {
             if (!isCancel(error)) {
                 setErrMsg(extractErrorMsg(error));
             }
         } finally {
             setLoading(false);
+            handleMenuClose();
         }
     };
-
 
     return (
         <Box>
@@ -67,20 +71,25 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <MenuItem
-                    onClick={() => handleDialogOpen("edit")}
-                >
-                    Edit
-                </MenuItem>
-                <MenuItem
-                    onClick={deletePlaylist}
-                >
-                    {loading ? (
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <CircularProgress size={18} thickness={4} />
-                        </Box>
-                    ) : "delete"}
-                </MenuItem>
+                {userData._id === playlist.owner ? [
+                    <MenuItem
+                        key="edit"
+                        onClick={() => handleDialogOpen("edit")}
+                    >
+                        Edit
+                    </MenuItem>,
+                    <MenuItem key="delete" onClick={deletePlaylist}>
+                        {loading ? (
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                <CircularProgress size={18} thickness={4} />
+                            </Box>
+                        ) : "delete"}
+                    </MenuItem>
+                ] : [
+                    <MenuItem key="save">Save playlist</MenuItem>,
+                    <MenuItem key="watch later">Watch later</MenuItem>,
+                    <MenuItem key="report">Report</MenuItem>
+                ]}
             </Menu>
 
             <Dialog open={Boolean(dialogOpen)} onClose={handleDialogClose} disableRestoreFocus>

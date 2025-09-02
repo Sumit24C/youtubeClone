@@ -20,9 +20,10 @@ import {
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
-import { Dashboard, Community, Content, Analytics, VideoDetails } from "../src/components/Studio"
+import { Dashboard, Community, Content, Analytics, VideoDetails, ContentPlaylistTab, ContentPostsTab, ContentVideoTab } from "../src/components/Studio"
 import Studio from './pages/Studio'
 import SubscribedChannel from './pages/SubscribedChannel'
+import EditVideoPage from './components/Studio/EditVideoPage'
 
 function AppRouter() {
     return (
@@ -35,10 +36,14 @@ function AppRouter() {
                         <Route path="/you" element={<You />} />
                         <Route path="/studio" element={<Studio />} >
                             <Route index path='dashboard' element={<Dashboard />} />
-                            <Route path='content' element={<Content />} />
                             <Route path='analytics' element={<Analytics />} />
                             <Route path='community' element={<Community />} />
-                            <Route path='edit/v/:videoId' element={<VideoDetails />} />
+                            <Route path='content' element={<Content />}>
+                                <Route index element={<ContentVideoTab />} />
+                                <Route path='pl' element={<ContentPlaylistTab />} />
+                                <Route path='p' element={<ContentPostsTab />} />
+                                <Route path='edit/v/:videoId' element={<EditVideoPage />} />
+                            </Route>
                         </Route>
                         <Route index path="/playlist" element={<Playlist />} />
                         <Route index path="/liked-videos" element={<LikedVideos />} />

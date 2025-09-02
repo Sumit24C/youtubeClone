@@ -4,6 +4,7 @@ import {
     deletePlaylist,
     getCurrentUserPlaylists,
     getCurrentUserPlaylistsTitle,
+    getCurrentUserPublicPlaylists,
     getPlaylistById,
     getUserPlaylists,
     toggleVideoLikePlaylist,
@@ -19,6 +20,7 @@ router.use(verifyJWT);
 router.route("/").post(createPlaylist)
 router.route("/current-user").get(getCurrentUserPlaylists);
 router.route("/current-user/t").get(getCurrentUserPlaylistsTitle);
+router.route("/current-user/public").get(getCurrentUserPublicPlaylists);
 
 router
     .route("/:playlistId")
@@ -30,6 +32,6 @@ router
 router.route("/toggle/l/:videoId/").patch(toggleVideoLikePlaylist);
 router.route("/toggle/:videoId/:playlistId").patch(toggleVideoToPlaylist);
 
-router.route("/user/:userId").get(getUserPlaylists);
+router.route("/user/:username").get(getUserPlaylists);
 
 export default router

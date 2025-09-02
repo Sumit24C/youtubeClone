@@ -96,6 +96,7 @@ function PlaylistForm({
                 <FormControl fullWidth>
                     <InputLabel id="private-label">Privacy</InputLabel>
                     <Select
+                        disabled={loading}
                         labelId="private-label"
                         id="private"
                         defaultValue={prev.isPrivate || true}

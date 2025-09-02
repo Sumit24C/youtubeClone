@@ -3,8 +3,9 @@ import { Playlist } from "../models/playlist.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { User } from "../models/user.model.js"
 const createPlaylist = asyncHandler(async (req, res) => {
-    const { name, description, videoId, privacy } = req.body
+    const { name, description, videoId, isPrivate } = req.body
     //TODO: create playlist
 
     if (!(name && description)) {
@@ -25,28 +26,77 @@ const createPlaylist = asyncHandler(async (req, res) => {
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
-    const { userId } = req.params
+    const { username } = req.params
     //TODO: get user playlists
 
-    if (!userId.trim()) {
+    if (!username.trim()) {
         throw new ApiError(401, "UserId is required")
     }
 
-    const userPlaylists = await Playlist.find({ owner: userId })
+    const user = await User.findOne({ username: username })
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    const userPlaylists = await Playlist.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(user._id),
+                isPrivate: false
+            }
+        },
+        {
+            $addFields: {
+                videosCount: { $size: "$videos" },
+                videos: {
+                    $arrayElemAt: ["$videos", -1]
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "videos",
+                foreignField: "_id",
+                as: "lastVideo",
+                pipeline: [
+                    {
+                        $project: {
+                            thumbnailUrl: 1,
+                            thumbnail: 1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $unwind: {
+                path: "$lastVideo",
+                preserveNullAndEmptyArrays: true,
+            }
+        },
+        {
+            $project: {
+                videos: 0,
+            }
+        }
+    ]);
 
     if (!userPlaylists) {
         throw new ApiError(404, "userPlaylist not found")
     }
 
     return res.status(200).json(
-        new ApiResponse(200, userPlaylists, "User playlist fetched successfully")
+        new ApiResponse(200, userPlaylists, "currentUser playlist fetched successfully")
     )
+
 })
 
 const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
     const userId = req.user._id;
     //TODO: get currentUser playlists
-
+    
     if (!userId) {
         throw new ApiError(401, "UserId is required")
     }
@@ -106,6 +156,7 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUserPlaylistsTitle = asyncHandler(async (req, res) => {
+
     const playlist = await Playlist.find({ owner: req.user._id })
 
     if (!playlist) {
@@ -114,6 +165,19 @@ const getCurrentUserPlaylistsTitle = asyncHandler(async (req, res) => {
 
     return res.status(200).json(
         new ApiResponse(200, playlist, "playlist title fetched successfully")
+    )
+})
+
+const getCurrentUserPublicPlaylists = asyncHandler(async (req, res) => {
+
+    const playlist = await Playlist.find({ owner: req.user._id, isPrivate: false })
+
+    if (!playlist) {
+        throw new ApiError(404, "public playlist not found")
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, playlist, "public playlist title fetched successfully")
     )
 })
 
@@ -227,14 +291,14 @@ const toggleVideoLikePlaylist = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
     const updatedPlaylist = await Playlist.findOneAndUpdate(
-        { name: "likes",owner: req.user._id },
+        { name: "likes", owner: req.user._id },
         [
             {
                 $set: {
                     videos: {
                         $cond: [
-                            { $in: [videoId, "$videos"] }, 
-                            { 
+                            { $in: [videoId, "$videos"] },
+                            {
                                 $filter: {
                                     input: "$videos",
                                     cond: { $ne: ["$$this", videoId] }
@@ -250,7 +314,7 @@ const toggleVideoLikePlaylist = asyncHandler(async (req, res) => {
         ],
         {
             new: true,
-            upsert: true, 
+            upsert: true,
         }
     );
 
@@ -277,7 +341,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(401, "PlaylistId is required")
     }
 
-    await Playlist.findByIdAndDelete(playlistId)
+    await Playlist.findOneAndDelete({ _id: playlistId, owner: req.user._id })
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Playlist deleted successfully")
@@ -292,8 +356,8 @@ const updatePlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Atleast one field is required")
     }
 
-    const playlist = await Playlist.findByIdAndUpdate(
-        playlistId,
+    const playlist = await Playlist.findOneAndUpdate(
+        { _id: playlistId, owner: req.user._id },
         {
             $set: {
                 name: name,
@@ -323,5 +387,6 @@ export {
     toggleVideoToPlaylist,
     deletePlaylist,
     updatePlaylist,
-    toggleVideoLikePlaylist
+    toggleVideoLikePlaylist,
+    getCurrentUserPublicPlaylists
 }

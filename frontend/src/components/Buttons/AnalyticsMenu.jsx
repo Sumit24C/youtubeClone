@@ -1,14 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Box, IconButton, Menu, MenuItem, Dialog, DialogContent, Snackbar, CircularProgress } from '@mui/material';
-import PlaylistForm from '../../components/Playlist/PlaylistForm'
+import PlaylistForm from '../Playlist/PlaylistForm'
 import { isCancel } from 'axios';
 import { extractErrorMsg } from '../../utils';
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 
-function VideoAnalyticsMenu({ videoId, setVideos }) {
+function AnalyticsMenu({ id, setContents, type }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [dialogOpen, setDialogOpen] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -27,18 +27,21 @@ function VideoAnalyticsMenu({ videoId, setVideos }) {
 
     const handleMenuClose = () => setAnchorEl(null);
 
-    const deleteVideo = async () => {
+    const deleteContent = async () => {
         setLoading(true);
         if (controllerRef.current) controllerRef.current.abort();
         controllerRef.current = new AbortController();
 
+        let url = `/dashboard/${type}/${id}`
+        if (type === "playlist") url = `/playlist/${id}`;
+
         try {
-            const response = await axiosPrivate.delete(`/dashboard/video/${videoId}`, {
+            const response = await axiosPrivate.delete(url, {
                 signal: controllerRef.current.signal,
             });
             console.log(response.data.message);
             enqueueSnackbar(response.data.message);
-            setVideos((prev) => prev.filter((v) => v._id !== videoId));
+            setContents((prev) => prev.filter((c) => c._id !== id));
         } catch (error) {
             if (!isCancel(error)) {
                 setErrMsg(extractErrorMsg(error));
@@ -63,12 +66,12 @@ function VideoAnalyticsMenu({ videoId, setVideos }) {
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
                 <MenuItem
-                    onClick={() => navigate(`/edit/v/${videoId}`)}
+                    onClick={() => navigate(`edit/v/${id}`)}
                 >
                     Edit
                 </MenuItem>
                 <MenuItem
-                    onClick={deleteVideo}
+                    onClick={deleteContent}
                 >
                     {loading ? (
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -81,4 +84,4 @@ function VideoAnalyticsMenu({ videoId, setVideos }) {
     );
 }
 
-export default VideoAnalyticsMenu;
+export default AnalyticsMenu;
