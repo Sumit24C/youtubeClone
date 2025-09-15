@@ -65,11 +65,11 @@ function AnalyticsMenu({ id, setContents, type }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                <MenuItem
+                {type !== "playlist" && <MenuItem
                     onClick={() => navigate(`edit/v/${id}`)}
                 >
                     Edit
-                </MenuItem>
+                </MenuItem>}
                 <MenuItem
                     onClick={deleteContent}
                 >

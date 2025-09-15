@@ -369,6 +369,22 @@ const getWatchHistory = asyncHandler(async (req, res) => {
                             ]
                         }
                     },
+                    {
+                        $lookup: {
+                            from: "views",
+                            localField: "_id",
+                            foreignField: "videoId",
+                            pipeline: [
+                                { $match: { isCompleted: true } }
+                            ],
+                            as: "views"
+                        }
+                    },
+                    {
+                        $addFields: {
+                            views: { $size: "$views" }
+                        }
+                    }
                 ]
             }
         },
@@ -451,6 +467,158 @@ const playPauseWatchHistory = asyncHandler(async (req, res) => {
     );
 });
 
+const toggleWatchLater = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(400, "VideoId is required");
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    let message, updatedUser;
+
+    if (user.watchLater.includes(videoId)) {
+        updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $pull: { watchLater: videoId } },
+            { new: true }
+        );
+        message = "Video removed from Watch Later";
+    } else {
+        // Add video if not exists
+        updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { $addToSet: { watchLater: videoId } },
+            { new: true }
+        );
+        message = "Video added to Watch Later";
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, updatedUser, message)
+    );
+});
+
+const getWatchLaterStatus = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(400, "VideoId is required");
+    }
+
+    const user = await User.aggregate([
+        {
+            $match: { _id: req.user?._id }
+        },
+        {
+            $addFields: {
+                isWatchLater: {
+                    $cond: {
+                        if: { $in: [new mongoose.Types.ObjectId(videoId), "$watchLater"] },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                isWatchLater: 1
+            }
+        }
+    ]);
+
+    if (!user) {
+        throw new ApiError(500, "Failed to fetch watch later status");
+    }
+    
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            { isWatchLater: user[0]?.isWatchLater || false },
+            "Watch later status fetched successfully"
+        )
+    );
+});
+
+const getWatchLaterVideos = asyncHandler(async (req, res) => {
+    //TODO: get all liked videos
+
+    const response = await User.aggregate([
+        {
+            $match: {
+                _id: req.user._id,
+                video: { $exists: true }
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "watchLater",
+                foreignField: "_id",
+                as: "video",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "channel",
+                            pipeline: [
+                                { $project: { _id: 0, username: 1, avatar: 1 } }
+                            ]
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "views",
+                            localField: "_id",
+                            foreignField: "videoId",
+                            pipeline: [
+                                { $match: { isCompleted: true } }
+                            ],
+                            as: "views",
+                        }
+                    },
+                    {
+                        $addFields: {
+                            views: {
+                                $size: "$views"
+                            },
+                        }
+                    },
+                ]
+            }
+        },
+        {
+            $unwind: "$video"
+        },
+        {
+            $project: {
+                video: 1
+            }
+        }
+    ])
+
+    if (!response) {
+        throw new ApiError(404, "No watch later videos");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, response, "Successfully fetched watch later videos")
+    )
+})
+
+
 export {
     registerUser,
     loginUser,
@@ -465,5 +633,8 @@ export {
     getWatchHistory,
     removeVideoFromWatchHistory,
     clearWatchHistory,
-    playPauseWatchHistory
+    playPauseWatchHistory,
+    toggleWatchLater,
+
+    getWatchLaterVideos
 }

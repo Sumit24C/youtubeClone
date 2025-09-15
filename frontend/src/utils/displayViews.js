@@ -1,5 +1,5 @@
 const displayViews = (views) => {
-    const totalViews = views.length;
+    const totalViews = views;
 
     if (totalViews == 0 || totalViews == 1) {
         return `${totalViews} view`;

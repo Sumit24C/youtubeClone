@@ -5,12 +5,14 @@ import {
     getCurrentUser,
     getUserChannelInfo,
     getWatchHistory,
+    getWatchLaterVideos,
     loginUser,
     logoutUser,
     playPauseWatchHistory,
     refreshAccessToken,
     registerUser,
     removeVideoFromWatchHistory,
+    toggleWatchLater,
     updateAccountDetails,
     updateUserAvatar,
     updateUserCoverImage
@@ -53,5 +55,7 @@ router.route('/channel-profile/:username').get(verifyJWT, getUserChannelInfo)
 router.route('/watch-history').get(verifyJWT, getWatchHistory).patch(verifyJWT, clearWatchHistory)
 router.route('/watch-history/p').patch(verifyJWT, playPauseWatchHistory)
 router.route('/watch-history/v/:videoId').patch(verifyJWT, removeVideoFromWatchHistory)
+router.route('/watch-later').get(verifyJWT, getWatchLaterVideos)
+router.route('/watch-later/v/toggle/:videoId').patch(verifyJWT, toggleWatchLater)
 
 export default router

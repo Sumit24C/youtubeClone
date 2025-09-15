@@ -10,6 +10,7 @@ import {
   History as HistoryIcon,
   PlaylistPlay as PlaylistIcon,
   ThumbUp as LikedIcon,
+  WatchLater as WatchLaterIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import CustomListItems from './CustomListItems';
@@ -30,6 +31,7 @@ export default function Sidebar({ open }) {
     { name: 'History', path: '/history', icon: <HistoryIcon /> },
     { name: 'Playlists', path: '/playlist', icon: <PlaylistIcon /> },
     { name: 'Liked Videos', path: '/liked-videos', icon: <LikedIcon /> },
+    { name: 'Watch Later', path: '/watch-later', icon: <WatchLaterIcon /> },
   ];
 
   const [loading, setLoading] = useState(false);

@@ -24,7 +24,7 @@ const userSchema = new Schema({
         trim: true,
         index: true,
     },
-    description:{
+    description: {
         type: String,
     },
     avatar: {
@@ -34,6 +34,12 @@ const userSchema = new Schema({
         type: String,
     },
     watchHistory: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Video',
+        }
+    ],
+    watchLater: [
         {
             type: Schema.Types.ObjectId,
             ref: 'Video',
@@ -54,7 +60,7 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "playlists"
     },
-    
+
 }, { timestamps: true })
 
 userSchema.pre("save", async function (next) {

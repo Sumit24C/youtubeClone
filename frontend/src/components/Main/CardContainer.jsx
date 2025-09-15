@@ -14,7 +14,7 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
     createdAt,
     duration,
   } = video;
-
+  console.log(video)
 
   const path = p_id ? `/v/${_id}/Pl=/${p_id}` : `/v/${_id}`;
   const sizes = {

@@ -1,82 +1,105 @@
-import React from "react";
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Button } from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
-import GroupsIcon from "@mui/icons-material/Groups";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  Tabs,
+  Tab,
+  Grid,
+  Paper,
+  Button,
+} from "@mui/material";
+import { Outlet, useNavigate } from "react-router-dom";
 
-export default function Studio() {
+function Studio() {
+  const [tab, setTab] = useState(0);
   const navigate = useNavigate();
-  const location = useLocation();
-  const userData = useSelector((state) => state.auth.userData)
-  const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "dashboard" },
-    { text: "Channel Content", icon: <GroupsIcon />, path: "content" },
-    { text: "Analytics", icon: <AnalyticsIcon />, path: "analytics" },
-    { text: "Community", icon: <GroupsIcon />, path: "community" },
-  ];
+
+  const handleTabChange = (e, newValue) => {
+    setTab(newValue);
+  };
+
+  // Mock analytics data (replace with API values later)
+  const analytics = {
+    subscribers: 1200,
+    views: 45000,
+    watchHours: 320,
+  };
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", bgcolor: "#121212", color: "white" }}>
-      {/* Main Content */}
-      <Box sx={{ flexGrow: 1, p: 3 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2>
-            {
-              menuItems.find((item) => location.pathname.includes(item.path))?.text ||
-              "Dashboard"
-            }
-          </h2>
-          <Button
-            onClick={() => navigate(`/c/${userData.username}`)}
-            variant="contained"
-            sx={{ bgcolor: "#3ea6ff", "&:hover": { bgcolor: "#65b9ff" } }}
-          >
-            View Channel
-          </Button>
-        </Box>
-
-        {/* Nested Routes Render Here */}
-        <Box sx={{ mt: 3 }}>
-          <Outlet />
-        </Box>
-      </Box>
-
-      {/* Sidebar (Right side) */}
-      <Drawer
-        anchor="right"
-        variant="permanent"
+    <Box
+      sx={{
+        px: { xs: 2, md: 6, lg: 10 }, // horizontal padding instead of mx:auto
+        bgcolor: "#121212",
+        minHeight: "100vh",
+        color: "white",
+        maxWidth: "1600px", // keeps content from being too wide
+      }}
+    >
+      {/* --- Top Row: View Channel + Stats --- */}
+      <Box
         sx={{
-          width: 220,
-          flexShrink: 0,
-          [`& .MuiDrawer-paper`]: {
-            width: 220,
-            boxSizing: "border-box",
-            bgcolor: "#181818",
-            color: "white",
-            borderLeft: "1px solid #333",
-          },
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+          flexWrap: "wrap", // responsive on small screens
+          gap: 2,
         }}
       >
-        <Box sx={{ p: 2, fontWeight: "bold", fontSize: "20px" }}>Your Channel</Box>
-        <List>
-          {menuItems.map((item) => (
-            <ListItemButton
-              key={item.text}
-              selected={location.pathname.includes(item.path)}
-              onClick={() => navigate(item.path)}
-              sx={{
-                "&.Mui-selected": { bgcolor: "#333333" },
-                "&:hover": { bgcolor: "#2a2a2a" },
-              }}
-            >
-              <ListItemIcon sx={{ color: "white" }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
+        {/* Left: View Channel */}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/channel")}
+        >
+          View Channel
+        </Button>
+
+        {/* Right: Stats */}
+        <Grid container spacing={2} sx={{ width: "auto" }}>
+          {[
+            { label: "Subscribers", value: analytics.subscribers },
+            { label: "Views", value: analytics.views },
+            { label: "Watch Hours", value: analytics.watchHours },
+          ].map((item, index) => (
+            <Grid item key={index}>
+              <Paper
+                sx={{
+                  p: 1.5,
+                  px: 2,
+                  minWidth: 120,
+                  bgcolor: "#1e1e1e",
+                  borderRadius: 2,
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="subtitle2" color="gray">
+                  {item.label}
+                </Typography>
+                <Typography variant="h6">{item.value}</Typography>
+              </Paper>
+            </Grid>
           ))}
-        </List>
-      </Drawer>
+        </Grid>
+      </Box>
+
+      {/* --- Tabs Row --- */}
+      <Tabs
+        value={tab}
+        onChange={handleTabChange}
+        textColor="inherit"
+        indicatorColor="primary"
+        sx={{ borderBottom: "1px solid #333", mb: 2 }}
+      >
+        <Tab onClick={() => navigate("")} label="Videos" />
+        <Tab onClick={() => navigate("pl")} label="Playlists" />
+        <Tab onClick={() => navigate("p")} label="Posts" />
+      </Tabs>
+
+      {/* --- Outlet for Tab Content --- */}
+      <Outlet />
     </Box>
   );
 }
+
+export default Studio;

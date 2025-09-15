@@ -101,7 +101,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         {
             $match: {
                 likedBy: req.user._id,
-                video: {$exists: true}
+                video: { $exists: true }
             }
         },
         {
@@ -123,6 +123,24 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                             pipeline: [
                                 { $project: { _id: 0, username: 1, avatar: 1 } }
                             ]
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "views",
+                            localField: "_id",
+                            foreignField: "videoId",
+                            pipeline: [
+                                { $match: { isCompleted: true } }
+                            ],
+                            as: "views",
+                        }
+                    },
+                    {
+                        $addFields: {
+                            views: {
+                                $size: "$views"
+                            },
                         }
                     },
                 ]

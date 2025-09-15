@@ -16,12 +16,13 @@ import {
     Playlist,
     Signup,
     VideoPage,
-    SubscriptionVideos
+    SubscriptionVideos,
+    Studio,
+    WatchLater
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelPosts, ChannelVideos } from '../src/components/Channel'
-import { Dashboard, Community, Content, Analytics, VideoDetails, ContentPlaylistTab, ContentPostsTab, ContentVideoTab } from "../src/components/Studio"
-import Studio from './pages/Studio'
+import { ContentPlaylistTab, ContentPostsTab, ContentVideoTab } from "../src/components/Studio"
 import SubscribedChannel from './pages/SubscribedChannel'
 import EditVideoPage from './components/Studio/EditVideoPage'
 
@@ -35,20 +36,16 @@ function AppRouter() {
                         <Route index path="/" element={<Home />} />
                         <Route path="/you" element={<You />} />
                         <Route path="/studio" element={<Studio />} >
-                            <Route index path='dashboard' element={<Dashboard />} />
-                            <Route path='analytics' element={<Analytics />} />
-                            <Route path='community' element={<Community />} />
-                            <Route path='content' element={<Content />}>
-                                <Route index element={<ContentVideoTab />} />
-                                <Route path='pl' element={<ContentPlaylistTab />} />
-                                <Route path='p' element={<ContentPostsTab />} />
-                                <Route path='edit/v/:videoId' element={<EditVideoPage />} />
-                            </Route>
+                            <Route index element={<ContentVideoTab />} />
+                            <Route path='pl' element={<ContentPlaylistTab />} />
+                            <Route path='p' element={<ContentPostsTab />} />
+                            <Route path='edit/v/:id' element={<EditVideoPage />} />
                         </Route>
-                        <Route index path="/playlist" element={<Playlist />} />
-                        <Route index path="/liked-videos" element={<LikedVideos />} />
-                        <Route index path="/history" element={<WatchHistory />} />
-                        <Route index path="/subscriptions" element={<SubscriptionVideos />} />
+                        <Route path="/playlist" element={<Playlist />} />
+                        <Route path="/liked-videos" element={<LikedVideos />} />
+                        <Route path="/history" element={<WatchHistory />} />
+                        <Route path="/watch-later" element={<WatchLater />} />
+                        <Route path="/subscriptions" element={<SubscriptionVideos />} />
                         <Route path="/c/:id" element={<Channel />} >
                             <Route index element={<ChannelVideos />} />
                             <Route path='posts' element={<ChannelPosts />} />

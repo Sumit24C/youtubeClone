@@ -9,6 +9,8 @@ import SubscriptionVideos from "./SubscriptionVideos"
 import VideoPage from "./VideoPage";
 import Home from "./Home"
 import You from "./You"
+import Studio from "./Studio";
+import WatchLater from "./WatchLater";
 
 export{
     You,
@@ -22,4 +24,6 @@ export{
     Signup,
     SubscriptionVideos,
     VideoPage,
+    WatchLater,
+    Studio
 }

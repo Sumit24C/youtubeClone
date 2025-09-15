@@ -19,19 +19,20 @@ import { useAxiosPrivate } from "../../hooks/useAxiosPrivate.js";
 import PlaylistSelector from "./PlaylistSelector.jsx";
 import PlaylistForm from "./PlaylistForm.jsx";
 
-function CreatePlaylist({ videoId, handleDialogClose, edit }) {
+function CreatePlaylist({ videoId, handleDialogClose, edit = false }) {
     const axiosPrivate = useAxiosPrivate();
     const [showForm, setShowForm] = useState(false);
     const [playlist, setPlaylist] = useState([]);
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
-
+    console.log("videoId: ", videoId)
+    console.log()
     useEffect(() => {
         setLoading(true);
         const controller = new AbortController();
         let url = `/playlist/current-user/t`
         if (edit) url = `/playlist/current-user/public`
-            (async () => {
+            ;(async () => {
                 try {
                     const response = await axiosPrivate.get(url, {
                         signal: controller.signal,

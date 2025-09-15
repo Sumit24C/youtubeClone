@@ -8,41 +8,43 @@ import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
 import { extractErrorMsg } from "../../utils";
 import { isCancel } from 'axios';
 
-const VideoPlayer = ({ videoFile, thumbnail }) => {
+const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
   const { id } = useParams();
   const playerRef = useRef(null);
   const cloudinaryRef = useRef(null);
   const axiosPrivate = useAxiosPrivate();
   const controllerRef = useRef(null);
-
+  console.log(id);
   const [watchTime, setWatchTime] = useState(0);
   const [view, setView] = useState({})
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    (async function () {
-      try {
-        setLoading(true);
-        const response = await axiosPrivate.get(`/views/${id}`, {
-          signal: controller.signal
-        });
-        setView(response.data.data);
-        if (response.data?.data?.watchTime) {
-          setWatchTime(response.data.data.watchTime);
+  
+  if (!isEdit) {
+    useEffect(() => {
+      const controller = new AbortController();
+      (async function () {
+        try {
+          setLoading(true);
+          const response = await axiosPrivate.get(`/views/${id}`, {
+            signal: controller.signal
+          });
+          setView(response.data.data);
+          if (response.data?.data?.watchTime) {
+            setWatchTime(response.data.data.watchTime);
+          }
+        } catch (error) {
+          if (!isCancel(error)) {
+            setErrorMsg(extractErrorMsg(error));
+          }
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        if (!isCancel(error)) {
-          setErrorMsg(extractErrorMsg(error));
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
+      })();
 
-    return () => controller.abort();
-  }, [id, axiosPrivate]);
+      return () => controller.abort();
+    }, [id, axiosPrivate]);
+  }
 
   useEffect(() => {
     if (cloudinaryRef.current) return;
@@ -65,52 +67,52 @@ const VideoPlayer = ({ videoFile, thumbnail }) => {
 
     player.source(videoFile);
 
-    player.on('timeupdate', () => {
-      setWatchTime(player.currentTime());
-    });
+    if (!isEdit) {
 
-    console.log("current:", player.currentTime());
+      player.on('timeupdate', () => {
+        setWatchTime(player.currentTime());
+      });
 
-    // Function to send watch data
-    const sendView = async (isCompleted = false) => {
-      try {
-        console.log(isCompleted);
-        controllerRef.current = new AbortController();
-        await axiosPrivate.post(
-          `/views/${id}`,
-          {}, // request body
-          {
-            params: {
-              watchTime: Math.floor(player.currentTime()),
-              isCompleted,
-            },
-            signal: controllerRef.current.signal,
+      const sendView = async (isCompleted = false) => {
+        try {
+          console.log(isCompleted);
+          controllerRef.current = new AbortController();
+          await axiosPrivate.post(
+            `/views/${id}`,
+            {},
+            {
+              params: {
+                watchTime: Math.floor(player.currentTime()),
+                isCompleted,
+              },
+              signal: controllerRef.current.signal,
+            }
+          );
+        } catch (error) {
+          if (!isCancel(error)) {
+            setErrorMsg(extractErrorMsg(error));
           }
-        );
-      } catch (error) {
-        if (!isCancel(error)) {
-          setErrorMsg(extractErrorMsg(error));
         }
-      }
-    };
+      };
 
-    const handlePause = () => {
-      if (player.currentTime() >= player.duration() - 0.1) return; 
-      sendView(false);
-    };
+      const handlePause = () => {
+        if (player.currentTime() >= player.duration() - 0.1) return;
+        sendView(false);
+      };
 
-    const handleEnded = () => sendView(true);
+      const handleEnded = () => sendView(true);
 
-    player.on("pause", handlePause);
-    player.on("ended", handleEnded);
+      player.on("pause", handlePause);
+      player.on("ended", handleEnded);
 
-    // Send before tab close
-    const handleBeforeUnload = () => sendView(view.isCompleted);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+      // Send before tab close
+      const handleBeforeUnload = () => sendView(view.isCompleted);
+      window.addEventListener('beforeunload', handleBeforeUnload);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
 
   }, [videoFile, thumbnail, id, axiosPrivate]);
 
