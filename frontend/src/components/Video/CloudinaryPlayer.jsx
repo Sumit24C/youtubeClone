@@ -13,22 +13,19 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
   const playerRef = useRef(null);
   const cloudinaryRef = useRef(null);
   const axiosPrivate = useAxiosPrivate();
-  const controllerRef = useRef(null);
   console.log(id);
   const [watchTime, setWatchTime] = useState(0);
   const [view, setView] = useState({})
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const controllerRef = useRef(null);
   
   if (!isEdit) {
     useEffect(() => {
-      const controller = new AbortController();
       (async function () {
         try {
           setLoading(true);
-          const response = await axiosPrivate.get(`/views/${id}`, {
-            signal: controller.signal
-          });
+          const response = await axiosPrivate.get(`/views/${id}`);
           setView(response.data.data);
           if (response.data?.data?.watchTime) {
             setWatchTime(response.data.data.watchTime);
@@ -42,7 +39,6 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
         }
       })();
 
-      return () => controller.abort();
     }, [id, axiosPrivate]);
   }
 
@@ -75,7 +71,6 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
 
       const sendView = async (isCompleted = false) => {
         try {
-          console.log(isCompleted);
           controllerRef.current = new AbortController();
           await axiosPrivate.post(
             `/views/${id}`,
@@ -105,7 +100,6 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
       player.on("pause", handlePause);
       player.on("ended", handleEnded);
 
-      // Send before tab close
       const handleBeforeUnload = () => sendView(view.isCompleted);
       window.addEventListener('beforeunload', handleBeforeUnload);
 

@@ -23,14 +23,12 @@ function PlaylistForm({
     });
 
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
     const { enqueueSnackbar } = useSnackbar();
 
     const createOrEdit = async (data) => {
         setLoading(true);
         setErrMsg("");
         try {
-            controller.current = new AbortController();
             const url = prev?._id ? `/playlist/${prev._id}` : `/playlist`;
             const method = prev?._id ? "patch" : "post";
             const payload = {
@@ -40,7 +38,7 @@ function PlaylistForm({
                 ...(!prev._id && { videoId })
             };
 
-            const response = await axiosPrivate[method](url, payload, { signal: controller.current.signal });
+            const response = await axiosPrivate[method](url, payload);
             enqueueSnackbar(response.data.message)
             if (prev?._id) {
                 setPlaylist(prev => ({
@@ -64,10 +62,6 @@ function PlaylistForm({
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        return () => { if (controller.current) controller.current.abort(); };
-    }, []);
 
     return (
         <Box sx={{ p: 2, minWidth: 280, maxWidth: 400, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', bgcolor: '#151515ff' }}>

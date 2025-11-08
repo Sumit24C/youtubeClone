@@ -15,8 +15,6 @@ function useLike(
     const [liked, setLiked] = useState(isLiked);
     const [countOfLikes, setCountOfLikes] = useState(likesCount);
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
-    controller.current = new AbortController();
     let endPoint;
 
     if (id) {
@@ -28,11 +26,8 @@ function useLike(
     const handleLike = async () => {
         setLikeLoading(true);
         try {
-            const response = await axiosPrivate.post(endPoint, {
-                signal: controller.current.signal
-            });
+            const response = await axiosPrivate.post(endPoint);
 
-            console.log(response.data.data);
             const likedRes = response.data.data.isLiked
             setLiked(likedRes);
 
@@ -53,12 +48,6 @@ function useLike(
             setLikeLoading(false)
         }
     }
-
-    useEffect(() => {
-        return () => {
-            controller.current.abort();
-        }
-    }, [])
 
     return { likeLoading, liked, countOfLikes, handleLike }
 }

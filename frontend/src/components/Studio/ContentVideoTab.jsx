@@ -31,13 +31,9 @@ function ContentVideoTab() {
         setLoading(true);
         setErrorMsg("");
 
-        const controller = new AbortController();
-
         (async function () {
             try {
-                const response = await axiosPrivate.get(`/dashboard/videos`, {
-                    signal: controller.signal,
-                });
+                const response = await axiosPrivate.get(`/dashboard/videos`);
                 setVideos(response.data.data);
             } catch (error) {
                 if (!isCancel(error)) {
@@ -48,7 +44,6 @@ function ContentVideoTab() {
             }
         })();
 
-        return () => controller.abort();
     }, []);
 
     if (loading) {

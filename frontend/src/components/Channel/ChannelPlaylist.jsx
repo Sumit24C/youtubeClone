@@ -15,13 +15,9 @@ function ChannelPlaylist() {
 
   useEffect(() => {
     setLoading(true);
-    const controller = new AbortController();
-
     (async () => {
       try {
-        const response = await axiosPrivate.get(`/playlist/user/${id}`, {
-          signal: controller.signal
-        });
+        const response = await axiosPrivate.get(`/playlist/user/${id}`);
         setPlaylistInfo(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -32,9 +28,6 @@ function ChannelPlaylist() {
       }
     })();
 
-    return () => {
-      controller.abort();
-    };
   }, []);
 
   if (loading) {

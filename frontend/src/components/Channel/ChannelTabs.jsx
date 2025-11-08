@@ -31,12 +31,6 @@ function ChannelTabs() {
           to="playlists"
         />
         <Tab
-          label="Posts"
-          value="posts"
-          component={Link}
-          to="posts"
-        />
-        <Tab
           label="About"
           value="about"
           component={Link}

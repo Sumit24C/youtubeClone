@@ -12,7 +12,6 @@ import {
 import { useAxiosPrivate } from '../hooks/useAxiosPrivate';
 import { isCancel } from 'axios';
 import extractErrorMsg from '../utils/extractErrorMsg';
-import { useRef } from 'react';
 import { useSelector } from 'react-redux';
 
 function SubscriptionVideos() {
@@ -21,18 +20,13 @@ function SubscriptionVideos() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [videos, setVideos] = useState([]);
-  const controllerRef = useRef(null);
   useEffect(() => {
     setLoading(true);
     setErrorMsg('');
 
-    const controller = new AbortController();
-
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/subscriptions/u/v`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/subscriptions/u/v`);
         const subscribedList = response.data.data
         setVideos(subscribedList.map((s) => s.videos));
       } catch (error) {
@@ -43,8 +37,6 @@ function SubscriptionVideos() {
         setLoading(false);
       }
     })();
-
-    return () => controller.abort();
   }, []);
 
 
@@ -77,7 +69,7 @@ function SubscriptionVideos() {
     >
       {videos && videos.length > 0 ? (
         videos.map((video, index) => (
-          <CardContainer key={index} video={video} />
+          <CardContainer key={index} video={video} subscribed={true} />
         ))
       ) : (
         <p>No subscribed channel videos available</p>

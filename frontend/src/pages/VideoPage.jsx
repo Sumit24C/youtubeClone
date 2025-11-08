@@ -19,7 +19,6 @@ function VideoPage() {
         height: '100%',
       }}
     >
-      {/* LeftContainer: Video + Info */}
       <Box
         sx={{
           flex: 2,
@@ -29,7 +28,6 @@ function VideoPage() {
         <LeftContainer isWideScreen={isWideScreen} />
       </Box>
 
-      {/* RightContainer: Recommendations */}
       <Box
         sx={{
           p: 0,

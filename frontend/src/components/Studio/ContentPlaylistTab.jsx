@@ -32,13 +32,9 @@ function ContentPlaylistTab() {
     setLoading(true);
     setErrorMsg("");
 
-    const controller = new AbortController();
-
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/dashboard/playlists`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/dashboard/playlists`);
         setPlaylists(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -49,7 +45,6 @@ function ContentPlaylistTab() {
       }
     })();
 
-    return () => controller.abort();
   }, []);
 
   if (loading) {

@@ -4,7 +4,16 @@ import { useState } from 'react';
 import MenuButton from '../Buttons/MenuButton';
 import { displayViews, displayDuration, displayCreatedAt } from '../../utils';
 import DeleteVideoWatchHistory from '../Buttons/DeleteVideoWatchHistory';
-function CardContainer({ p_id, video, vertical = false, size = "medium", history = false, setVideos, isLiked = false }) {
+function CardContainer({
+  p_id,
+  video,
+  vertical = false,
+  size = "medium",
+  subscribed = false,
+  history = false,
+  setVideos,
+  isLiked = false
+}) {
   const {
     _id,
     thumbnailUrl,
@@ -14,7 +23,6 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
     createdAt,
     duration,
   } = video;
-  console.log(video)
 
   const path = p_id ? `/v/${_id}/Pl=/${p_id}` : `/v/${_id}`;
   const sizes = {
@@ -179,11 +187,11 @@ function CardContainer({ p_id, video, vertical = false, size = "medium", history
             )}
 
             {/* Views + CreatedAt */}
-            <Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
+            {!subscribed && (<Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography fontSize="0.9rem" color="gray" sx={{ lineHeight: 1.2 }}>
                 {displayViews(views)} • {displayCreatedAt(createdAt)}
               </Typography>
-            </Link>
+            </Link>)}
           </Box>
         </Box>
 

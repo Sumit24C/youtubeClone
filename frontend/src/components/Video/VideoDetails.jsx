@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Box, Typography, Avatar, Button, IconButton } from '@mui/material';
 import { ThumbUpOutlined, ThumbUp, ThumbDown, ThumbDownOutlined, Share, Download, MoreHoriz } from '@mui/icons-material';
-import ShareButton from '../Buttons/ShareButton';
-import DownloadButton from '../Buttons/DownloadButton';
 import { useSubscribe } from '../../hooks/useSubscribe';
 import { useLike } from '../../hooks/useLike';
 import VideoPageButton from '../Buttons/VideoPageButton';
@@ -111,8 +109,6 @@ const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
           />
         </Box>
 
-        <ShareButton />
-        <DownloadButton />
         <IconButton size="small" sx={{ color: 'white', height: '36px', width: '36px' }}>
           <MoreHoriz fontSize="small" />
         </IconButton>

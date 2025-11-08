@@ -14,21 +14,15 @@ function Comments() {
     const [errorMsg, setErrorMsg] = useState("")
     const [loading, setLoading] = useState(false)
     const axiosPrivate = useAxiosPrivate()
-    const controllerRef = useRef();
     const observerRef = useRef();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
     const fetchComments = async (pageNum) => {
         setLoading(true);
-        if (controllerRef.current) controllerRef.current.abort();
-
-        controllerRef.current = new AbortController();
 
         try {
-            const response = await axiosPrivate.get(`/comments/${id}?page=${page}`, {
-                signal: controllerRef.current.signal
-            });
+            const response = await axiosPrivate.get(`/comments/${id}?page=${page}`);
             const { comments: newComments, totalPages } = response.data.data;
 
             setPage(pageNum)
@@ -68,10 +62,6 @@ function Comments() {
         observerRef.current = observer;
 
     }, [page, loading, totalPages])
-
-    useEffect(() => {
-        return () => controllerRef.current.abort();
-    }, [])
 
     if (loading && comments.length === 0) {
         return (

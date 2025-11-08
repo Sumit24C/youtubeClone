@@ -28,13 +28,10 @@ function WatchLater() {
   useEffect(() => {
     setLoading(true);
     setErrorMsg('');
-    const controller = new AbortController();
 
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/users/watch-later`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/users/watch-later`);
         const watchLater = response.data.data;
         setwatchLaterVideos(watchLater.map((l) => l.video));
       } catch (error) {
@@ -46,7 +43,6 @@ function WatchLater() {
       }
     })();
 
-    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -67,7 +63,6 @@ function WatchLater() {
 
   return (
     <Box sx={{ display: 'flex', height: 'calc(100vh - 64px)', bgcolor: '#0f0f0f', color: 'white' }}>
-      {/* LEFT SIDEBAR */}
       <Box sx={{ width: 350, p: 3, bgcolor: 'linear-gradient(135deg, #333, #111)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <CardMedia
           component="img"
@@ -113,8 +108,6 @@ function WatchLater() {
           </Button>
         </Box>
       </Box>
-
-      {/* RIGHT VIDEO LIST */}
       <Box sx={{ flex: 1, p: 2, overflowY: 'auto' }}>
         <Box mt={2} width={"70%"} marginX={5}>
           {errorMsg ? (

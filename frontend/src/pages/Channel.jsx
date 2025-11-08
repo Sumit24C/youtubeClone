@@ -6,7 +6,6 @@ import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js';
 import ChannelHeader from '../components/Channel/ChannelHeader.jsx';
 import ChannelTabs from '../components/Channel/ChannelTabs.jsx';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useSelector } from 'react-redux';
 
 function Channel() {
   const { id } = useParams();
@@ -17,13 +16,9 @@ function Channel() {
 
   useEffect(() => {
     setLoading(true);
-    const controller = new AbortController();
-
     (async () => {
       try {
-        const response = await axiosPrivate.get(`/users/channel-profile/${id}`, {
-          signal: controller.signal
-        });
+        const response = await axiosPrivate.get(`/users/channel-profile/${id}`);
         setChannelInfo(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -33,10 +28,6 @@ function Channel() {
         setLoading(false);
       }
     })();
-
-    return () => {
-      controller.abort();
-    };
   }, [id]);
 
   if (loading) {

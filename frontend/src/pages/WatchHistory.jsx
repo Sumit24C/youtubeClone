@@ -26,20 +26,15 @@ function WatchHistory() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [videos, setVideos] = useState([]);
-  const controllerRef = useRef(null);
   const [isHistory, setIsHistory] = useState(userData.isHistory);
 
   useEffect(() => {
     setLoading(true);
     setErrorMsg('');
 
-    const controller = new AbortController();
-
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/users/watch-history`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/users/watch-history`);
         setVideos(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -50,20 +45,14 @@ function WatchHistory() {
       }
     })();
 
-    return () => controller.abort();
   }, []);
 
   const handleClearWatchHistory = async () => {
     setLoading(true);
     setErrorMsg("");
 
-    controllerRef.current = new AbortController();
-
     try {
-      const response = await axiosPrivate.patch(`/users/watch-history`,
-        {}, {
-        signal: controllerRef.current.signal
-      })
+      const response = await axiosPrivate.patch(`/users/watch-history`,{})
 
       if (response.data.data.cleared) {
         setVideos([]);
@@ -76,23 +65,16 @@ function WatchHistory() {
     } finally {
       setLoading(false);
     }
-
   }
 
   const handlePlayPauseWatchHistory = async () => {
     setLoading(true);
     setErrorMsg("");
 
-    controllerRef.current = new AbortController();
-
     try {
       const response = await axiosPrivate.patch(`/users/watch-history/p`,
-        {}, {
-        signal: controllerRef.current.signal
-      })
-
+        {})
       setIsHistory(response.data.data.isHistory);
-
     } catch (error) {
       if (!isCancel(error)) {
         setErrorMsg(extractErrorMsg(error))
@@ -112,16 +94,13 @@ function WatchHistory() {
 
   return (
     <Box sx={{ display: 'flex', p: 2, gap: 3 }}>
-      {/* Left Section - Watch History */}
       <Box sx={{ flex: 3 }}>
-        {/* Header */}
         <Typography variant="h5" fontWeight="bold" mb={2}>
           Watch history
         </Typography>
 
         <Divider />
 
-        {/* Videos */}
         <Box mt={2} width={"70%"} marginX={5}>
           {errorMsg ? (
             <Typography textAlign="center" color="error">{errorMsg}</Typography>
@@ -142,13 +121,7 @@ function WatchHistory() {
         </Box>
       </Box>
 
-      {/* Right Section - Controls */}
       <Box sx={{ flex: 1, minWidth: '250px' }}>
-        <Box display="flex" alignItems="center" mb={2}>
-          <SearchIcon sx={{ mr: 1 }} />
-          <Typography variant="body1">Search watch history</Typography>
-        </Box>
-
         <Stack spacing={2}>
           <Button startIcon={<DeleteIcon />} sx={{ justifyContent: 'flex-start' }} onClick={handleClearWatchHistory} loading={loading} disabled={loading}>
             Clear all watch history

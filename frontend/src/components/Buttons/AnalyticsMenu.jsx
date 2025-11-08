@@ -13,7 +13,6 @@ function AnalyticsMenu({ id, setContents, type }) {
     const [dialogOpen, setDialogOpen] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errMsg, setErrMsg] = useState("");
-    const controllerRef = useRef(null);
     const axiosPrivate = useAxiosPrivate();
     const navigate = useNavigate();
     const open = Boolean(anchorEl);
@@ -29,16 +28,12 @@ function AnalyticsMenu({ id, setContents, type }) {
 
     const deleteContent = async () => {
         setLoading(true);
-        if (controllerRef.current) controllerRef.current.abort();
-        controllerRef.current = new AbortController();
 
         let url = `/dashboard/${type}/${id}`
         if (type === "playlist") url = `/playlist/${id}`;
 
         try {
-            const response = await axiosPrivate.delete(url, {
-                signal: controllerRef.current.signal,
-            });
+            const response = await axiosPrivate.delete(url);
             console.log(response.data.message);
             enqueueSnackbar(response.data.message);
             setContents((prev) => prev.filter((c) => c._id !== id));

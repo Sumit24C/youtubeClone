@@ -12,7 +12,6 @@ function CommentMenu({ comment, setComments, isEdit, setIsEdit }) {
     const [anchorEl, setAnchorEl] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errMsg, setErrMsg] = useState("");
-    const controllerRef = useRef(null);
     const axiosPrivate = useAxiosPrivate();
     const open = Boolean(anchorEl);
     const { enqueueSnackbar } = useSnackbar();
@@ -28,13 +27,8 @@ function CommentMenu({ comment, setComments, isEdit, setIsEdit }) {
 
     const deleteComment = async () => {
         setLoading(true);
-        if (controllerRef.current) controllerRef.current.abort();
-        controllerRef.current = new AbortController();
-
         try {
-            const response = await axiosPrivate.delete(`/comments/c/${comment._id}`, {
-                signal: controllerRef.current.signal,
-            });
+            const response = await axiosPrivate.delete(`/comments/c/${comment._id}`);
 
             enqueueSnackbar(response.data.message);
             setComments((prev) => prev.filter((c) => c._id !== comment._id));

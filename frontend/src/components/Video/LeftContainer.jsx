@@ -17,12 +17,9 @@ function LeftContainer({isWideScreen}) {
 
   useEffect(() => {
     setLoading(true);
-    const controller = new AbortController();
     ; (async () => {
       try {
-        const response = await axiosPrivate.get(`/videos/${id}`, {
-          signal: controller.signal
-        });
+        const response = await axiosPrivate.get(`/videos/${id}`);
         setVideo(response.data.data);
 
       } catch (error) {
@@ -37,9 +34,6 @@ function LeftContainer({isWideScreen}) {
       }
     })()
 
-    return () => {
-      controller.abort();
-    }
   }, [id])
 
   if (loading) {

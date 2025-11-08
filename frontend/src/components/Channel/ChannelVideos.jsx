@@ -14,18 +14,11 @@ function ChannelVideos() {
   const axiosPrivate = useAxiosPrivate();
   const { id } = useParams();
 
-  console.log(videos);
-  console.log(id);
-
   useEffect(() => {
     setLoading(true);
-    const controller = new AbortController();
-
     (async () => {
       try {
-        const response = await axiosPrivate.get(`/videos/c/${id}`, {
-          signal: controller.signal
-        });
+        const response = await axiosPrivate.get(`/videos/c/${id}`);
         setVideos(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -36,9 +29,6 @@ function ChannelVideos() {
       }
     })();
 
-    return () => {
-      controller.abort();
-    };
   }, [id]);
 
   if (loading) {

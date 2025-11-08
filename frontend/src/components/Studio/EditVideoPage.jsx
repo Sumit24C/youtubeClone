@@ -49,13 +49,9 @@ function EditVideoPage() {
     setLoading(true);
     setErrorMsg("");
 
-    const controller = new AbortController();
-
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/dashboard/d/${id}`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/dashboard/d/${id}`);
         setVideo(response.data.data);
 
         reset({
@@ -74,7 +70,6 @@ function EditVideoPage() {
       }
     })();
 
-    return () => controller.abort();
   }, [id, axiosPrivate, reset]);
 
   const onSubmit = async (data) => {

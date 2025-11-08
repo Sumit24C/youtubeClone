@@ -18,7 +18,6 @@ export default function UploadVideoDialog({ open, handleClose }) {
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("")
   const { register, handleSubmit, formState: { errors } } = useForm();
-  const controllerRef = useRef(null);
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData)
@@ -26,7 +25,6 @@ export default function UploadVideoDialog({ open, handleClose }) {
     setLoading(true);
     setErrMsg("");
     try {
-      controllerRef.current = new AbortController();
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("description", data.description);
@@ -34,7 +32,6 @@ export default function UploadVideoDialog({ open, handleClose }) {
       formData.append("thumbnail", data.image[0]);     
 
       const res = await axiosPrivate.post("/videos", formData, {
-        signal: controllerRef.current.signal,
         headers: { "Content-Type": "multipart/form-data" },
       });
 

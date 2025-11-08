@@ -13,19 +13,11 @@ function MainContainer() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const observerRef = useRef(null);
-  const controllerRef = useRef(null);
 
   const fetchVideos = async (pageNum) => {
     setLoading(true);
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-    }
-
-    controllerRef.current = new AbortController();
     try {
-      const response = await axiosPrivate.get(`/videos?page=${pageNum}`, {
-        signal: controllerRef.current.signal,
-      });
+      const response = await axiosPrivate.get(`/videos?page=${pageNum}`);
       const { videos: newVideos, totalPages } = response.data.data;
 
       setVideos((prev) => [...prev, ...newVideos]);
@@ -64,10 +56,6 @@ function MainContainer() {
 
     observerRef.current = observer;
   }, [page, loading, totalPages]);
-
-  useEffect(() => {
-    return () => controllerRef.current?.abort();
-  }, []);
 
   if (loading && videos.length === 0) {
     return (

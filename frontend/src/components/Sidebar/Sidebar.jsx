@@ -31,7 +31,6 @@ export default function Sidebar({ open }) {
     { name: 'History', path: '/history', icon: <HistoryIcon /> },
     { name: 'Playlists', path: '/playlist', icon: <PlaylistIcon /> },
     { name: 'Liked Videos', path: '/liked-videos', icon: <LikedIcon /> },
-    { name: 'Watch Later', path: '/watch-later', icon: <WatchLaterIcon /> },
   ];
 
   const [loading, setLoading] = useState(false);
@@ -43,13 +42,10 @@ export default function Sidebar({ open }) {
   useEffect(() => {
     setLoading(true);
     setErrorMsg("");
-    const controller = new AbortController();
 
     ; (async function () {
       try {
-        const response = await axiosPrivate.get(`/subscriptions/u`, {
-          signal: controller.signal
-        })
+        const response = await axiosPrivate.get(`/subscriptions/u`)
         const subscription = response.data.data
         const channels = subscription.map((s) => s.channel)
         dispatch(setChannels(channels));

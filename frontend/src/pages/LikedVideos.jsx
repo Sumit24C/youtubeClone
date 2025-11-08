@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import PlayArrow from '@mui/icons-material/PlayArrow';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useAxiosPrivate } from '../hooks/useAxiosPrivate';
 import { isCancel } from 'axios';
 import extractErrorMsg from '../utils/extractErrorMsg';
@@ -28,13 +27,10 @@ function LikedVideos() {
   useEffect(() => {
     setLoading(true);
     setErrorMsg('');
-    const controller = new AbortController();
 
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/likes/videos`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/likes/videos`);
         const likes = response.data.data;
         setLikedVideos(likes.map((l) => l.video));
       } catch (error) {
@@ -45,8 +41,6 @@ function LikedVideos() {
         setLoading(false);
       }
     })();
-
-    return () => controller.abort();
   }, []);
 
   if (loading) {

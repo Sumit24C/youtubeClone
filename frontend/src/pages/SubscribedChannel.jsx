@@ -17,13 +17,9 @@ function SubscribedChannel() {
   useEffect(() => {
     setLoading(true);
     setErrorMsg("");
-    const controller = new AbortController();
-
     ; (async function () {
       try {
-        const response = await axiosPrivate.get(`/subscriptions/u`, {
-          signal: controller.signal
-        })
+        const response = await axiosPrivate.get(`/subscriptions/u`)
         const subscription = response.data.data
         dispatch(setChannels(subscription.map((s) => s.channel)));
       } catch (error) {

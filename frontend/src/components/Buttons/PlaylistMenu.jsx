@@ -37,13 +37,8 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
         if (playlist.owner !== userData._id) return
 
         setLoading(true);
-        if (controllerRef.current) controllerRef.current.abort();
-        controllerRef.current = new AbortController();
-
         try {
-            const response = await axiosPrivate.delete(`/playlist/${playlist._id}`, {
-                signal: controllerRef.current.signal,
-            });
+            const response = await axiosPrivate.delete(`/playlist/${playlist._id}`);
             console.log(response.data.message);
             enqueueSnackbar(response.data.message);
             setPlaylistInfo((prev) => prev.filter((p) => p._id !== playlist._id));

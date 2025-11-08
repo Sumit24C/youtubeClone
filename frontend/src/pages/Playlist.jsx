@@ -14,13 +14,9 @@ function Playlist() {
 
   useEffect(() => {
     setLoading(true);
-    const controller = new AbortController();
-
     (async () => {
       try {
-        const response = await axiosPrivate.get(`/playlist/current-user`, {
-          signal: controller.signal
-        });
+        const response = await axiosPrivate.get(`/playlist/current-user`);
         setPlaylistInfo(response.data.data);
       } catch (error) {
         if (!isCancel(error)) {
@@ -30,10 +26,6 @@ function Playlist() {
         setLoading(false);
       }
     })();
-
-    return () => {
-      controller.abort();
-    };
   }, []);
 
   if (loading) {

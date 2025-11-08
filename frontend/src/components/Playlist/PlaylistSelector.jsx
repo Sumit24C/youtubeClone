@@ -17,7 +17,6 @@ function PlaylistSelector({ playlist, videoId }) {
 
     const [selectedPlaylist, setSelectedPlaylist] = useState([])
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
 
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
@@ -42,11 +41,9 @@ function PlaylistSelector({ playlist, videoId }) {
         setLoading(true);
         setErrMsg("");
         try {
-            controller.current = new AbortController();
             const response = await axiosPrivate.patch(
                 `/playlist/toggle/${videoId}/${pId}`,
                 {},
-                { signal: controller.current.signal }
             );
             console.log(response.data.data)
             enqueueSnackbar(response.data.message)
@@ -56,7 +53,6 @@ function PlaylistSelector({ playlist, videoId }) {
                 console.error("selectedPlaylistAxios :: error :: ", error);
             } else {
                 const errorMessage = extractErrorMsg(error);
-                console.error(errorMessage);
                 setErrMsg(errorMessage);
                 enqueueSnackbar(extractErrorMsg(error))
             }
@@ -64,12 +60,6 @@ function PlaylistSelector({ playlist, videoId }) {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        return () => {
-            if (controller.current) controller.current.abort();
-        };
-    }, []);
 
     return (
         <>

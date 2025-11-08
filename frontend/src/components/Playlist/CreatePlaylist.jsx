@@ -13,7 +13,6 @@ import {
     MenuItem
 } from "@mui/material";
 import { isCancel } from "axios";
-
 import extractErrorMsg from "../../utils/extractErrorMsg.js";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate.js";
 import PlaylistSelector from "./PlaylistSelector.jsx";
@@ -26,17 +25,14 @@ function CreatePlaylist({ videoId, handleDialogClose, edit = false }) {
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
     console.log("videoId: ", videoId)
-    console.log()
+
     useEffect(() => {
         setLoading(true);
-        const controller = new AbortController();
         let url = `/playlist/current-user/t`
         if (edit) url = `/playlist/current-user/public`
             ;(async () => {
                 try {
-                    const response = await axiosPrivate.get(url, {
-                        signal: controller.signal,
-                    });
+                    const response = await axiosPrivate.get(url);
                     setPlaylist(response.data.data || []);
                 } catch (error) {
                     if (!isCancel(error)) console.error(error);
@@ -45,7 +41,6 @@ function CreatePlaylist({ videoId, handleDialogClose, edit = false }) {
                 }
             })();
 
-        return () => controller.abort();
     }, []);
 
     return (

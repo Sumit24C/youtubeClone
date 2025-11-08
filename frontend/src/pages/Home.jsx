@@ -3,7 +3,6 @@ import MainContainer from '../components/Main/MainContainer'
 
 function Home() {
 
-
   return (
     <>
       <MainContainer />

@@ -27,13 +27,9 @@ const VideoAnalytics = () => {
     setLoading(true);
     setErrorMsg("");
 
-    const controller = new AbortController();
-
     (async function () {
       try {
-        const response = await axiosPrivate.get(`/dashboard/videos/${videoId}`, {
-          signal: controller.signal,
-        });
+        const response = await axiosPrivate.get(`/dashboard/videos/${videoId}`);
         setVideo(response.data.data); 
       } catch (error) {
         if (!isCancel(error)) {
@@ -44,7 +40,6 @@ const VideoAnalytics = () => {
       }
     })();
 
-    return () => controller.abort();
   }, [videoId, axiosPrivate]);
 
   if (loading) {

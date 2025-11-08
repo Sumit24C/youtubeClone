@@ -17,7 +17,6 @@ function Login() {
     const from = location.state?.from || '/'
     const { userData } = useSelector((state) => state.auth)
     const dispatch = useDispatch();
-    const controllerRef = useRef(null)
     const [errMsg, setErrMsg] = useState("")
     const [loading, setLoading] = useState(false)
     const { register, handleSubmit, formState: { errors } } = useForm()
@@ -26,19 +25,15 @@ function Login() {
         setLoading(true)
         setErrMsg("")
         try {
-            controllerRef.current = new AbortController();
-            const res = await axiosPrivate.post('/users/login', data, {
-                signal: controllerRef.current.signal
-            });
-            console.log(res.data)
-            dispatch(login(res.data.data.user, { accessToken: res.data.data.accessToken }))
+            const res = await axiosPrivate.post('/users/login', data);
+            dispatch(login(res.data.data.user))
             navigate(from, { replace: true })
         } catch (error) {
             setLoading(false)
             if (isCancel(error)) {
-                console.log('Request canceled:', error.message);
+                console.error('Request canceled:', error.message);
             } else {
-                console.log(error)
+                console.error(error)
                 setErrMsg(extractErrorMsg(error))
             }
         } finally {
@@ -51,11 +46,6 @@ function Login() {
         console.log("userData: ", userData)
     }, [userData])
 
-    useEffect(() => {
-        return () => {
-            if (controllerRef.current) controllerRef.current.abort();
-        }
-    }, [])
     return (
         <Box
             display="flex"

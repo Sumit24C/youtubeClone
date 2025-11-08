@@ -10,15 +10,11 @@ const useSubscribe = (channel) => {
     const [subscribersCount, setSubscribersCount] = useState(channel.subscribersCount);
     const channelId = channel._id;
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
-    controller.current = new AbortController();
     const dispatch = useDispatch();
     const handleSubscribe = async () => {
         setSubscribeLoading(true);
         try {
-            const response = await axiosPrivate.post(`/subscriptions/c/${channelId}`, {
-                signal: controller.current.signal
-            });
+            const response = await axiosPrivate.post(`/subscriptions/c/${channelId}`);
 
             const subscribedRes = response.data.data.isSubscribed
             setSubscribed(subscribedRes);
@@ -41,12 +37,6 @@ const useSubscribe = (channel) => {
             setSubscribeLoading(false)
         }
     }
-
-    useEffect(() => {
-        return () => {
-            controller.current?.abort();
-        }
-    }, [])
 
     return { subscribeLoading, subscribed, subscribersCount, handleSubscribe };
 

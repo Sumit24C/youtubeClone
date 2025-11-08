@@ -18,7 +18,6 @@ function Studio() {
     setTab(newValue);
   };
 
-  // Mock analytics data (replace with API values later)
   const analytics = {
     subscribers: 1200,
     views: 45000,
@@ -28,25 +27,23 @@ function Studio() {
   return (
     <Box
       sx={{
-        px: { xs: 2, md: 6, lg: 10 }, // horizontal padding instead of mx:auto
+        px: { xs: 2, md: 6, lg: 10 },
         bgcolor: "#121212",
         minHeight: "100vh",
         color: "white",
-        maxWidth: "1600px", // keeps content from being too wide
+        maxWidth: "1600px",
       }}
     >
-      {/* --- Top Row: View Channel + Stats --- */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           mb: 3,
-          flexWrap: "wrap", // responsive on small screens
+          flexWrap: "wrap", 
           gap: 2,
         }}
       >
-        {/* Left: View Channel */}
         <Button
           variant="contained"
           color="primary"
@@ -55,7 +52,6 @@ function Studio() {
           View Channel
         </Button>
 
-        {/* Right: Stats */}
         <Grid container spacing={2} sx={{ width: "auto" }}>
           {[
             { label: "Subscribers", value: analytics.subscribers },
@@ -83,7 +79,6 @@ function Studio() {
         </Grid>
       </Box>
 
-      {/* --- Tabs Row --- */}
       <Tabs
         value={tab}
         onChange={handleTabChange}
@@ -93,10 +88,8 @@ function Studio() {
       >
         <Tab onClick={() => navigate("")} label="Videos" />
         <Tab onClick={() => navigate("pl")} label="Playlists" />
-        <Tab onClick={() => navigate("p")} label="Posts" />
       </Tabs>
 
-      {/* --- Outlet for Tab Content --- */}
       <Outlet />
     </Box>
   );

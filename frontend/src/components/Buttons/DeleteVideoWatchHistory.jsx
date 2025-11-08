@@ -13,16 +13,12 @@ function DeleteVideoWatchHistory({ videoId, setVideos }) {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const axiosPrivate = useAxiosPrivate();
-    const controllerRef = useRef(null);
 
     const handleDelete = async () => {
         setLoading(true);
         setErrorMsg("");
-        controllerRef.current = new AbortController();
         try {
-            const response = await axiosPrivate.patch(`/users/watch-history/v/${videoId}`, {}, {
-                signal: controllerRef.current.signal
-            })
+            const response = await axiosPrivate.patch(`/users/watch-history/v/${videoId}`, {})
             console.log(response)
             if (response.data) {
                 setVideos((prev) => prev.filter((p) => p._id !== videoId))
@@ -36,10 +32,6 @@ function DeleteVideoWatchHistory({ videoId, setVideos }) {
             setLoading(false);
         }
     }
-
-    useEffect(() => {
-        if (controllerRef.current) return () => controllerRef.current.abort();
-    }, [])
 
     return (
         <>

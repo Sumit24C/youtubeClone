@@ -18,7 +18,6 @@ import { Link as RouterLink } from "react-router-dom";
 
 function Signup() {
   const dispatch = useDispatch();
-  const controllerRef = useRef(null);
   const [errMsg, setErrMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const {
@@ -31,10 +30,7 @@ function Signup() {
     setLoading(true);
     setErrMsg("");
     try {
-      controllerRef.current = new AbortController();
-      const res = await axios.post("/users/register", data, {
-        signal: controllerRef.current.signal,
-      });
+      const res = await axios.post("/users/register", data);
       dispatch(login(res.data.data));
     } catch (error) {
       setLoading(false);
@@ -46,15 +42,8 @@ function Signup() {
       }
     } finally {
       setLoading(false);
-      controllerRef.current = null;
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (controllerRef.current) controllerRef.current.abort();
-    };
-  }, []);
 
   return (
     <Box

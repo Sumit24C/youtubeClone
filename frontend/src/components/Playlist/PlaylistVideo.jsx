@@ -25,14 +25,11 @@ function PlaylistVideo({ isFromLiked }) {
 
     useEffect(() => {
         setLoading(true);
-        const controller = new AbortController();
         let url
         (async () => {
             if (isFromLiked) {
                 try {
-                    const response = await axiosPrivate.get(`/likes/videos`, {
-                        signal: controller.signal,
-                    });
+                    const response = await axiosPrivate.get(`/likes/videos`);
                     setPlaylist({ name: "liked Videos" })
                     const likes = response.data.data
                     setVideos(likes.map((l) => l.video));
@@ -43,9 +40,7 @@ function PlaylistVideo({ isFromLiked }) {
                 }
             } else {
                 try {
-                    const response = await axiosPrivate.get(`/playlist/${p_id}`, {
-                        signal: controller.signal,
-                    });
+                    const response = await axiosPrivate.get(`/playlist/${p_id}`);
 
                     setPlaylist(response.data.data);
                     setVideos(response.data.data.playlistVideo);
@@ -57,7 +52,6 @@ function PlaylistVideo({ isFromLiked }) {
             }
         })();
 
-        return () => controller.abort();
     }, [p_id]);
 
     if (loading) {

@@ -10,17 +10,13 @@ function useToggle(
     const [watchLaterLoading, setwatchLaterLoading] = useState(false);
     const [watchLater, setWatchLater] = useState(isLiked);
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
-    controller.current = new AbortController();
 
     const endPoint = `/likes/toggle/${type[0]}/${videoId}`
 
     const handleLike = async () => {
         setwatchLaterLoading(true);
         try {
-            const response = await axiosPrivate.patch(`/users//watch-later/v/toggle/${videoId}`, {
-                signal: controller.current.signal
-            });
+            const response = await axiosPrivate.patch(`/users//watch-later/v/toggle/${videoId}`);
 
             console.log(response.data.data);
             const watchLaterRes = response.data.data.isWatchLater
@@ -37,12 +33,6 @@ function useToggle(
             setwatchLaterLoading(false)
         }
     }
-
-    useEffect(() => {
-        return () => {
-            controller.current.abort();
-        }
-    }, [])
 
     return { watchLaterLoading, watchLater, handleWatchLater }
 }

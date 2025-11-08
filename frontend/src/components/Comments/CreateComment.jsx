@@ -14,7 +14,6 @@ export default function CreateComment({ setComments }) {
     const { id } = useParams();
     const [content, setContent] = useState("");
     const axiosPrivate = useAxiosPrivate();
-    const controller = useRef(null);
     const [loading, setLoading] = useState(false);
     const [errMsg, setErrMsg] = useState("");
     const { userData } = useSelector((state) => state.auth);
@@ -23,11 +22,8 @@ export default function CreateComment({ setComments }) {
         setLoading(true);
         setErrMsg("");
         try {
-            controller.current = new AbortController();
             const response = await axiosPrivate.post(`/comments/${id}`, {
                 content: content
-            }, {
-                signal: controller.current.signal
             });
             console.log(response.data.data);
             setComments(prev => [{
@@ -54,12 +50,6 @@ export default function CreateComment({ setComments }) {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        return () => {
-            if (controller.current) controller.current.abort();
-        };
-    }, []);
 
     return (
         <Box
