@@ -18,26 +18,51 @@ const getChannelStats = asyncHandler(async (req, res) => {
             }
         },
         {
+            $lookup: {
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
+            }
+        },
+        {
+            $lookup: {
+                from: "views",
+                localField: "_id",
+                foreignField: "videoId",
+                as: "views",
+                pipeline: [
+                    {
+                        $match: { isCompleted: true }
+                    },
+                ],
+            }
+        },
+        {
+            $addFields: {
+                totalLikes: { $size: "$likes" },
+                totalViews: { $size: "$views" },
+                totalWatchTime: { $sum: "$views.watchTime" }
+            }
+        },
+        {
             $group: {
                 _id: null,
-                totalVideos: {
-                    $sum: 1
-                },
-                totalViews: {
-                    $sum: "$views"
-                },
+                totalLikes: { $sum: "$totalLikes" },
+                totalViews: { $sum: "$totalViews" },
+                totalWatchTime: { $sum: "$totalWatchTime" },
             }
         },
         {
             $project: {
-                _id: 0,
                 totalViews: 1,
-                totalVideos: 1,
+                totalLikes: 1,
+                totalWatchTime: 1
             }
         }
     ])
 
-    if (!videoStats) {
+    if (!videoStats[0]) {
         throw new ApiError(500, "Failed to fetch videoStats")
     }
 
@@ -49,25 +74,9 @@ const getChannelStats = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to fetch subscriberStats")
     }
 
-    const likeStats = await Like.aggregate([
-        {
-            $match: {
-                likedBy: req.user._id,
-                video: {
-                    $ne: null
-                }
-            }
-        },
-    ])
-
-    if (!likeStats) {
-        throw new ApiError(500, "Failed to fetch likeStats")
-    }
-
     const channelStats = {
         videoStats: videoStats[0],
         totalSubscribers: subscriberStats.length,
-        totalLikes: likeStats.length,
     }
 
     return res.status(200).json(
@@ -139,7 +148,6 @@ const getVideoAnalytics = asyncHandler(async (req, res) => {
 const deleteVideo = asyncHandler(async (req, res) => {
     // TODO: delete a comment
     const { videoId } = req.params
-    console.log(videoId)
     if (!videoId) {
         throw new ApiError(403, "VideoId is required")
     }
@@ -182,15 +190,6 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
                             pipeline: [{ $project: { _id: 1 } }]
                         }
                     },
-                    {
-                        $lookup: {
-                            from: "likes",
-                            localField: "_id",
-                            foreignField: "video",
-                            as: "likes",
-                            pipeline: [{ $project: { _id: 1 } }]
-                        }
-                    },
                 ]
             }
         },
@@ -204,14 +203,6 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
                         }
                     }
                 },
-                totalLikes: {
-                    $sum: {
-                        $map: {
-                            input: "$videos",
-                            in: { $size: "$$this.likes" }
-                        }
-                    }
-                },
                 lastVideo: {
                     $arrayElemAt: ["$videos", -1],
                 },
@@ -222,7 +213,7 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
                     $sum: {
                         $map: {
                             input: "$videos",
-                            in:  "$$this.duration"
+                            in: "$$this.duration"
                         }
                     }
                 }
@@ -230,8 +221,9 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
         },
         {
             $project: {
+                updatedAt: 1,
+                createdAt: 1,
                 totalViews: 1,
-                totalLikes: 1,
                 totalVideos: 1,
                 totalDuration: 1,
                 "lastVideo._id": 1,
@@ -263,11 +255,11 @@ const getVideoByIdStudio = asyncHandler(async (req, res) => {
             $lookup: {
                 from: "playlists",
                 localField: "_id",
-                foreignField:"videos",
+                foreignField: "videos",
                 as: "playlists",
                 pipeline: [
                     {
-                        $match:{
+                        $match: {
                             owner: req.user._id,
                             isPrivate: false
                         }

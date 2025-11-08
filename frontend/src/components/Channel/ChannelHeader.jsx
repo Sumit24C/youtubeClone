@@ -38,8 +38,6 @@ const ChannelHeader = ({ channelInfo }) => {
         videosCount = 0,
     } = channelInfo;
 
-    console.log(channelInfo);
-    
     const {
         subscribeLoading,
         subscribed,
@@ -126,7 +124,7 @@ const ChannelHeader = ({ channelInfo }) => {
                         {userData.username === username ? (
                             <Button
                                 component={Link}
-                                to="/studio/content"
+                                to="/studio"
                                 variant="contained"
                                 sx={{
                                     backgroundColor: "#515151ff",

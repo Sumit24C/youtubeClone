@@ -25,7 +25,6 @@ export default function CreateComment({ setComments }) {
             const response = await axiosPrivate.post(`/comments/${id}`, {
                 content: content
             });
-            console.log(response.data.data);
             setComments(prev => [{
                 content: response.data.data.content,
                 _id: response.data.data._id,

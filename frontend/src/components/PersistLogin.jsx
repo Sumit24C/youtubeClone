@@ -4,10 +4,12 @@ import { useAxiosPrivate } from '../hooks/useAxiosPrivate'
 import { useRefreshToken } from '../hooks/useRefreshToken'
 import { login } from '../store/authSlice'
 import { Outlet } from 'react-router-dom'
+import { Box, CircularProgress } from '@mui/material';
+
 function PersistLogin() {
     const axiosPrivate = useAxiosPrivate()
     const refresh = useRefreshToken()
-    const [isLoading, setIsLoading] = useState(true)
+    const [loading, setLoading] = useState(true)
     const { userData } = useSelector((state) => state.auth)
     const dispatch = useDispatch()
 
@@ -23,7 +25,7 @@ function PersistLogin() {
                 console.error(error)
                 return false
             } finally {
-                setIsLoading(false)
+                setLoading(false)
             }
         }
 
@@ -31,14 +33,30 @@ function PersistLogin() {
             if (!userData) {
                 await verify()
             } else {
-                setIsLoading(false)
+                setLoading(false)
             }
         })()
     }, [userData])
 
+    if (loading) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '60vh',
+                    width: '100%',
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
     return (
         <>
-            {isLoading ? <div>Loading...</div> : <Outlet />}
+            <Outlet />
         </>
     )
 }

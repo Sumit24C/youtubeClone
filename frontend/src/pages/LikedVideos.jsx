@@ -81,14 +81,13 @@ function LikedVideos() {
         >
           {userData?.username}
         </Typography>
-        <Typography
-          variant="body2"
-          color="grey.400"
-          mb={3}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            alignItems: "center"
+          }}
         >
-          {likedVideos.length} videos • Updated today
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             onClick={() => navigate(`/v/${likedVideos[0]?._id}/Pl=/like`)}
             variant="contained"
@@ -97,13 +96,10 @@ function LikedVideos() {
           >
             Play all
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ShuffleIcon />}
-            sx={{ borderRadius: 20, borderColor: 'grey.600', color: 'white' }}
-          >
-            Shuffle
-          </Button>
+
+          <Typography variant="body2" color="grey.400">
+            {likedVideos.length} videos
+          </Typography>
         </Box>
       </Box>
 

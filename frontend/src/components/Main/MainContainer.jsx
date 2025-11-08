@@ -13,7 +13,7 @@ function MainContainer() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const observerRef = useRef(null);
-
+  
   const fetchVideos = async (pageNum) => {
     setLoading(true);
     try {
@@ -35,6 +35,7 @@ function MainContainer() {
 
   useEffect(() => {
     ;(async function () {
+      console.log("page twice")
       await fetchVideos(1);
     })();
   }, []);

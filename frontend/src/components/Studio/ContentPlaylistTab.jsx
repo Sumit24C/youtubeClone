@@ -23,10 +23,9 @@ function ContentPlaylistTab() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [playlists, setPlaylists] = useState([]);
-  console.log(playlists);
 
   const axiosPrivate = useAxiosPrivate();
-  const tableHeadings = ["Playlist", "Type", "Last Updated", "Videos", "Views", "Likes", "Actions"];
+  const tableHeadings = ["Playlist", "Type", "Last Updated", "Videos", "Views", "Actions"];
 
   useEffect(() => {
     setLoading(true);
@@ -62,7 +61,6 @@ function ContentPlaylistTab() {
       </Box>
     );
   }
-  console.log(playlists)
   return (
 
     <Box>
@@ -146,9 +144,6 @@ function ContentPlaylistTab() {
 
                 {/* Comments */}
                 <TableCell align="right">{playlist.totalViews || 0}</TableCell>
-
-                {/* Likes */}
-                <TableCell align="right">{playlist.totalLikes || "-"}</TableCell>
 
                 {/* Actions */}
                 <TableCell align="right" sx={{ minWidth: 100 }}>

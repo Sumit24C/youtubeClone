@@ -21,6 +21,7 @@ import { extractErrorMsg } from "../../utils"
 import { isCancel } from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setChannels } from '../../store/channelSlice';
+
 export default function Sidebar({ open }) {
   const primaryMenuItems = [
     { name: 'Home', path: '/', icon: <HomeIcon /> },
@@ -32,7 +33,6 @@ export default function Sidebar({ open }) {
     { name: 'Playlists', path: '/playlist', icon: <PlaylistIcon /> },
     { name: 'Liked Videos', path: '/liked-videos', icon: <LikedIcon /> },
   ];
-
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const dispatch = useDispatch();
@@ -66,21 +66,11 @@ export default function Sidebar({ open }) {
         {primaryMenuItems.map((item) => (
           <CustomListItems key={item.name} item={item} open={open} />
         ))}
-        {!open && (
-          <CustomListItems
-            key="you-collapsed"
-            item={{ name: 'You', path: '/you', icon: <AccountIcon /> }}
-            open={open}
-          />
-        )}
       </List>
 
       {open && (
         <>
           <Divider sx={{ mx: 1, my: 1 }} />
-          <SectionTitle variant="subtitle2" component={Link} to="/you">
-            You
-          </SectionTitle>
           <List sx={{ pt: 0 }}>
             {secondaryMenuItems.map((item) => (
               <CustomListItems key={item.name} item={item} open={open} />

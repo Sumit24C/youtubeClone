@@ -5,7 +5,6 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { deleteFromCloudinary, uploadOnCloudinary, uploadVideoOnCloudinary } from "../utils/cloudinary.js"
-import { channel } from "diagnostics_channel"
 
 const getAllHomeVideos = asyncHandler(async (req, res) => {
     const { page = 1 } = req.query;
@@ -80,62 +79,158 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
     );
 });
 
-const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "asc", userId } = req.query
+const getSearchVideos = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "desc" } = req.query
     //TODO: get all videos based on query, sort, pagination
 
-    if (!userId.trim()) {
-        throw new ApiError(401, "UserId is required")
-    }
-
-    const user = await User.findById(userId)
-    if (!user) {
-        throw new ApiError(401, "User not found")
+    if (!query) {
+        throw new ApiError(403, "query is required");
     }
 
     const limitNumber = parseInt(limit)
     const pageNumber = parseInt(page)
 
-    const video = await Video.aggregate([
-        {
-            $match: {
-                owner: new mongoose.Types.ObjectId(userId),
-                ...(query && { "title": { $regex: "^" + query, $options: "i" } })
-            }
-        },
-        {
-            $sort: {
-                [sortBy]: sortType === "asc" ? 1 : -1
-            }
-        },
-        {
-            $skip: (pageNumber - 1) * limitNumber
-        },
-        {
-            $limit: limitNumber
-        },
+    const response = await Video.aggregate([
         {
             $lookup: {
-                from: "views",
-                localField: "_id",
-                foreignField: "videoId",
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "channel",
                 pipeline: [
-                    { $match: { isCompleted: true } }
+                    {
+                        $project: {
+                            username: 1,
+                            avatar: 1,
+                            description: 1,
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $match: {
+                $or: [
+                    { "channel.username": { $regex: query, $options: "i" } },
+                    { "title": { $regex: query, $options: "i" } },
+                    { "description": { $regex: query, $options: "i" } },
+                ]
+            }
+        },
+        {
+            $facet: {
+                videos: [
+                    {
+                        $sort: {
+                            createdAt: -1
+                        }
+                    },
+                    {
+                        $skip: (pageNumber - 1) * limitNumber
+                    },
+                    {
+                        $limit: limitNumber
+                    },
+                    {
+                        $lookup: {
+                            from: "views",
+                            localField: "_id",
+                            foreignField: "videoId",
+                            pipeline: [
+                                {
+                                    $match: { isCompleted: true }
+                                }
+                            ],
+                            as: "views",
+                        }
+                    },
+                    {
+                        $addFields: {
+                            views: { $size: "$views" }
+                        }
+                    }
                 ],
-                as: "views"
+                totalCount: [{ $count: "count" }]
+            }
+        },
+        {
+            $addFields: {
+                totalVideos: { $ifNull: [{ $arrayElemAt: ["$totalCount.count", 0] }, 0] },
             }
         }
     ])
+    const result = response[0];
+    const totalPages = Math.ceil(result.totalVideos / limitNumber);
 
-    if (!(video.length > 0)) {
+    if (result.videos.length === 0) {
         throw new ApiError(401, "Videos not found")
     }
 
     return res.status(200).json(
-        new ApiResponse(200, video, "All Videos of Users fetched successfully")
+        new ApiResponse(200, {
+            videos: result.videos,
+            totalVideos: result.totalVideos,
+            totalPages: totalPages,
+            currentPage: pageNumber
+        }, "Searched Videos fetched successfully")
     )
 
 })
+
+const getSearchQuery = asyncHandler(async (req, res) => {
+    const { query } = req.query;
+    if (!query) {
+        throw new ApiError(403, "query is required");
+    }
+
+    const response = await Video.aggregate([
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "channel",
+            }
+        },
+        {
+            $unwind: "$channel"
+        },
+        {
+            $match: {
+                $or: [
+                    { "channel.username": { $regex: query, $options: "i" } },
+                    { "title": { $regex: query, $options: "i" } },
+                ]
+            }
+        },
+        {
+            $addFields: {
+                values: [
+                    "$channel.username",
+                    "$title",
+                    "$description"
+                ]
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                values: 1
+            }
+        }
+    ])
+
+    if (response.length === 0) {
+        throw new ApiError(404, "No videos similar to query found");
+    }
+
+    const search = response.flatMap((r) => r.values).slice(0, 5);
+    const uniqueQuery = [...new Set(search)];
+    return res.status(200).json(
+        new ApiResponse(200, uniqueQuery
+            , "successfully fetched search queries")
+    )
+});
 
 const getChannelVideo = asyncHandler(async (req, res) => {
     const { username } = req.params;
@@ -230,12 +325,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
-    }
+    }   
 
-    // const video = await Video.findById(videoId)
     const video = await Video.aggregate([
         {
             $match: {
@@ -355,7 +448,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     // const isWatchLater = updateWatchHistory.watchLater.some(
     //     id => id.toString() === video[0]._id.toString()
     // );
-    
+
     if (!updateWatchHistory) {
         throw new ApiError(500, "Failed to update watchHistory")
     }
@@ -450,15 +543,14 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     )
 })
 
-
-
 export {
     getAllHomeVideos,
-    getAllVideos,
     publishAVideo,
     getVideoById,
     updateVideo,
     deleteVideo,
     togglePublishStatus,
     getChannelVideo,
+    getSearchVideos,
+    getSearchQuery
 }

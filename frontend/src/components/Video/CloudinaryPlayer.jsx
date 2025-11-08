@@ -13,7 +13,6 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
   const playerRef = useRef(null);
   const cloudinaryRef = useRef(null);
   const axiosPrivate = useAxiosPrivate();
-  console.log(id);
   const [watchTime, setWatchTime] = useState(0);
   const [view, setView] = useState({})
   const [errorMsg, setErrorMsg] = useState("");

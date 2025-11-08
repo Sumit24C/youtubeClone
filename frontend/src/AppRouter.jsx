@@ -3,11 +3,9 @@ import App from './App'
 
 import AuthLayout from './components/AuthLayout'
 import PersistLogin from './components/PersistLogin'
-import NotFound from './components/NotFound'
 import CloudinaryPlayer from './components/Video/CloudinaryPlayer'
 import {
     Home,
-    You,
     Channel,
     Comments,
     WatchHistory,
@@ -18,6 +16,8 @@ import {
     VideoPage,
     SubscriptionVideos,
     Studio,
+    SearchVideoPage,
+    NotFound
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelVideos } from '../src/components/Channel'
@@ -33,7 +33,6 @@ function AppRouter() {
                 <Route element={<AuthLayout authenticated={true} />}>
                     <Route path="/" element={<App />}>
                         <Route index path="/" element={<Home />} />
-                        <Route path="/you" element={<You />} />
                         <Route path="/studio" element={<Studio />} >
                             <Route index element={<ContentVideoTab />} />
                             <Route path='pl' element={<ContentPlaylistTab />} />
@@ -50,8 +49,10 @@ function AppRouter() {
                         </Route>
                         <Route path='/feed/channel' element={<SubscribedChannel />} />
                         <Route path="/v/:id/Pl=/:p_id" element={<VideoPage />} />
+                        <Route path="/v/s" element={<SearchVideoPage />} />
                         <Route path="/v/:id" element={<VideoPage />} />
                         <Route path='/test' element={<CloudinaryPlayer />} />
+                        <Route path='*' element={<NotFound />} />
                     </Route>
                 </Route>
 
@@ -61,7 +62,6 @@ function AppRouter() {
                     <Route path="/signup" element={<Signup />} />
                 </Route>
             </Route>
-            <Route path='*' element={<NotFound />} />
 
         </Routes>
     )

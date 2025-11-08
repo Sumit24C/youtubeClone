@@ -1,7 +1,6 @@
 const displayCreatedAt = (createdAt) => {
     const created = new Date(createdAt)
     const current = new Date()
-
     const diffMs = current - created;
     if (diffMs < 0) return `in the future`
     const diffSec = Math.floor(diffMs / 1000);

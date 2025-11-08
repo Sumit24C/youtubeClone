@@ -61,7 +61,6 @@ function ContentVideoTab() {
             </Box>
         );
     }
-    console.log(videos)
     return (
 
         <Box>

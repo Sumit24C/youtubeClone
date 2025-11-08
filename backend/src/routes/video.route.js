@@ -2,18 +2,19 @@ import { Router } from 'express';
 import {
     deleteVideo,
     getAllHomeVideos,
-    getAllVideos,
     getChannelVideo,
     getVideoById,
     publishAVideo,
     togglePublishStatus,
     updateVideo,
+    getSearchVideos,
+    getSearchQuery,
 } from "../controllers/video.controller.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {upload} from "../middlewares/multer.middleware.js"
 
 const router = Router();
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+router.use(verifyJWT); 
 
 router
     .route("/")
@@ -33,7 +34,8 @@ router
         publishAVideo
     );
 
-router.route("/user").get(getAllVideos);
+router.route("/search").get(getSearchVideos);
+router.route("/q").get(getSearchQuery);
 
 router.route("/c/:username").get(getChannelVideo);
 
@@ -42,7 +44,6 @@ router
     .get(getVideoById)
     .delete(deleteVideo)
     .patch(upload.single("thumbnail"), updateVideo);
-
 
 router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
 

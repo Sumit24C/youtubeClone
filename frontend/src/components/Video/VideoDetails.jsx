@@ -1,15 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Box, Typography, Avatar, Button, IconButton } from '@mui/material';
 import { ThumbUpOutlined, ThumbUp, ThumbDown, ThumbDownOutlined, Share, Download, MoreHoriz } from '@mui/icons-material';
 import { useSubscribe } from '../../hooks/useSubscribe';
 import { useLike } from '../../hooks/useLike';
 import VideoPageButton from '../Buttons/VideoPageButton';
+import MenuButton from '../Buttons/MenuButton';
 
 const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
-
+  const { id } = useParams();
   const { subscribeLoading, subscribed, subscribersCount, handleSubscribe } = useSubscribe(channel);
   const { likeLoading, liked, countOfLikes, disliked, handleLike } = useLike(isLiked, likesCount, isDisliked = false, "video");
-  
+
   return (
     <Box
       sx={{
@@ -109,9 +110,7 @@ const VideoDetails = ({ channel, isLiked, likesCount, isDisliked }) => {
           />
         </Box>
 
-        <IconButton size="small" sx={{ color: 'white', height: '36px', width: '36px' }}>
-          <MoreHoriz fontSize="small" />
-        </IconButton>
+          <MenuButton videoId={id} />
       </Box>
     </Box >
 

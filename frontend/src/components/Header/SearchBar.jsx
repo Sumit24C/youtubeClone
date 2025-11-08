@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   TextField,
   Autocomplete,
@@ -7,41 +7,63 @@ import {
   IconButton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-
-function sleep(duration) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, duration);
-  });
-}
+import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
+import { extractErrorMsg } from '../../utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function SearchBar() {
-  const [open, setOpen] = React.useState(false);
-  const [options, setOptions] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const debounceRef = useRef(null);
+  const controllerRef = useRef(null);
 
-  const topFilms = [
-    { title: 'The Shawshank Redemption', year: 1994 },
-    { title: 'The Godfather', year: 1972 },
-    { title: 'The Godfather: Part II', year: 1974 },
-    { title: 'The Dark Knight', year: 2008 },
-    { title: '12 Angry Men', year: 1957 },
-    { title: "Schindler's List", year: 1993 },
-    { title: 'Pulp Fiction', year: 1994 },
-  ];
+  const handleQuery = async (query) => {
+    setLoading(true);
+    if (controllerRef.current) controllerRef.current.abort();
 
-  const handleOpen = () => {
-    setOpen(true);
-    (async () => {
-      setLoading(true);
-      await sleep(1000);
-      setOptions(topFilms);
+    try {
+      controllerRef.current = new AbortController();
+      const res = await axiosPrivate.get(`/videos/q?query=${query}`, {
+        signal: controllerRef.current.signal
+      });
+
+      return res.data.data;
+    } catch (error) {
+      console.error("search :: error :: ", error);
+      setErrorMsg(extractErrorMsg(error));
+    } finally {
       setLoading(false);
-    })();
-  };
+    }
+  }
 
-  const handleClose = () => {
-    setOpen(false);
-    setOptions([]);
+  useEffect(() => {
+    if (controllerRef.current) {
+      return () => controllerRef.current.abort();
+    }
+  }, [])
+
+  const handleInputChange = async (_, query) => {
+    if (!query.trim()) {
+      setOptions([]);
+      return;
+    }
+    setQuery(query);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      const queries = await handleQuery(query);
+      if (!queries) return;
+      const cleaned = queries
+        .filter(Boolean)
+        .map((q) => q.replace(/\n+/g, " ").trim().slice(0, 30))
+        .slice(0, 5)
+      setOptions(cleaned);
+    }, 500);
   };
 
   return (
@@ -55,12 +77,22 @@ export default function SearchBar() {
       }}
     >
       <Autocomplete
+        autoFocus={false}
         fullWidth
         open={open}
         freeSolo
-        onOpen={handleOpen}
-        onClose={handleClose}
-        getOptionLabel={(option) => option.title}
+        onOpen={() => setOpen(true)}
+        onClose={() => setOpen(false)}
+        onInputChange={handleInputChange}
+        onChange={(_, value) => value && navigate(`/v/s?query=${value}`)}
+        onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              navigate(`/v/s?query=${query}`)
+            }
+        }}
+        filterOptions={(x) => x}
+        getOptionLabel={(option) => option}
         options={options}
         loading={loading}
         renderInput={(params) => (
@@ -80,7 +112,10 @@ export default function SearchBar() {
           />
         )}
       />
-      <IconButton color="inherit">
+      <IconButton
+        onClick={() => navigate(`/v/s?query=${query}`)}
+        color="inherit"
+      >
         <SearchIcon />
       </IconButton>
     </Box>

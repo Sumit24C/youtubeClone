@@ -5,7 +5,6 @@ import { User } from '../models/user.model.js'
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js'
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
-import fs from "fs";
 
 const OPTIONS = {
     httpOnly: true,
@@ -136,10 +135,13 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
     }
+
     const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+    
     const user = await User.findById(decodedToken?._id)
     if (!user) {
         throw new ApiError(401, "invalid refresh token")

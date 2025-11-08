@@ -36,7 +36,6 @@ function EditVideoPage() {
   const handleDialogOpen = () => {
     setDialogOpen(true);
   };
-  console.log(video);
   const {
     register,
     handleSubmit,
@@ -87,7 +86,6 @@ function EditVideoPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Video updated:", response.data);
       navigate(-1); // go back after save
     } catch (error) {
       if (!isCancel(error)) {

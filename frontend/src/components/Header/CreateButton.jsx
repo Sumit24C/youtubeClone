@@ -53,9 +53,6 @@ export default function CreateButton() {
         <MenuItem onClick={handleCloseMenu}>
           <LiveTvIcon sx={{ mr: 1 }} /> Go live
         </MenuItem>
-        <MenuItem onClick={handleCloseMenu}>
-          <EditIcon sx={{ mr: 1 }} /> Create post
-        </MenuItem>
       </Menu>
 
       {/* Popup Dialog */}

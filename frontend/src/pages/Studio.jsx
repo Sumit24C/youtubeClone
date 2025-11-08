@@ -9,19 +9,16 @@ import {
   Button,
 } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
+import ChannelStats from "../components/Studio/ChannelStats";
+import { useSelector } from "react-redux";
 
 function Studio() {
+  const { userData } = useSelector((state) => state.auth);
   const [tab, setTab] = useState(0);
   const navigate = useNavigate();
 
   const handleTabChange = (e, newValue) => {
     setTab(newValue);
-  };
-
-  const analytics = {
-    subscribers: 1200,
-    views: 45000,
-    watchHours: 320,
   };
 
   return (
@@ -40,43 +37,19 @@ function Studio() {
           justifyContent: "space-between",
           alignItems: "center",
           mb: 3,
-          flexWrap: "wrap", 
+          flexWrap: "wrap",
           gap: 2,
         }}
       >
         <Button
           variant="contained"
           color="primary"
-          onClick={() => navigate("/channel")}
+          onClick={() => navigate(`/c/${userData?.username}`)}
         >
           View Channel
         </Button>
 
-        <Grid container spacing={2} sx={{ width: "auto" }}>
-          {[
-            { label: "Subscribers", value: analytics.subscribers },
-            { label: "Views", value: analytics.views },
-            { label: "Watch Hours", value: analytics.watchHours },
-          ].map((item, index) => (
-            <Grid item key={index}>
-              <Paper
-                sx={{
-                  p: 1.5,
-                  px: 2,
-                  minWidth: 120,
-                  bgcolor: "#1e1e1e",
-                  borderRadius: 2,
-                  textAlign: "center",
-                }}
-              >
-                <Typography variant="subtitle2" color="gray">
-                  {item.label}
-                </Typography>
-                <Typography variant="h6">{item.value}</Typography>
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+        <ChannelStats />
       </Box>
 
       <Tabs

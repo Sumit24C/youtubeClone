@@ -4,16 +4,7 @@ import { useState } from 'react';
 import MenuButton from '../Buttons/MenuButton';
 import { displayViews, displayDuration, displayCreatedAt } from '../../utils';
 import DeleteVideoWatchHistory from '../Buttons/DeleteVideoWatchHistory';
-function CardContainer({
-  p_id,
-  video,
-  vertical = false,
-  size = "medium",
-  subscribed = false,
-  history = false,
-  setVideos,
-  isLiked = false
-}) {
+function CardContainer({ p_id, video, vertical = false, size = "medium", history = false, setVideos, isLiked = false }) {
   const {
     _id,
     thumbnailUrl,
@@ -33,6 +24,7 @@ function CardContainer({
       width: "200px", height: "120px"
     }
   }
+
   const [loading, setLoading] = useState(false);
 
   return (
@@ -42,6 +34,7 @@ function CardContainer({
       justifyContent={vertical ? 'flex-start' : 'initial'}
       alignItems={vertical ? 'flex-start' : 'initial'}
       width="100%"
+      m={1}
     >
       {/* Thumbnail (Link to video) */}
       <Link to={path || 'default'} style={{ textDecoration: 'none', flexShrink: 0 }}>
@@ -187,11 +180,11 @@ function CardContainer({
             )}
 
             {/* Views + CreatedAt */}
-            {!subscribed && (<Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <Link to={path || 'default'} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Typography fontSize="0.9rem" color="gray" sx={{ lineHeight: 1.2 }}>
                 {displayViews(views)} • {displayCreatedAt(createdAt)}
               </Typography>
-            </Link>)}
+            </Link>
           </Box>
         </Box>
 

@@ -7,13 +7,13 @@ import Playlist from "./Playlist"
 import Signup from "./Signup";
 import SubscriptionVideos from "./SubscriptionVideos"
 import VideoPage from "./VideoPage";
+import SearchVideoPage from "./SearchVideoPage";
 import Home from "./Home"
-import You from "./You"
 import Studio from "./Studio";
 import WatchLater from "./WatchLater";
+import NotFound from "./NotFound";
 
 export{
-    You,
     Home,
     Channel,
     Comments,
@@ -24,6 +24,8 @@ export{
     Signup,
     SubscriptionVideos,
     VideoPage,
+    SearchVideoPage,
     WatchLater,
-    Studio
+    Studio,
+    NotFound
 }
