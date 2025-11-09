@@ -7,7 +7,7 @@ import { Box, Typography, Divider, useMediaQuery, CircularProgress } from '@mui/
 import CloudinaryPlayer from './CloudinaryPlayer.jsx'
 import VideoDetails from './VideoDetails.jsx';
 import Comments from '../../pages/Comments.jsx';
-function LeftContainer({isWideScreen}) {
+function LeftContainer({ isWideScreen }) {
 
   const { id } = useParams();
   const [video, setVideo] = useState(null);
@@ -35,23 +35,25 @@ function LeftContainer({isWideScreen}) {
     })()
 
   }, [id])
-  
-    if (loading && !video) {
-      return (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '60vh',
-            width: '100%',
-          }}
-        >
-          <CircularProgress />
-        </Box>
-      );
-    }
-  
+
+  if (loading && !video) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          aspectRatio: '16/9',
+          minHeight: '360px',
+          minWidth: '360px',
+          borderRadius: 2,
+          overflow: 'hidden',
+          mx: 'auto',
+          background: 'radial-gradient(circle, #3a3a3a 15%, #1e1e1e 80%)',
+        }}
+      />
+    );
+  }
+
+
 
   return (
     <>

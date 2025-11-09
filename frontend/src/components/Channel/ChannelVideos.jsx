@@ -4,7 +4,7 @@ import { isCancel } from 'axios';
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate';
 import { extractErrorMsg } from '../../utils';
 import CardContainer from '../Main/CardContainer';
-import { Box, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 
 function ChannelVideos() {
 
@@ -30,9 +30,13 @@ function ChannelVideos() {
     })();
 
   }, [id]);
-
+  
   if (loading) {
-    return <div>Loading...</div>
+    return (
+      <Box display="flex" justifyContent="center" mt={4}>
+        <CircularProgress color="secondary" />
+      </Box>
+    );
   }
 
   return (

@@ -4,7 +4,7 @@ import { useAxiosPrivate } from '../hooks/useAxiosPrivate'
 import { useRefreshToken } from '../hooks/useRefreshToken'
 import { login } from '../store/authSlice'
 import { Outlet } from 'react-router-dom'
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, CssBaseline } from '@mui/material';
 
 function PersistLogin() {
     const axiosPrivate = useAxiosPrivate()
@@ -39,17 +39,20 @@ function PersistLogin() {
 
     if (loading) {
         return (
-            <Box
-                sx={{
+            <>
+                <CssBaseline />
+                <Box sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     minHeight: '60vh',
                     width: '100%',
-                }}
-            >
-                <CircularProgress />
-            </Box>
+                    bgcolor: 'background.default',
+                    color: 'text.primary',
+                }}>
+                    <CircularProgress />
+                </Box>
+            </>
         );
     }
 
