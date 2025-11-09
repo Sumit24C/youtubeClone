@@ -12,7 +12,7 @@ const useAxiosPrivate = () => {
                 if ((error?.response?.status === 401) && !prevRequest.sent) {
                     try {
                         prevRequest.sent = true
-                        const newAccessToken = await refresh()
+                        await refresh()
                         return axiosPrivate(prevRequest)
                     } catch (refreshError) {
                         return Promise.reject(refreshError)

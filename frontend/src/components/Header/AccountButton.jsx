@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   IconButton,
@@ -15,7 +15,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import VideoCallIcon from "@mui/icons-material/VideoCall";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { styled } from "@mui/system";
-import {useLogout} from "../../hooks/useLogout";
+import { useLogout } from "../../hooks/useLogout";
 
 const UserCircle = styled(Box)(({ theme }) => ({
   width: 40,
@@ -66,9 +66,11 @@ export default function AccountButton() {
           <Typography variant="subtitle1" fontWeight="bold">
             {userData?.fullName || "User Name"}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            @{userData?.username || "username"}
-          </Typography>
+          <Link to={"/profile"}>
+            <Typography variant="body2" color="text.secondary">
+              @{userData?.username || "username"}
+            </Typography>
+          </Link>
           <Typography
             variant="body2"
             color="primary"

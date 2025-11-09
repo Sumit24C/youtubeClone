@@ -14,6 +14,8 @@ import { useDispatch } from "react-redux";
 import { login, logout } from "../store/authSlice.js";
 import extractErrorMsg from "../utils/extractErrorMsg.js";
 import { Link as RouterLink } from "react-router-dom";
+import { isCancel } from "axios";
+import { useAxiosPrivate } from "../hooks/useAxiosPrivate.js";
 
 function Signup() {
   const dispatch = useDispatch();
@@ -24,12 +26,13 @@ function Signup() {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const axiosPrivate = useAxiosPrivate();
 
   const submit = async (data) => {
     setLoading(true);
     setErrMsg("");
     try {
-      const res = await axios.post("/users/register", data);
+      const res = await axiosPrivate.post("/users/register", data);
       dispatch(login(res.data.data));
     } catch (error) {
       setLoading(false);

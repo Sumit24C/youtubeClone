@@ -7,6 +7,7 @@ import extractErrorMsg from '../utils/extractErrorMsg.js'
 import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom'
 import { Link } from "@mui/material";
 import { useAxiosPrivate } from '../hooks/useAxiosPrivate.js'
+import { isCancel } from 'axios';
 function Login() {
 
     const axiosPrivate = useAxiosPrivate()
@@ -36,7 +37,6 @@ function Login() {
             }
         } finally {
             setLoading(false)
-            controllerRef.current = null
         }
     }
 

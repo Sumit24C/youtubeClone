@@ -12,6 +12,7 @@ import Home from "./Home"
 import Studio from "./Studio";
 import WatchLater from "./WatchLater";
 import NotFound from "./NotFound";
+import Profile from "./Profile";
 
 export{
     Home,
@@ -27,5 +28,6 @@ export{
     SearchVideoPage,
     WatchLater,
     Studio,
-    NotFound
+    NotFound,
+    Profile
 }

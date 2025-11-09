@@ -17,7 +17,8 @@ import {
     SubscriptionVideos,
     Studio,
     SearchVideoPage,
-    NotFound
+    NotFound,
+    Profile
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelVideos } from '../src/components/Channel'
@@ -52,6 +53,7 @@ function AppRouter() {
                         <Route path="/v/s" element={<SearchVideoPage />} />
                         <Route path="/v/:id" element={<VideoPage />} />
                         <Route path='/test' element={<CloudinaryPlayer />} />
+                        <Route path="/profile" element={<Profile />} />
                         <Route path='*' element={<NotFound />} />
                     </Route>
                 </Route>

@@ -14,20 +14,24 @@ function Channel() {
   const [loading, setLoading] = useState(false);
   const axiosPrivate = useAxiosPrivate();
 
-  useEffect(() => {
-    setLoading(true);
-    (async () => {
-      try {
-        const response = await axiosPrivate.get(`/users/channel-profile/${id}`);
-        setChannelInfo(response.data.data);
-      } catch (error) {
-        if (!isCancel(error)) {
-          setErrorMsg(extractErrorMsg(error));
-        }
-      } finally {
-        setLoading(false);
+  const fetchChannelInfo = async () => {
+    setLoading(true)
+    try {
+      const response = await axiosPrivate.get(`/users/channel-profile/${id}`);
+      setChannelInfo(response.data.data);
+    } catch (error) {
+      if (!isCancel(error)) {
+        setErrorMsg(extractErrorMsg(error));
       }
-    })();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    ;(async () => {
+      await fetchChannelInfo()
+    })()
   }, [id]);
 
   if (loading) {
@@ -50,9 +54,9 @@ function Channel() {
     <Box display="flex" flexDirection="column" px={{ xs: 2, md: 6 }} mt={2}>
       {channelInfo && (
         <>
-          <ChannelHeader channelInfo={channelInfo} />
+          <ChannelHeader channelInfo={channelInfo} fetchChannelInfo={fetchChannelInfo}/>
           <ChannelTabs />
-          <Outlet/>
+          <Outlet />
         </>
       )}
     </Box>
