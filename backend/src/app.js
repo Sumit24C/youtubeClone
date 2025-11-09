@@ -37,6 +37,5 @@ app.use("/api/v1/views", viewRouter)
 
 import errorHandler from "./middlewares/error.middleware.js"
 app.use(errorHandler)
-// http://localhost:8000/api/v1/users/register
 
 export { app }

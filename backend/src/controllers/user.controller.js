@@ -8,7 +8,8 @@ import mongoose from "mongoose";
 
 const OPTIONS = {
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? 'None' : 'Lax',
 }
 
 const accessTokenExpiry = parseInt(process.env.ACCESS_TOKEN_EXPIRY)
@@ -141,7 +142,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
-    
+
     const user = await User.findById(decodedToken?._id)
     if (!user) {
         throw new ApiError(401, "invalid refresh token")
@@ -171,7 +172,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
     if (!isPasswordCorrect) {
-        throw new ApiError(401, "invalid passowrd")
+        throw new ApiError(401, "invalid password")
     }
 
     user.password = newPassword
@@ -539,7 +540,7 @@ const getWatchLaterStatus = asyncHandler(async (req, res) => {
     if (!user) {
         throw new ApiError(500, "Failed to fetch watch later status");
     }
-    
+
     return res.status(200).json(
         new ApiResponse(
             200,
@@ -556,7 +557,6 @@ const getWatchLaterVideos = asyncHandler(async (req, res) => {
         {
             $match: {
                 _id: req.user._id,
-                video: { $exists: true }
             }
         },
         {
