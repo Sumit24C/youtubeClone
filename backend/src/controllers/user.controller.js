@@ -168,7 +168,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body
-
     const user = await User.findById(req.user._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
     if (!isPasswordCorrect) {
@@ -189,16 +188,29 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-    const { fullName, email } = req.body
-
-    if (!fullName || !email) {
+    const { username, fullName, email } = req.body
+    if (!fullName || !email || !username) {
         throw new ApiError(401, "All fields are required")
+    }
+
+    if (email !== req.user.email) {
+        const existedEmail = await User.findOne({ email: email })
+        if (existedEmail) {
+            throw new ApiError(409, "email already exists");
+        }
+    }
+
+    if (username !== req.user.username) {
+        const existedUsername = await User.findOne({ username: username })
+        if (existedUsername) {
+            throw new ApiError(409, "username already exists");
+        }
     }
 
     const user = await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: { fullName, email }
+            $set: { fullName, email, username }
         },
         { new: true }
     ).select("-password -refreshToken")
