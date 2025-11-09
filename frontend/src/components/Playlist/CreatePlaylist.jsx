@@ -24,7 +24,6 @@ function CreatePlaylist({ videoId, handleDialogClose, edit = false }) {
     const [playlist, setPlaylist] = useState([]);
     const [errMsg, setErrMsg] = useState("");
     const [loading, setLoading] = useState(false);
-    console.log("videoId: ", videoId)
 
     useEffect(() => {
         setLoading(true);

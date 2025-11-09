@@ -36,9 +36,22 @@ function LeftContainer({isWideScreen}) {
 
   }, [id])
 
-  if (loading) {
-    return <div>Loading...</div>
-  }
+    if (loading && !video) {
+      return (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '60vh',
+            width: '100%',
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      );
+    }
+  
 
   return (
     <>

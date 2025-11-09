@@ -438,7 +438,6 @@ const clearWatchHistory = asyncHandler(async (req, res) => {
             new: true
         }
     );
-    console.log(user)
 
     if (!user) {
         throw new ApiError(500, "Failed to clear WatchHistory");

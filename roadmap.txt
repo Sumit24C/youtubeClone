@@ -1,3 +1,0 @@
-23/07/25 => auth part
-24/07/25 => home page
-25/07/25 => video page

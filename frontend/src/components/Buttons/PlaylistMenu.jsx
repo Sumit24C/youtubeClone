@@ -39,7 +39,6 @@ function PlaylistMenu({ playlist, setPlaylist, setPlaylistInfo }) {
         setLoading(true);
         try {
             const response = await axiosPrivate.delete(`/playlist/${playlist._id}`);
-            console.log(response.data.message);
             enqueueSnackbar(response.data.message);
             setPlaylistInfo((prev) => prev.filter((p) => p._id !== playlist._id));
             handleMenuClose();

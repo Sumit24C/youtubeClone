@@ -29,7 +29,7 @@ function Login() {
         } catch (error) {
             setLoading(false)
             if (isCancel(error)) {
-                console.error('Request canceled:', error.message);
+                console.error('axiosLogin :: error :: ', error);
             } else {
                 console.error(error)
                 setErrMsg(extractErrorMsg(error))
@@ -39,10 +39,6 @@ function Login() {
             controllerRef.current = null
         }
     }
-
-    useEffect(() => {
-        console.log("userData: ", userData)
-    }, [userData])
 
     return (
         <Box

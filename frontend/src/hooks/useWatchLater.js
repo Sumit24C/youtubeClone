@@ -18,7 +18,6 @@ function useToggle(
         try {
             const response = await axiosPrivate.patch(`/users//watch-later/v/toggle/${videoId}`);
 
-            console.log(response.data.data);
             const watchLaterRes = response.data.data.isWatchLater
             setWatchLater(watchLaterRes);
 

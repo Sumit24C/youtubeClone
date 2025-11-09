@@ -35,7 +35,6 @@ export default function UploadVideoDialog({ open, handleClose }) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log(res.data);
       navigate(`/c/${userData.username}`);
 
     } catch (error) {

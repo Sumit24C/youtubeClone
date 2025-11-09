@@ -34,7 +34,6 @@ function AnalyticsMenu({ id, setContents, type }) {
 
         try {
             const response = await axiosPrivate.delete(url);
-            console.log(response.data.message);
             enqueueSnackbar(response.data.message);
             setContents((prev) => prev.filter((c) => c._id !== id));
         } catch (error) {

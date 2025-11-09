@@ -35,7 +35,7 @@ function Signup() {
       setLoading(false);
       dispatch(logout());
       if (isCancel(error)) {
-        console.log("Request canceled:", error.message);
+        console.error("axiosSignup :: error :: ", error);
       } else {
         setErrMsg(extractErrorMsg(error));
       }

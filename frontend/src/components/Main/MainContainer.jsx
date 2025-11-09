@@ -35,7 +35,6 @@ function MainContainer() {
 
   useEffect(() => {
     ;(async function () {
-      console.log("page twice")
       await fetchVideos(1);
     })();
   }, []);

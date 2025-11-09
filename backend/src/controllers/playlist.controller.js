@@ -101,7 +101,6 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(401, "UserId is required")
     }
 
-    console.log(userId);
     const userPlaylists = await Playlist.aggregate([
         {
             $match: {

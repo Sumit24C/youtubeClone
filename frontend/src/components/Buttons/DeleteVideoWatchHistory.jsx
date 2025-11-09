@@ -19,7 +19,6 @@ function DeleteVideoWatchHistory({ videoId, setVideos }) {
         setErrorMsg("");
         try {
             const response = await axiosPrivate.patch(`/users/watch-history/v/${videoId}`, {})
-            console.log(response)
             if (response.data) {
                 setVideos((prev) => prev.filter((p) => p._id !== videoId))
             }

@@ -45,7 +45,6 @@ function PlaylistSelector({ playlist, videoId }) {
                 `/playlist/toggle/${videoId}/${pId}`,
                 {},
             );
-            console.log(response.data.data)
             enqueueSnackbar(response.data.message)
             handleToggle(pId)
         } catch (error) {
