@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { axiosPrivate } from "../api/api.js";
+import axiosPrivate from "../api/api.js";
 import { useRefreshToken } from "./useRefreshToken.js";
 const useAxiosPrivate = () => {
 
@@ -9,7 +9,7 @@ const useAxiosPrivate = () => {
             (response) => response,
             async (error) => {
                 const prevRequest = error?.config
-                if ((error?.response?.status === 401) && !prevRequest.sent ) {
+                if ((error?.response?.status === 401) && !prevRequest.sent) {
                     try {
                         prevRequest.sent = true
                         const newAccessToken = await refresh()
@@ -31,4 +31,4 @@ const useAxiosPrivate = () => {
     return axiosPrivate
 }
 
-export { useAxiosPrivate}
+export { useAxiosPrivate }

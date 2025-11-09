@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { login, logout } from "../store/authSlice.js";
-import axios, { isCancel } from "../api/api.js";
 import extractErrorMsg from "../utils/extractErrorMsg.js";
 import { Link as RouterLink } from "react-router-dom";
 
