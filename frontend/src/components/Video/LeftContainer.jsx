@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { extractErrorMsg, displayCreatedAt } from '../../utils/index.js'
 import { isCancel } from 'axios'
 import { useAxiosPrivate } from '../../hooks/useAxiosPrivate.js'
-import { Box, Typography, Divider, useMediaQuery } from '@mui/material';
+import { Box, Typography, Divider, useMediaQuery, CircularProgress } from '@mui/material';
 import CloudinaryPlayer from './CloudinaryPlayer.jsx'
 import VideoDetails from './VideoDetails.jsx';
 import Comments from '../../pages/Comments.jsx';
