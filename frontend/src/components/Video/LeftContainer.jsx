@@ -24,7 +24,7 @@ function LeftContainer({isWideScreen}) {
 
       } catch (error) {
         if (isCancel(error)) {
-          console.log("MainError :: error :: ", error)
+          console.error("LeftMain :: error :: ", error)
         } else {
           console.error(error);
           setErrorMsg(extractErrorMsg(error));
@@ -35,7 +35,7 @@ function LeftContainer({isWideScreen}) {
     })()
 
   }, [id])
-
+  
     if (loading && !video) {
       return (
         <Box

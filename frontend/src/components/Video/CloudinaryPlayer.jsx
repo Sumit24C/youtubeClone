@@ -11,6 +11,7 @@ import { isCancel } from 'axios';
 const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
   const { id } = useParams();
   const playerRef = useRef(null);
+  const playerInstanceRef = useRef(null);
   const cloudinaryRef = useRef(null);
   const axiosPrivate = useAxiosPrivate();
   const [watchTime, setWatchTime] = useState(0);
@@ -18,10 +19,10 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const controllerRef = useRef(null);
-  
-  if (!isEdit) {
-    useEffect(() => {
-      (async function () {
+
+  useEffect(() => {
+    if (isEdit) return
+      ; (async function () {
         try {
           setLoading(true);
           const response = await axiosPrivate.get(`/views/${id}`);
@@ -37,16 +38,12 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
           setLoading(false);
         }
       })();
-
-    }, [id, axiosPrivate]);
-  }
+  }, [id, axiosPrivate, isEdit]);
 
   useEffect(() => {
-    if (cloudinaryRef.current) return;
+    if (playerInstanceRef.current) return;
 
-    cloudinaryRef.current = cloudinary;
-
-    const player = cloudinaryRef.current.videoPlayer(playerRef.current, {
+    const player = cloudinary.videoPlayer(playerRef.current, {
       cloud_name: import.meta.env.VITE_CLOUDINARY_NAME,
       autoplay: false,
       controls: true,
@@ -59,6 +56,14 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
       transformation: { streaming_profile: 'auto' },
       poster: thumbnail,
     });
+
+    playerInstanceRef.current = player
+
+  }, []);
+
+  useEffect(() => {
+    const player = playerInstanceRef.current;
+    if (!player || !videoFile) return;
 
     player.source(videoFile);
 
@@ -103,11 +108,12 @@ const VideoPlayer = ({ videoFile, thumbnail, isEdit = false }) => {
       window.addEventListener('beforeunload', handleBeforeUnload);
 
       return () => {
+        if (controllerRef.current) controllerRef.current.abort();
         window.removeEventListener('beforeunload', handleBeforeUnload);
       };
     }
 
-  }, [videoFile, thumbnail, id, axiosPrivate]);
+  }, [videoFile, thumbnail, id, axiosPrivate, isEdit]);
 
   return (
     <Box
