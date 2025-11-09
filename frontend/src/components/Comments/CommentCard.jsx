@@ -10,6 +10,7 @@ import { useSnackbar } from 'notistack';
 
 function CommentCard({ comment, setComments }) {
   const { owner, createdAt, content, repliesCount = 0 } = comment;
+  
   const { likeLoading, liked, countOfLikes, handleLike } = useLike(
     comment.isLiked,
     comment.likesCount,
@@ -66,8 +67,8 @@ function CommentCard({ comment, setComments }) {
     >
       {/* Avatar */}
       <Avatar
-        src={owner[0]?.avatar || ""}
-        alt={owner[0]?.username}
+        src={owner?.avatar || ""}
+        alt={owner?.username}
         sx={{ width: 40, height: 40, flexShrink: 0 }}
       />
 
@@ -76,7 +77,7 @@ function CommentCard({ comment, setComments }) {
         {/* Username & Time */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: '#fff' }}>
-            @{owner[0]?.username}
+            @{owner?.username}
           </Typography>
           <Typography sx={{ fontSize: '0.75rem', color: '#aaa' }}>
             {displayCreatedAt(createdAt)}

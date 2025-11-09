@@ -53,7 +53,7 @@ function CommentMenu({ comment, setComments, isEdit, setIsEdit }) {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-                {userData._id === comment?.owner[0]?._id && [
+                {userData._id === comment?.owner?._id && [
                     <MenuItem key="edit" onClick={() => setIsEdit(true)}>
                         Edit
                     </MenuItem>,

@@ -17,32 +17,34 @@ function Comments() {
     const observerRef = useRef();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [lastCursor, setLastCursor] = useState("");
 
-    const fetchComments = async (pageNum) => {
+    const fetchComments = async (lastCursor) => {
         setLoading(true);
 
         try {
-            const response = await axiosPrivate.get(`/comments/${id}?page=${page}`);
-            const { comments: newComments, totalPages } = response.data.data;
-
-            setPage(pageNum)
-            setTotalPages(totalPages);
+            const response = await axiosPrivate.get(`/comments/${id}?cursor=${lastCursor}`);
+            const { comments: newComments, nextCursor } = response.data.data;
             setComments((prev) => [...prev, ...newComments]);
+            setLastCursor(nextCursor);
         } catch (error) {
             if (!isCancel(error)) {
                 setErrorMsg(extractErrorMsg(error))
+                setComments([])
+                setLastCursor("");
             }
         } finally {
             setLoading(false);
-            setErrorMsg('');
         }
     }
 
     useEffect(() => {
         ; (async function () {
-            await fetchComments(1);
+            setLastCursor("");
+            setComments([]);
+            await fetchComments("");
         })()
-    }, [])
+    }, [id])
 
     useEffect(() => {
         if (loading) return;
@@ -50,8 +52,8 @@ function Comments() {
         if (observerRef.current) observerRef.current.disconnect();
 
         const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting && page < totalPages) {
-                fetchComments(page + 1);
+            if (entries[0].isIntersecting && lastCursor !== "") {
+                fetchComments(lastCursor);
             }
         });
 
@@ -61,7 +63,8 @@ function Comments() {
 
         observerRef.current = observer;
 
-    }, [page, loading, totalPages])
+        return () => observer.disconnect();
+    }, [lastCursor, loading])
 
     if (loading && comments.length === 0) {
         return (
@@ -87,7 +90,7 @@ function Comments() {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {comments && comments.length > 0 ? (
                     comments.map((comment, index) => (
-                        <CommentCard key={index} comment={comment} setComments={setComments}/>
+                        <CommentCard key={comment._id} comment={comment} setComments={setComments} />
                     ))
                 ) : (
                     <Typography color="gray" textAlign="center">No comments available.</Typography>

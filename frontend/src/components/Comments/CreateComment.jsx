@@ -26,18 +26,10 @@ export default function CreateComment({ setComments }) {
                 content: content
             });
             setComments(prev => [{
-                content: response.data.data.content,
-                _id: response.data.data._id,
-                createdAt: response.data.data.createdAt,
-                updatedAt: response.data.data.updatedAt,
-                video: id,
-                owner: [{
-                    username: userData.username,
-                    avatar: userData.avatar,
-                }],
+                ...response.data.data,
                 likesCount: 0,
                 isLiked: false
-            }, ...(prev || [])]);
+            }, ...prev]);
 
             setContent("");
         } catch (error) {
@@ -49,6 +41,7 @@ export default function CreateComment({ setComments }) {
             setLoading(false);
         }
     };
+
 
     return (
         <Box

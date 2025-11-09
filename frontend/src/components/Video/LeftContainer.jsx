@@ -53,8 +53,6 @@ function LeftContainer({ isWideScreen }) {
     );
   }
 
-
-
   return (
     <>
       <Box
