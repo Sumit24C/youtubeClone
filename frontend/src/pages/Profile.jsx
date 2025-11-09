@@ -86,13 +86,15 @@ export default function Profile() {
         })()
     }, []);
 
-    const usernameChanged = username.trim() !== user.username || ""
-    const fullnameChanged = fullName.trim() !== user.fullName || ""
-    const emailChanged = email.trim() !== user.email && ""
+    const usernameChanged = username.trim() !== (user?.username || "");
+    const fullnameChanged = fullName.trim() !== (user?.fullName || "");
+    const emailChanged = email.trim() !== (user?.email || "");
 
-    const hasAccountChanged = fullName.trim() && username.trim() && email.trim() && (
-        usernameChanged || fullnameChanged || emailChanged
-    )
+    const hasAccountChanged =
+        username.trim() !== "" &&
+        fullName.trim() !== "" &&
+        email.trim() !== "" &&
+        (usernameChanged || fullnameChanged || emailChanged);
 
     const handleUpdateAccount = async () => {
         setLoading(true);
@@ -102,7 +104,7 @@ export default function Profile() {
                 email,
                 username
             });
-            const updatedUser = res.data.data.user;
+            const updatedUser = res.data.data;
             dispatch(login(updatedUser));
             setUser(updatedUser);
             enqueueSnackbar("Account updated successfully!", { variant: "success" });
