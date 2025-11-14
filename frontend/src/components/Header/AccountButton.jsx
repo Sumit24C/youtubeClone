@@ -21,7 +21,7 @@ const UserCircle = styled(Box)(({ theme }) => ({
   width: 40,
   height: 40,
   borderRadius: "50%",
-  backgroundColor: "#4caf50", // green like YouTube avatar
+  backgroundColor: "#4caf50", 
   color: "#fff",
   display: "flex",
   alignItems: "center",
@@ -86,14 +86,14 @@ export default function AccountButton() {
 
         <Divider />
 
-        {/* YouTube Studio */}
+        {/* MyTube Studio */}
         <MenuItem
           onClick={() => {
             handleClose();
             navigate("/studio");
           }}
         >
-          <VideoCallIcon sx={{ mr: 1 }} /> YouTube Studio
+          <VideoCallIcon sx={{ mr: 1 }} /> MyTube Studio
         </MenuItem>
 
         <Divider />
