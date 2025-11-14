@@ -111,7 +111,12 @@ function Signup() {
               variant="outlined"
               error={!!errors.password}
               helperText={errors.password?.message}
-              {...register("password", { required: "Password is required" })}
+              {...register("password", {
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+                  message: "Password must contain atleast 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character",
+                },
+              })}
             />
 
             <Button

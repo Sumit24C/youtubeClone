@@ -16,7 +16,8 @@ function PersistLogin() {
     useEffect(() => {
         const verify = async () => {
             try {
-                await refresh()
+                // await refresh()
+                console.log("retry")
                 const res = await axiosPrivate.get('/users/current-user')
                 dispatch(login(res.data.data))
                 return res.data.data
