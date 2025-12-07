@@ -13,6 +13,7 @@ import Studio from "./Studio";
 import WatchLater from "./WatchLater";
 import NotFound from "./NotFound";
 import Profile from "./Profile";
+import LoginFailed from "./LoginFailed";
 
 export{
     Home,
@@ -29,5 +30,6 @@ export{
     WatchLater,
     Studio,
     NotFound,
-    Profile
+    Profile,
+    LoginFailed
 }

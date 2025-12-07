@@ -129,7 +129,7 @@ export default function AccountButton() {
           disabled={loading}
         >
           <LogoutIcon sx={{ mr: 1 }} />
-          {loading ? "Signing out..." : "Sign out"}
+          {loading ? "Signing out..." : "Sign outs"}
         </MenuItem>
       </Menu>
     </>

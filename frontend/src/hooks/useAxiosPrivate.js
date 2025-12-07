@@ -1,19 +1,21 @@
 import { useEffect } from "react";
-import axiosPrivate from "../api/api.js";
+import api from "../api/api.js";
 import { useRefreshToken } from "./useRefreshToken.js";
-const useAxiosPrivate = () => {
 
+const useAxiosPrivate = () => {
     const refresh = useRefreshToken()
     useEffect(() => {
-        const responseInterceptor = axiosPrivate.interceptors.response.use(
+        const responseInterceptor = api.interceptors.response.use(
             (response) => response,
             async (error) => {
                 const prevRequest = error?.config
-                if ((error?.response?.status === 401) && !prevRequest.sent) {
+                if ((error?.response?.status === 403) && !prevRequest.sent) {
                     try {
                         prevRequest.sent = true
-                        await refresh()
-                        return axiosPrivate(prevRequest)
+                        const refreshed = await refresh()
+                        if (refreshed) {
+                            return api(prevRequest)
+                        }
                     } catch (refreshError) {
                         return Promise.reject(refreshError)
                     }
@@ -23,12 +25,12 @@ const useAxiosPrivate = () => {
         )
 
         return () => {
-            axiosPrivate.interceptors.response.eject(responseInterceptor)
+            api.interceptors.response.eject(responseInterceptor)
         }
 
     }, [refresh])
 
-    return axiosPrivate
+    return api
 }
 
 export { useAxiosPrivate }

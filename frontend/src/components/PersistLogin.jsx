@@ -16,11 +16,12 @@ function PersistLogin() {
     useEffect(() => {
         const verify = async () => {
             try {
-                // await refresh()
+                await refresh()
                 const res = await axiosPrivate.get('/users/current-user')
                 dispatch(login(res.data.data))
                 return res.data.data
             } catch (error) {
+                dispatch(logout());
                 console.error(error)
                 return false
             } finally {

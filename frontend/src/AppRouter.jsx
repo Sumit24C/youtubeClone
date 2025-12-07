@@ -18,7 +18,8 @@ import {
     Studio,
     SearchVideoPage,
     NotFound,
-    Profile
+    Profile,
+    LoginFailed
 } from "../src/pages/index"
 
 import { ChannelAbout, ChannelPlaylist, ChannelVideos } from '../src/components/Channel'
@@ -60,6 +61,7 @@ function AppRouter() {
 
                 {/* Public Routes */}
                 <Route element={<AuthLayout authenticated={false} />}>
+                    <Route path="/failed-to-login" element={<LoginFailed />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />
                 </Route>

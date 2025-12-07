@@ -5,15 +5,7 @@ import { User } from '../models/user.model.js'
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js'
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
-
-const OPTIONS = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? 'None' : 'Lax',
-}
-
-const accessTokenExpiry = parseInt(process.env.ACCESS_TOKEN_EXPIRY)
-const refreshTokenExpiry = parseInt(process.env.REFRESH_TOKEN_EXPIRY)
+import { accessTokenExpiry, refreshTokenExpiry, COOKIE_OPTIONS } from "../constants.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -65,8 +57,8 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(200)
-        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
-        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: refreshTokenExpiry })
+        .cookie("accessToken", accessToken, { ...COOKIE_OPTIONS, maxAge: accessTokenExpiry })
+        .cookie("refreshToken", refreshToken, { ...COOKIE_OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(200, createdUser, "User is created successfully")
         )
@@ -98,8 +90,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
-        .cookie("refreshToken", refreshToken, { ...OPTIONS, maxAge: refreshTokenExpiry })
+        .cookie("accessToken", accessToken, { ...COOKIE_OPTIONS, maxAge: accessTokenExpiry })
+        .cookie("refreshToken", refreshToken, { ...COOKIE_OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(200,
                 {
@@ -123,8 +115,8 @@ const logoutUser = asyncHandler(async (req, res) => {
     })
 
     res.status(200)
-        .clearCookie("accessToken", { ...OPTIONS, maxAge: accessTokenExpiry })
-        .clearCookie("refreshToken", { ...OPTIONS, maxAge: refreshTokenExpiry })
+        .clearCookie("accessToken", { ...COOKIE_OPTIONS, maxAge: accessTokenExpiry })
+        .clearCookie("refreshToken", { ...COOKIE_OPTIONS, maxAge: refreshTokenExpiry })
         .json(
             new ApiResponse(
                 200,
@@ -135,7 +127,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body?.refreshToken
 
     if (!incomingRefreshToken) {
         throw new ApiError(401, "unauthorized request")
@@ -156,7 +148,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const refreshToken = user.refreshToken
 
     res.status(200)
-        .cookie("accessToken", accessToken, { ...OPTIONS, maxAge: accessTokenExpiry })
+        .cookie("accessToken", accessToken, { ...COOKIE_OPTIONS, maxAge: accessTokenExpiry })
         .json(
             new ApiResponse(
                 200,
