@@ -131,23 +131,36 @@ function Signup() {
               {loading ? <CircularProgress size={24} color="inherit" /> : "Sign Up"}
             </Button>
 
-            <div className="relative flex items-center justify-center my-4">
-              <span className="absolute left-0 right-0 border-t border-gray-300"></span>
-            </div>
-
             <Button
-              type="button"
+              fullWidth
               onClick={() => window.open(`${BASE_URL}/auth/google`, "_self")}
-              className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 py-2 rounded-2xl shadow-sm flex items-center justify-center gap-2"
+              sx={{
+                mt: 2,
+                py: 1.2,
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 500,
+                border: "1px solid #dadce0",
+                backgroundColor: "#fff",
+                color: "#3c4043",
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                boxShadow: "0px 1px 2px rgba(0,0,0,0.1)",
+                "&:hover": {
+                  backgroundColor: "#f7f8f8",
+                  borderColor: "#c6c6c6",
+                  boxShadow: "0px 1px 3px rgba(0,0,0,0.2)",
+                },
+              }}
             >
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google Icon"
-                className="w-5 h-5"
+                style={{ width: 22, height: 22 }}
               />
               Continue with Google
             </Button>
-
           </Box>
 
           {/* Login link */}
