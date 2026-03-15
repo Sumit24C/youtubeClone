@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="player">
+      <video id="video"></video>
+      <div id="controls" class="controls">
+        <button id="playBtn">Play</button>
+
+        <div class="progress-container">
+          <div id="bufferBar"></div>
+          <input type="range" id="progress" min="0" max="100" value="0" />
+        </div>
+
+        <span id="timeDisplay">00:00 / 00:00</span>
+
+        <input type="range" id="volume" min="0" max="1" step="0.1" />
+        <button id="fullscreen">Fullscreen</button>
+        <select id="quality"></select>
+        <select id="playbackSpeed">
+          <option value="0.25">0.25x</option>
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

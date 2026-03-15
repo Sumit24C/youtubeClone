@@ -1,0 +1,46 @@
+@import "tailwindcss";
+.player-btn{
+  cursor:pointer;
+  transition:transform .15s;
+}
+
+.player-btn:hover{
+  transform:scale(1.1);
+}
+
+.progress-bar{
+  -webkit-appearance:none;
+  width:100%;
+  height:4px;
+  background:rgba(255,255,255,0.25);
+}
+
+.progress-bar::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:red;
+}
+
+.volume-bar{
+  -webkit-appearance:none;
+  width:90px;
+  height:4px;
+  background:rgba(255,255,255,0.3);
+}
+
+.volume-bar::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:white;
+}
+
+.player-select{
+  background:transparent;
+  border:none;
+  color:white;
+  outline:none;
+}

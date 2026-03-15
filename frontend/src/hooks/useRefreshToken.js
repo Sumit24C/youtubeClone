@@ -1,4 +1,4 @@
-import api from '../api/api.js'
+import refreshApi from '../api/api.js'
 import { useDispatch, useSelector } from 'react-redux'
 
 const useRefreshToken = () => {
@@ -6,7 +6,7 @@ const useRefreshToken = () => {
 
     const refreshToken = async () => {
         try {
-            const response = await api.get('/users/refresh-token')
+            await refreshApi.get('/users/refresh-token')
             return true
         } catch (error) {
             console.error("refreshToken :: error :: ", error)

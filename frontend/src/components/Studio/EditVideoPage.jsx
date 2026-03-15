@@ -19,7 +19,7 @@ import { displayCreatedAt, displayDuration, extractErrorMsg } from "../../utils"
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
 import { isCancel } from "axios";
 import { useForm } from "react-hook-form";
-import VideoPlayer from "../Video/CloudinaryPlayer";
+import VideoPlayer from "../Video/CustomVideoPlayer";
 import CreatePlaylist from "../Playlist/CreatePlaylist";
 
 function EditVideoPage() {

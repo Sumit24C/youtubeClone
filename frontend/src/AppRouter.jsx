@@ -3,7 +3,6 @@ import App from './App'
 
 import AuthLayout from './components/AuthLayout'
 import PersistLogin from './components/PersistLogin'
-import CloudinaryPlayer from './components/Video/CloudinaryPlayer'
 import {
     Home,
     Channel,
@@ -26,6 +25,7 @@ import { ChannelAbout, ChannelPlaylist, ChannelVideos } from '../src/components/
 import { ContentPlaylistTab, ContentVideoTab } from "../src/components/Studio"
 import SubscribedChannel from './pages/SubscribedChannel'
 import EditVideoPage from './components/Studio/EditVideoPage'
+import CustomVideoPlayer from './components/Video/CustomVideoPlayer'
 
 function AppRouter() {
     return (
@@ -53,7 +53,7 @@ function AppRouter() {
                         <Route path="/v/:id/Pl=/:p_id" element={<VideoPage />} />
                         <Route path="/v/s" element={<SearchVideoPage />} />
                         <Route path="/v/:id" element={<VideoPage />} />
-                        <Route path='/test' element={<CloudinaryPlayer />} />
+                        <Route path='/test' element={<CustomVideoPlayer />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path='*' element={<NotFound />} />
                     </Route>
