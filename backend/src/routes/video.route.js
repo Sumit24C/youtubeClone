@@ -10,27 +10,23 @@ import {
     getSearchVideos,
     getSearchQuery,
 } from "../controllers/video.controller.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
-import {upload} from "../middlewares/multer.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js"
+import { upload, videoUpload } from "../middlewares/multer.middleware.js"
+import { videoUploadHandler } from '../services/video.service.js';
 
 const router = Router();
-router.use(verifyJWT); 
+router.use(verifyJWT);
+
+router.route("/upload").post(
+    videoUpload.single("video"),
+    videoUploadHandler
+);
 
 router
     .route("/")
     .get(getAllHomeVideos)
     .post(
-        upload.fields([
-            {
-                name: "videoFile",
-                maxCount: 1,
-            },
-            {
-                name: "thumbnail",
-                maxCount: 1,
-            },
-            
-        ]),
+        upload.single("thumbnail"),
         publishAVideo
     );
 

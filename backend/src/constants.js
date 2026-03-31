@@ -6,3 +6,4 @@ export const COOKIE_OPTIONS = {
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? 'None' : 'Lax',
 }
+export const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";

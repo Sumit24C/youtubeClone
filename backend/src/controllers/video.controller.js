@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { deleteFromCloudinary, uploadOnCloudinary, uploadVideoOnCloudinary } from "../utils/cloudinary.js"
+import { VIDEO_URL, THUMBAIL_URL, uploadPath } from "../config/upload.config.js";
 
 const getAllHomeVideos = asyncHandler(async (req, res) => {
     const { page = 1 } = req.query;
@@ -81,7 +82,6 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
 
 const getSearchVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 9, query, sortBy = "createdAt", sortType = "desc" } = req.query
-    //TODO: get all videos based on query, sort, pagination
 
     if (!query) {
         throw new ApiError(403, "query is required");
@@ -175,7 +175,7 @@ const getSearchVideos = asyncHandler(async (req, res) => {
         }, "Searched Videos fetched successfully")
     )
 
-})
+});
 
 const getSearchQuery = asyncHandler(async (req, res) => {
     const { query } = req.query;
@@ -276,43 +276,51 @@ const getChannelVideo = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, video, "Channel Videos fetched successfully")
     )
-})
+});
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    // TODO: get video, upload to cloudinary, create video
 
-    const { title, description } = req.body
+    const { title, description, videoFileName } = req.body
 
     if ([title, description].some((field) => !field || field.trim() === "")) {
         throw new ApiError(403, "All fields are required")
     }
-    const videoLocalPath = req.files?.videoFile[0]?.path
-    const thumbnailLocalPath = req.files?.thumbnail[0]?.path
 
-    if (!videoLocalPath || !thumbnailLocalPath) {
+    const videoPath = path.join(uploadPath, videoFileName);
+    if (!fs.existsSync(videoPath)) {
+        throw new ApiError(404, "Video file not found");
+    }
+
+    // const videoLocalPath = req.files?.videoFile[0]?.path
+    const thumbnailLocalPath = req.file
+
+    if (!thumbnailLocalPath) {
         throw new ApiError(401, "All files are required")
     }
 
-    const videoCloud = await uploadVideoOnCloudinary(videoLocalPath);
-    const thumbnailCloud = await uploadOnCloudinary(thumbnailLocalPath)
+    // const videoCloud = await uploadVideoOnCloudinary(videoLocalPath);
+    // const thumbnailCloud = await uploadOnCloudinary(thumbnailLocalPath)
 
-    if (!videoCloud) {
-        throw new ApiError(500, "Failed to upload video file")
-    }
-    if (!thumbnailCloud) {
-        throw new ApiError(500, "Failed to upload thumbnail")
-    }
+    // if (!videoCloud) {
+    //     throw new ApiError(500, "Failed to upload video file")
+    // }
+    // if (!thumbnailCloud) {
+    //     throw new ApiError(500, "Failed to upload thumbnail")
+    // }
+
+    const videoFileUrl = `${VIDEO_URL}/${videoFileName}`;
+    const thumbnailFileUrl = `${THUMBAIL_URL}/${req.file.filename}`;
 
     const videoPublished = await Video.create({
         title,
         description,
-        videoFileUrl: videoCloud.eager[0].secure_url || videoCloud.playback_url,
-        thumbnailUrl: thumbnailCloud.secure_url,
-        videoFile: videoCloud.public_id,
-        thumbnail: thumbnailCloud.public_id,
+        videoFileUrl: videoFileUrl,
+        thumbnailUrl: thumbnailFileUrl,
+        // videoFile: videoCloud.public_id,
+        // thumbnail: thumbnailCloud.public_id,
         owner: req.user._id,
-        duration: videoCloud.duration,
-    })
+        // duration: videoCloud.duration,
+    });
 
     if (!videoPublished) {
         throw new ApiError(500, "Failed to publish video")
@@ -321,13 +329,13 @@ const publishAVideo = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, videoPublished, "Video published successfully")
     )
-})
+});
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
-    }   
+    }
 
     const video = await Video.aggregate([
         {
@@ -503,7 +511,6 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
     }
