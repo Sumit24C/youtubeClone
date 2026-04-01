@@ -291,22 +291,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video file not found");
     }
 
-    // const videoLocalPath = req.files?.videoFile[0]?.path
     const thumbnailLocalPath = req.file
 
     if (!thumbnailLocalPath) {
         throw new ApiError(401, "All files are required")
     }
-
-    // const videoCloud = await uploadVideoOnCloudinary(videoLocalPath);
-    // const thumbnailCloud = await uploadOnCloudinary(thumbnailLocalPath)
-
-    // if (!videoCloud) {
-    //     throw new ApiError(500, "Failed to upload video file")
-    // }
-    // if (!thumbnailCloud) {
-    //     throw new ApiError(500, "Failed to upload thumbnail")
-    // }
 
     const videoFileUrl = `${VIDEO_URL}/${videoFileName}`;
     const thumbnailFileUrl = `${THUMBAIL_URL}/${req.file.filename}`;
@@ -316,10 +305,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         description,
         videoFileUrl: videoFileUrl,
         thumbnailUrl: thumbnailFileUrl,
-        // videoFile: videoCloud.public_id,
-        // thumbnail: thumbnailCloud.public_id,
         owner: req.user._id,
-        // duration: videoCloud.duration,
     });
 
     if (!videoPublished) {

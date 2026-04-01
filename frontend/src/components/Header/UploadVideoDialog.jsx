@@ -14,13 +14,17 @@ import { extractErrorMsg } from "../../utils";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 export default function UploadVideoDialog({ open, handleClose }) {
-
   const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState("")
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const axiosPrivate = useAxiosPrivate();
+  const [errMsg, setErrMsg] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const api = useAxiosPrivate();
   const navigate = useNavigate();
-  const userData = useSelector((state) => state.auth.userData)
+  const userData = useSelector((state) => state.auth.userData);
+
   const upload = async (data) => {
     setLoading(true);
     setErrMsg("");
@@ -28,15 +32,28 @@ export default function UploadVideoDialog({ open, handleClose }) {
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("description", data.description);
-      formData.append("videoFile", data.video[0]);     
-      formData.append("thumbnail", data.image[0]);     
+      formData.append("video", data.video[0]);
+      formData.append("thumbnail", data.image[0]);
+      const chunkSize = 10 * 1024 * 1024;
+      const file = formData.video;
+      const totalChunks = Math.ceil(file.size / chunkSize);
 
-      const res = await axiosPrivate.post("/videos", formData, {
+      for (let i = 0; i < file.size; i += chunkSize) {
+        const chunk = formData.video.slice(i, i + chunkSize);
+        const formData = new FormData();
+        formData.append("video", chunk);
+        formData.append("chunk", i);
+        formData.append("totalChunks", totalChunks);
+        formData.append("originalname", file.name);
+        const response = await api.post(`videos/upload`, formData);
+        const progress = ((i + chunk.size) / file.size) * 100;
+        console.log(progress);
+      }
+      const res = await api.post("/videos/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       navigate(`/c/${userData.username}`);
-
     } catch (error) {
       setLoading(false);
       if (isCancel(error)) {
@@ -52,7 +69,15 @@ export default function UploadVideoDialog({ open, handleClose }) {
   };
 
   return (
-    <Dialog component={'form'} onSubmit={handleSubmit(upload)} open={open} onClose={handleClose} maxWidth="sm" fullWidth disableRestoreFocus>
+    <Dialog
+      component={"form"}
+      onSubmit={handleSubmit(upload)}
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      disableRestoreFocus
+    >
       <DialogTitle>
         Upload Video
         <IconButton
@@ -86,16 +111,31 @@ export default function UploadVideoDialog({ open, handleClose }) {
         />
         <Button variant="outlined" component="label" sx={{ mt: 2 }}>
           Choose Video
-          <input type="file" hidden accept="video/*" {...register("video", { required: true })} />
+          <input
+            type="file"
+            hidden
+            accept="video/*"
+            {...register("video", { required: true })}
+          />
         </Button>
         <Button variant="outlined" component="label" sx={{ mt: 2 }}>
           Choose Thumbnail
-          <input type="file" hidden accept="image/*" {...register("image", { required: true })} />
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            {...register("image", { required: true })}
+          />
         </Button>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button disabled={loading} loading={loading} variant="contained" type="submit">
+        <Button
+          disabled={loading}
+          loading={loading}
+          variant="contained"
+          type="submit"
+        >
           Upload
         </Button>
       </DialogActions>

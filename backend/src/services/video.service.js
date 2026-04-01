@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { uploadPathChunks } from "../config/upload.config.js";
+import { uploadPathChunks, videoPath } from "../config/upload.config.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -14,7 +14,8 @@ export const videoUploadHandler = asyncHandler(async (req, res) => {
     if (!req.file) {
         return new ApiError(400, "No video file uploaded");
     }
-
+    const user = req.body.test;
+    console.log(user);
     const chunkNumber = Number(req.body.chunk);
     const totalChunks = Number(req.body.totalChunks);
     const fileName = req.body.originalname.replace(/\s+/g, '');
@@ -28,7 +29,6 @@ export const videoUploadHandler = asyncHandler(async (req, res) => {
         originalName: req.body.originalname,
         size: req.file.size,
         mimetype: req.file.mimetype,
-        baseURL: 'https://xyz.com/dist/video/',
         videoUrl: `${VIDEO_URL}/${fileName}`,
     };
 
@@ -38,7 +38,7 @@ export const videoUploadHandler = asyncHandler(async (req, res) => {
 });
 
 export const mergeChunks = async function (fileName, totalChunks) {
-    const writeStream = fs.createWriteStream(path.join(uploadPath, fileName));
+    const writeStream = fs.createWriteStream(path.join(videoPath, fileName));
     for (let i = 0; i < totalChunks; i++) {
         const chunkPath = path.join(uploadPathChunks, `${fileName}.part_${i}`);
         let retries = 0;

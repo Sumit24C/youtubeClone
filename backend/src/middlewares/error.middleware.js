@@ -1,7 +1,7 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
 import fs from "fs-extra";
 import path from "path";
-import { uploadPath, uploadPathChunks } from "../utils/video.js";
+import { uploadPath, uploadPathChunks } from "../config/upload.config.js";
 
 const errorHandler = (err, req, res, next) => {
     const statusCode = err.statusCode || 500
