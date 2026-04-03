@@ -45,7 +45,7 @@ class VideoPlayer {
     initStreaming() {
         if (Hls.isSupported()) {
             this.hls = new Hls()
-            const src = "https://res.cloudinary.com/youtube236/video/upload/sp_auto/v1762615261/cjb7nfwxtskxbzkh14i0.m3u8"
+            const src = "http://localhost:8000/uploads/videos/1f8f891b-9f5a-4a67-b83f-0bfe482cea91/hls/master.m3u8"
             this.hls.loadSource(src)
             this.hls.attachMedia(this.video)
         }

@@ -13,6 +13,7 @@ import { isCancel } from "axios";
 import { extractErrorMsg } from "../../utils";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 export default function UploadVideoDialog({ open, handleClose }) {
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -28,34 +29,39 @@ export default function UploadVideoDialog({ open, handleClose }) {
   const upload = async (data) => {
     setLoading(true);
     setErrMsg("");
+
     try {
+      const file = data.video[0];
+      const thumbnail = data.image[0];
+
+      const chunkSize = 100 * 1024; // 10KB
+      const totalChunks = Math.ceil(file.size / chunkSize);
+      let videoInfo = null;
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = start + chunkSize;
+        const chunk = file.slice(start, end);
+        const chunkFormData = new FormData();
+        chunkFormData.append("video", chunk, file.name);
+        chunkFormData.append("chunkIndex", i);
+        chunkFormData.append("totalChunks", totalChunks);
+        chunkFormData.append("originalname", file.name);
+
+        const res = await api.post("/videos/upload", chunkFormData);
+        if (i === totalChunks - 1) {
+          videoInfo = res.data.data;
+        }
+      }
+
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("description", data.description);
-      formData.append("video", data.video[0]);
-      formData.append("thumbnail", data.image[0]);
-      const chunkSize = 10 * 1024 * 1024;
-      const file = formData.video;
-      const totalChunks = Math.ceil(file.size / chunkSize);
-
-      for (let i = 0; i < file.size; i += chunkSize) {
-        const chunk = formData.video.slice(i, i + chunkSize);
-        const formData = new FormData();
-        formData.append("video", chunk);
-        formData.append("chunk", i);
-        formData.append("totalChunks", totalChunks);
-        formData.append("originalname", file.name);
-        const response = await api.post(`videos/upload`, formData);
-        const progress = ((i + chunk.size) / file.size) * 100;
-        console.log(progress);
-      }
-      const res = await api.post("/videos/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      navigate(`/c/${userData.username}`);
+      formData.append("videoId", videoInfo.videoId);
+      formData.append("videoFileName", videoInfo.newFilename);
+      formData.append("thumbnail", thumbnail);
+      await api.post("/videos", formData);
+      // navigate(`/c/${userData.username}`);
     } catch (error) {
-      setLoading(false);
       if (isCancel(error)) {
         console.error("axiosUploadVideo :: canceled :: ", error);
       } else {
@@ -124,7 +130,7 @@ export default function UploadVideoDialog({ open, handleClose }) {
             type="file"
             hidden
             accept="image/*"
-            {...register("image", { required: true })}
+            {...register("image", { required: false })}
           />
         </Button>
       </DialogContent>
