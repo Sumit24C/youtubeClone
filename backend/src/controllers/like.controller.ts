@@ -10,7 +10,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
     }
-    const isLiked = await Like.findOne({ video: videoId, likedBy: req.user._id })
+    const isLiked = await Like.findOne({ video: videoId, likedBy: req.user?._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
@@ -21,7 +21,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
     const likeVideo = await Like.create({
         video: videoId,
-        likedBy: req.user._id
+        likedBy: req.user?._id
     })
 
     if (!likeVideo) {
@@ -39,7 +39,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     if (!commentId) {
         throw new ApiError(401, "CommentId is required")
     }
-    const isLiked = await Like.findOne({ comment: commentId, likedBy: req.user._id })
+    const isLiked = await Like.findOne({ comment: commentId, likedBy: req.user?._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
@@ -50,7 +50,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
     const likeComment = await Like.create({
         comment: commentId,
-        likedBy: req.user._id
+        likedBy: req.user?._id
     })
 
     if (!likeComment) {
@@ -67,7 +67,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     if (!tweetId) {
         throw new ApiError(401, "TweetId is required")
     }
-    const isLiked = await Like.findOne({ tweet: tweetId, likedBy: req.user._id })
+    const isLiked = await Like.findOne({ tweet: tweetId, likedBy: req.user?._id })
 
     if (isLiked) {
         await Like.findByIdAndDelete(isLiked._id)
@@ -78,7 +78,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
     const likeTweet = await Like.create({
         tweet: tweetId,
-        likedBy: req.user._id
+        likedBy: req.user?._id
     })
 
     if (!likeTweet) {
@@ -96,7 +96,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     const response = await Like.aggregate([
         {
             $match: {
-                likedBy: req.user._id,
+                likedBy: req.user?._id,
                 video: { $exists: true }
             }
         },
@@ -167,7 +167,7 @@ const getLikeCountByVideoId = asyncHandler(async (req, res) => {
         throw new ApiError(401, "VideoId is required");
     }
 
-    const likeCount = await Like.find({ video: videoId, likedBy: req.user._id })
+    const likeCount = await Like.find({ video: videoId, likedBy: req.user?._id })
     if (!likeCount) {
         throw new ApiError(404, "Liked Not found for this video")
     }

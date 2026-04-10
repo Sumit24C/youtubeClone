@@ -6,12 +6,12 @@ import { app } from './app.js';
 const port = Number(process.env.PORT) || 8000
 connectDB()
     .then(() => {
-        app.on('error', (error: Error) => {
-            console.log('server error: ', error)
-        })
-        app.listen(port, () => {
+        const server = app.listen(port, () => {
             console.log(`server listening on ${port}`)
-        })
+        });
+        server.on('error', (error: Error) => {
+            console.log('server error: ', error);
+        });
     })
     .catch((err: Error) => {
         console.log("MONGO db connection failed", err);

@@ -16,15 +16,15 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use(cookieParser())
 
 //routes import
-import userRouter from '@/routes/user.route.js'
-import oauthRouter from "@/routes/oauth.route.js"
-import subscriptionRouter from "@/routes/subscription.route.js"
-import videoRouter from "@/routes/video.route.js"
-import commentRouter from "@/routes/comment.route.js"
-import likeRouter from "@/routes/like.route.js"
-import playlistRouter from "@/routes/playlist.route.js"
-import dashboardRouter from "@/routes/dashboard.route.js"
-import viewRouter from "@/routes/view.route.js"
+import userRouter from './routes/user.route.js'
+import oauthRouter from "./routes/oauth.route.js"
+import subscriptionRouter from "./routes/subscription.route.js"
+import videoRouter from "./routes/video.route.js"
+import commentRouter from "./routes/comment.route.js"
+import likeRouter from "./routes/like.route.js"
+import playlistRouter from "./routes/playlist.route.js"
+import dashboardRouter from "./routes/dashboard.route.js"
+import viewRouter from "./routes/view.route.js"
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
@@ -37,7 +37,7 @@ app.use("/api/v1/playlist", playlistRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
 app.use("/api/v1/views", viewRouter)
 
-import errorHandler from "@/middlewares/error.middleware.js"
+import errorHandler from "./middlewares/error.middleware.js"
 app.use(errorHandler)
 
 export { app }

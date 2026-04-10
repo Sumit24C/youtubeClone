@@ -8,7 +8,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET_KEY,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath: string) => {
     try {
         if (!localFilePath) return null
         const response = await cloudinary.uploader.upload(localFilePath, {
@@ -23,7 +23,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-const uploadVideoOnCloudinary = async (localFilePath) => {
+const uploadVideoOnCloudinary = async (localFilePath: string) => {
     try {
         if (!localFilePath) return null
         const response = await cloudinary.uploader.upload(localFilePath, {
@@ -44,7 +44,7 @@ const uploadVideoOnCloudinary = async (localFilePath) => {
     }
 }
 
-const deleteFromCloudinary = async (public_id) => {
+const deleteFromCloudinary = async (public_id: string) => {
     try {
         const res = await cloudinary.uploader.destroy(public_id, { invalidate: true })
         return res

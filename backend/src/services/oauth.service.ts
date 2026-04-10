@@ -1,5 +1,5 @@
-import { User } from "@/models/user.model.js";
-import { OAuth } from "@/models/oauth.model.js";
+import { User } from ".././models/user.model.js";
+import { OAuth } from ".././models/oauth.model.js";
 
 export const handleGoogleLogin = async (profile: any) => {
     const googleId = profile.id;

@@ -6,14 +6,13 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
 const createPlaylist = asyncHandler(async (req, res) => {
     const { name, description, videoId, isPrivate } = req.body
-    //TODO: create playlist
 
     if (!(name && description)) {
         throw new ApiError(401, "All fields are required")
     }
 
     const playlist = await Playlist.create({
-        name, description, videos: [videoId], owner: req.user._id, isPrivate: isPrivate
+        name, description, videos: [videoId], owner: req.user?._id, isPrivate: isPrivate
     });
 
     if (!playlist) {
@@ -27,9 +26,8 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
     const { username } = req.params
-    //TODO: get user playlists
 
-    if (!username.trim()) {
+    if (typeof username !== "string" || !username.trim()) {
         throw new ApiError(401, "UserId is required")
     }
 
@@ -94,13 +92,8 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 })
 
 const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
-    const userId = req.user._id;
-    //TODO: get currentUser playlists
+    const userId = req.user?._id;
     
-    if (!userId) {
-        throw new ApiError(401, "UserId is required")
-    }
-
     const userPlaylists = await Playlist.aggregate([
         {
             $match: {
@@ -156,7 +149,7 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
 
 const getCurrentUserPlaylistsTitle = asyncHandler(async (req, res) => {
 
-    const playlist = await Playlist.find({ owner: req.user._id })
+    const playlist = await Playlist.find({ owner: req.user?._id })
 
     if (!playlist) {
         throw new ApiError(404, "playlist not found")
@@ -169,7 +162,7 @@ const getCurrentUserPlaylistsTitle = asyncHandler(async (req, res) => {
 
 const getCurrentUserPublicPlaylists = asyncHandler(async (req, res) => {
 
-    const playlist = await Playlist.find({ owner: req.user._id, isPrivate: false })
+    const playlist = await Playlist.find({ owner: req.user?._id, isPrivate: false })
 
     if (!playlist) {
         throw new ApiError(404, "public playlist not found")
@@ -182,9 +175,8 @@ const getCurrentUserPublicPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    //TODO: get playlist by id
 
-    if (!playlistId.trim()) {
+    if (typeof playlistId !== "string" || !playlistId.trim()) {
         throw new ApiError(401, "UserId is required")
     }
 
@@ -243,7 +235,11 @@ const toggleVideoToPlaylist = asyncHandler(async (req, res) => {
         throw new ApiError(401, "All fields are required")
     }
 
-    const playlist = await Playlist.findOne({ _id: playlistId, videos: videoId, owner: req.user._id })
+    if (typeof videoId !== "string" || !(mongoose.Types.ObjectId.isValid(videoId))) {
+        throw new ApiError(400, "Invalid videoId");
+    }
+
+    const playlist = await Playlist.findOne({ _id: playlistId, videos: videoId, owner: req.user?._id })
 
     if (playlist) {
         const removedPlaylist = await Playlist.findByIdAndUpdate(
@@ -290,7 +286,7 @@ const toggleVideoLikePlaylist = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
     const updatedPlaylist = await Playlist.findOneAndUpdate(
-        { name: "likes", owner: req.user._id },
+        { name: "likes", owner: req.user?._id },
         [
             {
                 $set: {
@@ -334,13 +330,12 @@ const toggleVideoLikePlaylist = asyncHandler(async (req, res) => {
 
 const deletePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-    // TODO: delete playlist
 
     if (!playlistId) {
         throw new ApiError(401, "PlaylistId is required")
     }
 
-    await Playlist.findOneAndDelete({ _id: playlistId, owner: req.user._id })
+    await Playlist.findOneAndDelete({ _id: playlistId, owner: req.user?._id })
 
     return res.status(200).json(
         new ApiResponse(200, {}, "Playlist deleted successfully")
@@ -350,13 +345,12 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 const updatePlaylist = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
     const { name, description, isPrivate } = req.body
-    //TODO: update playlist
     if (!name && !description) {
         throw new ApiError(401, "Atleast one field is required")
     }
 
     const playlist = await Playlist.findOneAndUpdate(
-        { _id: playlistId, owner: req.user._id },
+        { _id: playlistId, owner: req.user?._id },
         {
             $set: {
                 name: name,

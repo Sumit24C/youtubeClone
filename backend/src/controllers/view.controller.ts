@@ -10,6 +10,7 @@ const addVideoView = asyncHandler(async function (req, res) {
     if (!videoId) {
         throw new ApiError(403, "VideoId is required")
     }
+
     let view = await View.findOne({ videoId: videoId, viewerId: req.user._id })
     if (!view) {
         view = await View.create({
@@ -31,10 +32,7 @@ const addVideoView = asyncHandler(async function (req, res) {
 
     const updateQuery = {
         $inc: { watchTime: watchTime },
-    }
-
-    if (!view.isCompleted) {
-        updateQuery.$set = { isCompleted: isCompleted };
+        ...(!view.isCompleted && {$set: { isCompleted: isCompleted }})
     }
 
     const updatedView = await View.findByIdAndUpdate(
@@ -43,7 +41,6 @@ const addVideoView = asyncHandler(async function (req, res) {
             new: true
         }
     )
-
 
     if (!updatedView) {
         throw new ApiError(500, "Failed to update view")

@@ -26,7 +26,7 @@ export const videoStorage = multer.diskStorage({
         const baseFileName = file.originalname.replace(/\s+/g, '');
         fs.readdir(uploadPathChunks, (err, files) => {
             if (err) {
-                return cb(err)
+                return cb(err, "");
             }
             const matchingFiles = files.filter((f) => f.startsWith(baseFileName));
             let chunkNumber = 0;

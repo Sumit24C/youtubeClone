@@ -4,6 +4,8 @@ declare namespace NodeJS {
     MONGO_URI: string;
     ACCESS_TOKEN_EXPIRY: string;
     REFRESH_TOKEN_EXPIRY: string;
+    ACCESS_TOKEN_SECRET: string;
+    REFRESH_TOKEN_SECRET: string;
     BACKEND_URL: string;
     NODE_ENV: "development" | "production";
     JWT_SECRET: string;

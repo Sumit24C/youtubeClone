@@ -6,15 +6,14 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": "./src",
-    "paths": {
-      "@/*": ["*"]
-    },
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "typeRoots": ["./src/types"],
+    "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules"],
 }

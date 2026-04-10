@@ -1,20 +1,17 @@
 import mongoose from "mongoose"
 import { Video } from "../models/video.model.js"
 import { Subscription } from "../models/subscription.model.js"
-import { Like } from "../models/like.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { User } from "../models/user.model.js"
 import { Playlist } from "../models/playlist.model.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
-    // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
 
     const videoStats = await Video.aggregate([
         {
             $match: {
-                owner: req.user._id
+                owner: req.user?._id
             }
         },
         {
@@ -67,7 +64,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
     }
 
     const subscriberStats = await Subscription.find({
-        channel: req.user._id
+        channel: req.user?._id
     })
 
     if (!subscriberStats) {
@@ -85,9 +82,8 @@ const getChannelStats = asyncHandler(async (req, res) => {
 })
 
 const getChannelVideos = asyncHandler(async (req, res) => {
-    // TODO: Get all the videos uploaded by the channel
 
-    const video = await Video.find({ owner: req.user._id })
+    const video = await Video.find({ owner: req.user?._id })
     if (!video) {
         throw new ApiError(500, "Failed to channel videos")
     }
@@ -98,16 +94,11 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 })
 
 const getVideoAnalytics = asyncHandler(async (req, res) => {
-    // const { videoId } = req.params
-
-    // if (!videoId) {
-    //     throw new ApiError(403, "VideoId is required")
-    // }
 
     const video = await Video.aggregate([
         {
             $match: {
-                owner: req.user._id
+                owner: req.user?._id
             }
         },
         {
@@ -146,14 +137,13 @@ const getVideoAnalytics = asyncHandler(async (req, res) => {
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
-    // TODO: delete a comment
     const { videoId } = req.params
     if (!videoId) {
         throw new ApiError(403, "VideoId is required")
     }
 
     await Video.findOneAndDelete({
-        _id: videoId, owner: req.user._id
+        _id: videoId, owner: req.user?._id
     })
 
     return res.status(200).json(
@@ -167,7 +157,7 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
     const playlist = await Playlist.aggregate([
         {
             $match: {
-                owner: req.user._id,
+                owner: req.user?._id,
                 isPrivate: false
             }
         },
@@ -240,9 +230,12 @@ const getPlaylistAnalytics = asyncHandler(async (req, res) => {
 
 const getVideoByIdStudio = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: get video by id
     if (!videoId) {
         throw new ApiError(401, "VideoId is required")
+    }
+
+    if (typeof videoId !== "string" || !(mongoose.Types.ObjectId.isValid(videoId))) {
+        throw new ApiError(400, "Invalid VideoId");
     }
 
     const video = await Video.aggregate([
@@ -260,7 +253,7 @@ const getVideoByIdStudio = asyncHandler(async (req, res) => {
                 pipeline: [
                     {
                         $match: {
-                            owner: req.user._id,
+                            owner: req.user?._id,
                             isPrivate: false
                         }
                     }
