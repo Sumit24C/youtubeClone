@@ -36,10 +36,10 @@ const errorHandler = (
             if (error) {
                 return console.error(`Unable to scan directory`, err);
             }
-            files.forEach(async (file) => {
-                const filePath = path.join(uploadPathChunks, file);
-                await fs.promises.unlink(filePath);
-            });
+            // files.forEach(async (file) => {
+            //     const filePath = path.join(uploadPathChunks, file);
+            //     await fs.promises.unlink(filePath);
+            // });
         });
     }
     

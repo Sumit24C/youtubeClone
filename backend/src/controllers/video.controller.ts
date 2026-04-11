@@ -346,24 +346,24 @@ const publishAVideo = asyncHandler(async (req, res) => {
     const videoFileUrl = `${VIDEO_URL}/${videoId}/hls/master.m3u8`;
     const thumbnailFileUrl = `${VIDEO_URL}/${videoId}/thumbnail/${req.file?.filename}`;
 
-    const publishedVideo = await Video.create({
-        title,
-        description,
-        videoFile: videoId,
-        videoFileUrl: videoFileUrl,
-        thumbnailUrl: thumbnailFileUrl,
-        owner: req.user._id,
-        status: "processing",
-    });
+    // const publishedVideo = await Video.create({
+    //     title,
+    //     description,
+    //     videoFile: videoId,
+    //     videoFileUrl: videoFileUrl,
+    //     thumbnailUrl: thumbnailFileUrl,
+    //     owner: req.user._id,
+    //     status: "processing",
+    // });
 
-    if (!publishedVideo) {
-        throw new ApiError(500, "Failed to publish video");
-    }
+    // if (!publishedVideo) {
+    //     throw new ApiError(500, "Failed to publish video");
+    // }
 
     return res
         .status(200)
         .json(
-            new ApiResponse(200, publishedVideo, "Video published successfully")
+            new ApiResponse(200, "publishedVideo", "Video published successfully")
         );
 });
 

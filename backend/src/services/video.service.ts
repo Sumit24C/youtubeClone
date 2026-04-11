@@ -9,6 +9,7 @@ import { uploadPathChunks, videoPath } from "../config/upload.config.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { videoQueue } from "queues/video.queue.js";
 
 export const MAX_RETRIES = 5;
 export const RETRY_DELAY = 1000;
@@ -24,6 +25,7 @@ interface VideoInfo {
 interface MulterRequest extends Request {
     file?: Express.Multer.File;
 }
+
 const areAllChunksPresent = async (
     uploadDir: string,
     totalChunks: number
@@ -70,7 +72,7 @@ export const videoUploadHandler = asyncHandler(
 
         if (allChunksReady) {
             const lockPath = path.join(uploadChunkDir, "merge.lock");
-            
+
             try {
                 await fsNative.promises.writeFile(lockPath, "processing", {
                     flag: "wx",
@@ -91,9 +93,14 @@ export const videoUploadHandler = asyncHandler(
                     originalFilename
                 );
 
-                generateHLS(videoInfo.videoId, videoInfo.newFilename).catch(
-                    (err) => console.error("Hls Failed: ", err)
-                );
+                await videoQueue.add("process-video", {
+                    videoId: videoInfo.videoId,
+                    filename: videoInfo.newFilename,
+                });
+
+                // generateHLS(videoInfo.videoId, videoInfo.newFilename).catch(
+                //     (err) => console.error("Hls Failed: ", err)
+                // );
             } catch (error) {
                 await fs.remove(lockPath);
                 if (error instanceof ApiError) {
@@ -128,7 +135,6 @@ export const mergeChunks = async (
     const ext = path.extname(originalName) || ".mp4";
     const newFilename = `original${ext}`;
     const finalVideoPath = path.join(uniqueVideoDir, newFilename);
-    // const writeStream = fs.createWriteStream(finalVideoPath);
     await fs.writeFile(finalVideoPath, "");
 
     const chunkUploadDir = path.join(uploadPathChunks, uploadId);
@@ -142,64 +148,22 @@ export const mergeChunks = async (
         const data = await fs.readFile(chunkPath);
         await fs.appendFile(finalVideoPath, data);
         await fs.unlink(chunkPath);
-        // let retries = 0;
-
-        // while (retries < MAX_RETRIES) {
-        //     try {
-        //         await new Promise<void>((resolve, reject) => {
-        //             const chunkReadStream = fs.createReadStream(chunkPath);
-
-        //             chunkReadStream.on("error", reject);
-        //             writeStream.on("error", reject);
-
-        //             chunkReadStream.on("end", async () => {
-        //                 await fs.unlink(chunkPath);
-        //                 resolve();
-        //             });
-
-        //             writeStream.once("drain", resolve);
-        //             chunkReadStream.pipe(writeStream, { end: false });
-        //         });
-
-        //         break;
-        //     } catch (err) {
-        //         const error = err as NodeJS.ErrnoException;
-
-        //         if (error.code === "EBUSY") {
-        //             console.log(
-        //                 `Chunk ${i} busy, retry ${retries + 1}/${MAX_RETRIES}`
-        //             );
-        //             await delay(RETRY_DELAY);
-        //             retries++;
-        //         } else {
-        //             throw error;
-        //         }
-        //     }
-        // }
-
-        // if (retries === MAX_RETRIES) {
-        //     writeStream.end();
-        //     throw new ApiError(500, `Failed to merge chunk ${i}`);
-        // }
     }
 
-    // writeStream.end();
     await fs.remove(chunkUploadDir);
     return { videoId, newFilename };
 };
 
 export const generateHLS = async (
-    videoId: string,
-    filename: string
+    inputPath: string,
+    hlsDir: string
 ): Promise<void> => {
-    const videoDir = path.join(videoPath, videoId);
-    const inputPath = path.join(videoDir, "original", filename);
-    const hlsDir = path.join(videoDir, "hls");
-
     await fs.mkdir(hlsDir, { recursive: true });
+    await fs.mkdir(path.join(hlsDir, "0"), { recursive: true });
+    await fs.mkdir(path.join(hlsDir, "1"), { recursive: true });
 
     const ffmpegCommand = `
-    ffmpeg -i "${inputPath}" \
+    ffmpeg -y -i "${inputPath}" \
     -filter_complex "[0:v]split=2[v1][v2];[v1]scale=640:360[v1out];[v2]scale=1280:720[v2out]" \
     -map "[v1out]" -map 0:a? -c:v:0 libx264 -b:v:0 800k \
     -map "[v2out]" -map 0:a? -c:v:1 libx264 -b:v:1 2800k \
@@ -224,3 +188,40 @@ export const generateHLS = async (
         });
     });
 };
+
+// export const generateHLS = async (
+//     videoId: string,
+//     filename: string
+// ): Promise<void> => {
+//     const videoDir = path.join(videoPath, videoId);
+//     const inputPath = path.join(videoDir, "original", filename);
+//     const hlsDir = path.join(videoDir, "hls");
+
+//     await fs.mkdir(hlsDir, { recursive: true });
+
+//     const ffmpegCommand = `
+//     ffmpeg -i "${inputPath}" \
+//     -filter_complex "[0:v]split=2[v1][v2];[v1]scale=640:360[v1out];[v2]scale=1280:720[v2out]" \
+//     -map "[v1out]" -map 0:a? -c:v:0 libx264 -b:v:0 800k \
+//     -map "[v2out]" -map 0:a? -c:v:1 libx264 -b:v:1 2800k \
+//     -var_stream_map "v:0,name:360p v:1,name:720p" \
+//     -master_pl_name master.m3u8 \
+//     -f hls \
+//     -hls_time 10 \
+//     -hls_list_size 0 \
+//     -hls_segment_filename "${hlsDir}/%v/seg_%03d.ts" \
+//     "${hlsDir}/%v/index.m3u8"
+//   `;
+
+//     return new Promise<void>((resolve, reject) => {
+//         exec(ffmpegCommand, (error, stdout, stderr) => {
+//             if (error) {
+//                 console.error("FFmpeg error:", stderr);
+//                 reject(error);
+//             } else {
+//                 console.log("HLS generation completed");
+//                 resolve();
+//             }
+//         });
+//     });
+// };

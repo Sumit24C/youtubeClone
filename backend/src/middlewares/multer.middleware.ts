@@ -12,49 +12,43 @@ const storage = multer.diskStorage({
         cb(null, thumbnailDir);
     },
     filename: (req, file, cb) => {
-        cb(null, `thumbnail${path.extname(file.originalname)}`)
-    }
+        cb(null, `thumbnail${path.extname(file.originalname)}`);
+    },
 });
 
 export const upload = multer({ storage });
 
 export const videoStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadPathChunks)
+        const uploadChunkDir = path.join(uploadPathChunks, req.body.uploadId);
+        fs.mkdirSync(uploadChunkDir, { recursive: true });
+        cb(null, uploadChunkDir);
     },
     filename: (req, file, cb) => {
-        const baseFileName = file.originalname.replace(/\s+/g, '');
-        fs.readdir(uploadPathChunks, (err, files) => {
-            if (err) {
-                return cb(err, "");
-            }
-            const matchingFiles = files.filter((f) => f.startsWith(baseFileName));
-            let chunkNumber = 0;
-            if (matchingFiles.length > 0) {
-                const highestChunkNumber = Math.max(
-                    ...matchingFiles.map((f) => {
-                        const match = f.match(/\.part_(\d+)$/);
-                        return match ? parseInt(match[1], 10) : -1;
-                    })
-                );
-                chunkNumber = highestChunkNumber + 1;
-            }
-            const fileName = `${baseFileName}.part_${chunkNumber}`;
-            cb(null, fileName);
-        });
-    }
+        const filename = `chunk_${req.body.chunkIndex}`;
+        console.log(filename);
+        cb(null, filename);
+    },
 });
 
 export const videoUpload = multer({
     storage: videoStorage,
     limits: {
-        fileSize: 500 * 1024 * 1024
+        fileSize: 500 * 1024 * 1024,
     },
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('video/') || file.mimetype === 'application/octet-stream') {
+        if (
+            file.mimetype.startsWith("video/") ||
+            file.mimetype === "application/octet-stream"
+        ) {
             cb(null, true);
         } else {
-            cb(new ApiError(400, 'Not a video file. Please upload only videos.'));
+            cb(
+                new ApiError(
+                    400,
+                    "Not a video file. Please upload only videos."
+                )
+            );
         }
-    }
+    },
 });
