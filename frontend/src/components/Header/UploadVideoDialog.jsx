@@ -13,32 +13,55 @@ import { isCancel } from "axios";
 import { extractErrorMsg } from "../../utils";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-export default function UploadVideoDialog({ open, handleClose }) {
 
+export default function UploadVideoDialog({ open, handleClose }) {
   const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState("")
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const axiosPrivate = useAxiosPrivate();
+  const [errMsg, setErrMsg] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const api = useAxiosPrivate();
   const navigate = useNavigate();
-  const userData = useSelector((state) => state.auth.userData)
+  const userData = useSelector((state) => state.auth.userData);
+
   const upload = async (data) => {
     setLoading(true);
     setErrMsg("");
+
     try {
+      const file = data.video[0];
+      const thumbnail = data.image[0];
+
+      const chunkSize = 100 * 1024; // 10KB
+      const totalChunks = Math.ceil(file.size / chunkSize);
+      let videoInfo = null;
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = start + chunkSize;
+        const chunk = file.slice(start, end);
+        const chunkFormData = new FormData();
+        chunkFormData.append("video", chunk, file.name);
+        chunkFormData.append("chunkIndex", i);
+        chunkFormData.append("totalChunks", totalChunks);
+        chunkFormData.append("originalname", file.name);
+
+        const res = await api.post("/videos/upload", chunkFormData);
+        if (i === totalChunks - 1) {
+          videoInfo = res.data.data;
+        }
+      }
+
       const formData = new FormData();
       formData.append("title", data.title);
       formData.append("description", data.description);
-      formData.append("videoFile", data.video[0]);     
-      formData.append("thumbnail", data.image[0]);     
-
-      const res = await axiosPrivate.post("/videos", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      navigate(`/c/${userData.username}`);
-
+      formData.append("videoId", videoInfo.videoId);
+      formData.append("videoFileName", videoInfo.newFilename);
+      formData.append("thumbnail", thumbnail);
+      await api.post("/videos", formData);
+      // navigate(`/c/${userData.username}`);
     } catch (error) {
-      setLoading(false);
       if (isCancel(error)) {
         console.error("axiosUploadVideo :: canceled :: ", error);
       } else {
@@ -52,7 +75,15 @@ export default function UploadVideoDialog({ open, handleClose }) {
   };
 
   return (
-    <Dialog component={'form'} onSubmit={handleSubmit(upload)} open={open} onClose={handleClose} maxWidth="sm" fullWidth disableRestoreFocus>
+    <Dialog
+      component={"form"}
+      onSubmit={handleSubmit(upload)}
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      disableRestoreFocus
+    >
       <DialogTitle>
         Upload Video
         <IconButton
@@ -86,16 +117,31 @@ export default function UploadVideoDialog({ open, handleClose }) {
         />
         <Button variant="outlined" component="label" sx={{ mt: 2 }}>
           Choose Video
-          <input type="file" hidden accept="video/*" {...register("video", { required: true })} />
+          <input
+            type="file"
+            hidden
+            accept="video/*"
+            {...register("video", { required: true })}
+          />
         </Button>
         <Button variant="outlined" component="label" sx={{ mt: 2 }}>
           Choose Thumbnail
-          <input type="file" hidden accept="image/*" {...register("image", { required: true })} />
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            {...register("image", { required: false })}
+          />
         </Button>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button disabled={loading} loading={loading} variant="contained" type="submit">
+        <Button
+          disabled={loading}
+          loading={loading}
+          variant="contained"
+          type="submit"
+        >
           Upload
         </Button>
       </DialogActions>
