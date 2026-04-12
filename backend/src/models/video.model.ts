@@ -4,22 +4,6 @@ import { Comment } from "./comment.model.js";
 import { Like } from "./like.model.js";
 
 const videoSchema = new Schema({
-    videoFile: {
-        type: String,
-        required: true,
-    },
-    thumbnail: {
-        type: String,
-        required: false,
-    },
-    videoFileUrl: {
-        type: String,
-        required: true,
-    },
-    thumbnailUrl: {
-        type: String,
-        required: true,
-    },
     title: {
         type: String,
         required: true,
@@ -42,10 +26,14 @@ const videoSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ["processing", "ready", "failed"],
+        enum: ["uploading", "processing", "ready", "failed"],
         default: "processing"
+    },
+    thumbnail: {
+        type: String,
+        // required: true
     }
-}, { timestamps: true })
+}, { timestamps: true });
 
 videoSchema.pre("findOneAndDelete", async function (next) {
     const videoId = this.getQuery()["_id"];

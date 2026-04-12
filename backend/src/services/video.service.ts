@@ -43,6 +43,7 @@ const areAllChunksPresent = async (
     return true;
 };
 
+// not in use, since now the upload is done using signed-url
 export const videoUploadHandler = asyncHandler(
     async (req: MulterRequest, res: Response) => {
         if (!req.file) {
@@ -186,6 +187,18 @@ export const generateHLS = async (
                 resolve();
             }
         });
+    });
+};
+
+export const getDuration = (inputPath: string): Promise<number> => {
+    return new Promise((resolve, reject) => {
+        exec(
+            `ffprobe -v error -show_entries format=duration -of csv=p=0 "${inputPath}"`,
+            (err, stdout) => {
+                if (err) return reject(err);
+                resolve(Math.floor(parseFloat(stdout)));
+            }
+        );
     });
 };
 

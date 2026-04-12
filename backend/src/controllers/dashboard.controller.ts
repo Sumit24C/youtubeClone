@@ -5,6 +5,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { Playlist } from "../models/playlist.model.js"
+import { transformVideo } from "utils/transformVideo.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
 
@@ -95,7 +96,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
 
 const getVideoAnalytics = asyncHandler(async (req, res) => {
 
-    const video = await Video.aggregate([
+    const videos = await Video.aggregate([
         {
             $match: {
                 owner: req.user?._id
@@ -127,13 +128,14 @@ const getVideoAnalytics = asyncHandler(async (req, res) => {
         }
     ])
 
-    if (!video) {
+    if (!videos) {
         throw new ApiError(500, "Failed to fetch Video Analytics")
     }
 
+    const formattedVideo = videos.map(transformVideo);
     return res.json(
-        new ApiResponse(200, video, "successfully fetched videos analytics")
-    )
+        new ApiResponse(200, formattedVideo, "successfully fetched videos analytics")
+    );
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -267,10 +269,11 @@ const getVideoByIdStudio = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found")
     }
 
+    const formattedVideo = transformVideo(video[0]);
     return res.status(200).json(
-        new ApiResponse(200, video[0], "Video fetched successfully")
-    )
-})
+        new ApiResponse(200, formattedVideo, "Video fetched successfully")
+    );
+});
 
 //last video performance, which includes views,likes, average-view-duration, comments, 
 //channel analytics, subscribers, views, watch-time, 

@@ -1,17 +1,11 @@
-import path from "path";
-import fs from "fs-extra";
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import {
-    deleteFromCloudinary,
-    uploadOnCloudinary,
-    uploadVideoOnCloudinary,
-} from "../utils/cloudinary.js";
-import { VIDEO_URL, videoPath } from "../config/upload.config.js";
+import { deleteFromR2, generateThumbnailUploadUrl } from "services/r2.service.js";
+import { transformVideo } from "utils/transformVideo.js";
 
 const parseNumberParam = (value: unknown, fallback: number) => {
     if (typeof value === "string") {
@@ -99,12 +93,13 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
     if (!(result.videos.length > 0)) {
         throw new ApiError(404, "Videos not found");
     }
+    const formattedVideo = result.videos.map(transformVideo);
 
     return res.status(200).json(
         new ApiResponse(
             200,
             {
-                videos: result.videos,
+                videos: formattedVideo,
                 totalVideos: result.totalVideos,
                 totalPages: result.totalPages,
                 currentPage: pageNumber,
@@ -208,11 +203,13 @@ const getSearchVideos = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Videos not found");
     }
 
+    const formattedVideo = result.videos.map(transformVideo);
+
     return res.status(200).json(
         new ApiResponse(
             200,
             {
-                videos: result.videos,
+                videos: formattedVideo,
                 totalVideos: result.totalVideos,
                 totalPages: totalPages,
                 currentPage: pageNumber,
@@ -319,51 +316,38 @@ const getChannelVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Videos not found");
     }
 
+    const formattedVideo = transformVideo(video);
+
     return res
         .status(200)
         .json(
-            new ApiResponse(200, video, "Channel Videos fetched successfully")
+            new ApiResponse(200, formattedVideo, "Channel Videos fetched successfully")
         );
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description, videoId, videoFileName } = req.body;
+    const { title, description, filename, contentType } = req.body;
 
-    const thumbnailLocalPath = req.file;
-    if ([title, description].some((field) => !field || field.trim() === "")) {
+    if (!title || !description || !filename || !contentType) {
         throw new ApiError(403, "All fields are required");
     }
 
-    const videoFilePath = path.join(videoPath, videoId);
-    if (!fs.existsSync(videoFilePath)) {
-        throw new ApiError(404, "Video file not found");
+    const publishedVideo = await Video.create({
+        title,
+        description,
+        owner: req.user._id,
+        status: "uploading",
+    });
+
+    if (!publishedVideo) {
+        throw new ApiError(500, "Failed to publish video");
     }
 
-    if (!thumbnailLocalPath) {
-        throw new ApiError(401, "All files are required");
-    }
-
-    const videoFileUrl = `${VIDEO_URL}/${videoId}/hls/master.m3u8`;
-    const thumbnailFileUrl = `${VIDEO_URL}/${videoId}/thumbnail/${req.file?.filename}`;
-
-    // const publishedVideo = await Video.create({
-    //     title,
-    //     description,
-    //     videoFile: videoId,
-    //     videoFileUrl: videoFileUrl,
-    //     thumbnailUrl: thumbnailFileUrl,
-    //     owner: req.user._id,
-    //     status: "processing",
-    // });
-
-    // if (!publishedVideo) {
-    //     throw new ApiError(500, "Failed to publish video");
-    // }
-
+    const data = await generateThumbnailUploadUrl(filename, contentType, publishedVideo._id.toString());
     return res
         .status(200)
         .json(
-            new ApiResponse(200, "publishedVideo", "Video published successfully")
+            new ApiResponse(200, data, "Video published successfully")
         );
 });
 
@@ -509,50 +493,55 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to update watchHistory");
     }
 
+    const formattedVideo = transformVideo(video[0]);
+
     return res
         .status(200)
-        .json(new ApiResponse(200, video[0], "Video fetched successfully"));
+        .json(new ApiResponse(200, formattedVideo, "Video fetched successfully"));
 });
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     if (!videoId) {
-        throw new ApiError(401, "VideoId is required");
+        throw new ApiError(400, "VideoId is required");
+    }
+    const { title, description, isPublished, thumbnail = "" } = req.body;
+    const updatedDetails = {
+        ...(title && { title }),
+        ...(description && { description }),
+        ...(thumbnail && { thumbnail }),
+        ...(typeof isPublished === "boolean" && { isPublished }),
+    };
+
+    if (Object.keys(updatedDetails).length === 0) {
+        throw new ApiError(400, "At least one field is required to update");
     }
 
-    const { title, description, isPublished } = req.body;
-
-    if (!title || !description || isPublished === undefined) {
-        throw new ApiError(401, "All fields are required");
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(404, "Video not found");
     }
 
-    const thumbnailLocalPath = req.file?.path;
-    let thumbnail;
-    if (thumbnailLocalPath) {
-        thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
-        if (!thumbnail) {
-            throw new ApiError(500, "Failed to update thumbnail");
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(403, "Unauthorized to update this video");
+    }
+
+    if (thumbnail) {
+        const oldThumbnail = video.thumbnail;
+        if (oldThumbnail && !oldThumbnail.includes("default")) {
+            await deleteFromR2(oldThumbnail);
         }
     }
 
-    const updatedDetails = {
-        title: title,
-        description: description,
-        isPublished: isPublished,
-        ...(thumbnail && { thumbnail: thumbnail.secure_url }),
-    };
-
     const updatedVideo = await Video.findByIdAndUpdate(
         videoId,
-        {
-            $set: updatedDetails,
-        },
+        { $set: updatedDetails },
         { new: true }
     );
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedVideo, "Successfully updated video"));
+    return res.status(200).json(
+        new ApiResponse(200, updatedVideo, "Successfully updated video")
+    );
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
