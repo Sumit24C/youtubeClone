@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
-import { redisConnection } from "../config/redis.js";
+import { redis } from "../config/redis.js";
 
 export const videoQueue = new Queue("video-processing", {
-    connection: redisConnection,
+    connection: redis,
 });

@@ -45,7 +45,7 @@ class VideoPlayer {
     initStreaming() {
         if (Hls.isSupported()) {
             this.hls = new Hls()
-            const src = "http://localhost:8000/uploads/videos/1f8f891b-9f5a-4a67-b83f-0bfe482cea91/hls/master.m3u8"
+            const src = "https://pub-0d3bc5fede3940478b0020fa451076dc.r2.dev/videos/da92c904-bd22-4e9b-a546-15c0fbd9f486/hls/master.m3u8"
             this.hls.loadSource(src)
             this.hls.attachMedia(this.video)
         }

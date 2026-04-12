@@ -47,6 +47,7 @@ class VideoPlayer {
     }
 
     initStreaming(videoFile) {
+        if (!videoFile) return;
         if (this.hls) {
             this.hls.destroy();
             this.hls = null;
