@@ -22,19 +22,17 @@ function CommentCard({
     comment: Comment;
     setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
 }) {
-    const { user, createdAt, content, repliesCount = 0 } = comment;
-
+    const { owner, createdAt, content, repliesCount = 0 } = comment;
     const { likeLoading, liked, countOfLikes, handleLike } = useLike(
         comment.isLiked,
         comment.likesCount,
-        false,
         "comment",
         comment._id
     );
 
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
-    const [errorMsg, setErrorMsg] = useState<string>("");
+    const [_errorMsg, setErrorMsg] = useState<string>("");
     const [editingContent, setEditingContent] = useState<string>(content);
 
     const axiosPrivate = useAxiosPrivate();
@@ -96,8 +94,8 @@ function CommentCard({
         >
             {/* Avatar */}
             <Avatar
-                src={user?.avatar || ""}
-                alt={user?.username}
+                src={owner?.avatar || ""}
+                alt={owner?.username}
                 sx={{ width: 40, height: 40, flexShrink: 0 }}
             />
 
@@ -112,7 +110,7 @@ function CommentCard({
                             color: "#fff",
                         }}
                     >
-                        @{user?.username}
+                        @{owner?.username}
                     </Typography>
 
                     <Typography

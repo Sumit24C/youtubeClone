@@ -2,13 +2,12 @@ import { Box, Avatar, Typography, Button } from "@mui/material";
 import { CheckCircle } from "@mui/icons-material";
 import { useSubscribe } from "../../hooks/useSubscribe";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { removeChannel } from "../../store/channelSlice";
 import type { Channel } from "../../types/channel";
 
 function ChannelCard({
     channelInfo,
-    setChannels,
 }: {
     channelInfo: Channel;
     setChannels?: React.Dispatch<React.SetStateAction<any[]>>;
@@ -16,15 +15,12 @@ function ChannelCard({
     const {
         subscribeLoading,
         handleSubscribe,
-        subscribersCount,
     } = useSubscribe({
         ...channelInfo,
         isSubscribed: true,
     });
 
     const dispatch = useDispatch();
-
-    const { channelData } = useSelector((state: any) => state.channel);
 
     const handleUnSubscribe = async (
         e: React.MouseEvent<HTMLButtonElement>

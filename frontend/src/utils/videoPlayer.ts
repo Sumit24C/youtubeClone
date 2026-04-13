@@ -283,7 +283,7 @@ class VideoPlayer {
         return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
     }
 
-    private loadVideo(videoFile: string): void {
+    public loadVideo(videoFile: string): void {
         if (this.hls) {
             this.hls.stopLoad();
             this.hls.detachMedia();
@@ -294,7 +294,7 @@ class VideoPlayer {
         this.initStreaming(videoFile);
     }
 
-    private destroy(): void {
+    public destroy(): void {
         if (this.hls) {
             this.hls.destroy();
         }

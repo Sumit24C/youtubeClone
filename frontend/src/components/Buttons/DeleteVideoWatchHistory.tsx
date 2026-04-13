@@ -12,7 +12,7 @@ function DeleteVideoWatchHistory({
     setVideos: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
     const [loading, setLoading] = useState<boolean>(false);
-    const [errorMsg, setErrorMsg] = useState<string>("");
+    const [_errorMsg, setErrorMsg] = useState<string>("");
 
     const axiosPrivate = useAxiosPrivate();
 

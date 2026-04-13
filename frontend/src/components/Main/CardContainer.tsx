@@ -1,6 +1,5 @@
 import { Box, Typography, Avatar, CardMedia } from "@mui/material";
 import { Link } from "react-router-dom";
-import { useState } from "react";
 import MenuButton from "../Buttons/MenuButton";
 import {
     displayViews,
@@ -43,8 +42,6 @@ function CardContainer({
         medium: { width: "168px", height: "94px" },
         large: { width: "200px", height: "120px" },
     };
-
-    const [loading] = useState(false);
 
     return (
         <Box

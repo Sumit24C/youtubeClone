@@ -8,7 +8,7 @@ export default function SearchBar() {
     const [open, setOpen] = useState(false);
     const [options, setOptions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [_errorMsg, setErrorMsg] = useState("");
     const axiosPrivate = useAxiosPrivate();
     const navigate = useNavigate();
     const [query, setQuery] = useState("");

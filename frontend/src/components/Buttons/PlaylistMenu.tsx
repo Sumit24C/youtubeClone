@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
     Box,
@@ -29,9 +29,7 @@ function PlaylistMenu({
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [dialogOpen, setDialogOpen] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [errMsg, setErrMsg] = useState<string>("");
-
-    const controllerRef = useRef<AbortController | null>(null);
+    const [_errMsg, setErrMsg] = useState<string>("");
 
     const axiosPrivate = useAxiosPrivate();
     const open = Boolean(anchorEl);

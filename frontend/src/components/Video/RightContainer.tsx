@@ -20,7 +20,7 @@ function RightContainer() {
     const [page, setPage] = useState<number>(1);
     const [totalPages, setTotalPages] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(false);
-    const [errorMsg, setErrorMsg] = useState<string>("");
+    const [_errorMsg, setErrorMsg] = useState<string>("");
 
     const axiosPrivate = useAxiosPrivate();
 

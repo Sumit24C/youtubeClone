@@ -10,7 +10,7 @@ function MainContainer() {
   const axiosPrivate = useAxiosPrivate();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [_errorMsg, setErrorMsg] = useState<string>("");
   const [videos, setVideos] = useState<Video[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);

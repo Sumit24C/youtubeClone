@@ -11,10 +11,9 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useForm } from "react-hook-form";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
-import axios, { isCancel } from "axios";
+import axios from "axios";
 import { extractErrorMsg } from "../../utils";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { uploadChunk } from "../../utils/uploadChunks";
 
 type FormDataType = {
@@ -41,12 +40,11 @@ function UploadVideoDialog({
     handleClose: () => void;
 }) {
     const [loading, setLoading] = useState<boolean>(false);
-    const [errMsg, setErrMsg] = useState<string>("");
+    const [_errMsg, setErrMsg] = useState<string>("");
 
     const {
         register,
         handleSubmit,
-        formState: { errors },
     } = useForm<FormDataType>();
 
     const api = useAxiosPrivate();

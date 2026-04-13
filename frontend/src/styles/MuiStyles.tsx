@@ -106,7 +106,7 @@ export const StyledListItemText = styled(ListItemText, {
   shouldForwardProp: (prop) => prop !== "open",
 })<{
   open: boolean;
-}>(({ theme, open }) => ({
+}>(({ open }) => ({
   opacity: open ? 1 : 0,
   "& .MuiListItemText-primary": {
     fontSize: "1rem",

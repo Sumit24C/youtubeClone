@@ -6,7 +6,6 @@ import { useAxiosPrivate } from "./useAxiosPrivate";
 function useLike(
     isLiked: boolean,
     likesCount: number,
-    isDisliked: boolean = false,
     type: string,
     id: string = ""
 ) {

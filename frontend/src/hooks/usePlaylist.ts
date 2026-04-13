@@ -3,8 +3,6 @@ import { isCancel } from "axios";
 import { useAxiosPrivate } from "./useAxiosPrivate";
 
 function usePlaylist({
-    name,
-    description,
     videoId,
 }: {
     name: string;

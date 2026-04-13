@@ -6,10 +6,6 @@ import { extractErrorMsg } from "../utils";
 import SearchCardContainer from "../components/Main/SearchCardContainer";
 import type { Video } from "../types/video";
 
-type SearchResponse = {
-    videos: Video[];
-    totalPages: number;
-};
 
 function SearchVideoPage() {
     const location = useLocation();

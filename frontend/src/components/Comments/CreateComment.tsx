@@ -27,7 +27,7 @@ function CreateComment({
     const [loading, setLoading] = useState<boolean>(false);
     const [errMsg, setErrMsg] = useState<string>("");
 
-    const axiosPrivate = useAxiosPrivate();
+    const api = useAxiosPrivate();
     const { userData } = useSelector((state: any) => state.auth);
 
     const create = async (): Promise<void> => {
@@ -37,7 +37,7 @@ function CreateComment({
         setErrMsg("");
 
         try {
-            const response = await axiosPrivate.post(`/comments/${id}`, {
+            const response = await api.post(`/comments/${id}`, {
                 content,
             });
 
@@ -93,9 +93,9 @@ function CreateComment({
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     disabled={loading}
-                    InputProps={{
-                        sx: { color: "text.primary" },
-                    }}
+                    // InputProps={{
+                    //     sx: { color: "text.primary" },
+                    // }}
                 />
 
                 {/* Error */}

@@ -28,7 +28,7 @@ const CustomVideoPlayer = ({
 
     const [watchTime, setWatchTime] = useState<number>(0);
     const [view, setView] = useState<View | null>(null);
-    const [showSettings, setShowSettings] = useState(false);
+    const [_showSettings, setShowSettings] = useState(false);
 
     const controllerRef = useRef<AbortController | null>(null);
 

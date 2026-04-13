@@ -20,7 +20,6 @@ import { login } from "../store/authSlice";
 import { useSnackbar } from "notistack";
 import { extractErrorMsg } from "../utils";
 import { useForm } from "react-hook-form";
-import type { User } from "../types/user";
 
 type ProfileForm = {
     username: string;
@@ -50,8 +49,6 @@ export default function Profile() {
     const dispatch = useDispatch();
     const axiosPrivate = useAxiosPrivate();
     const { enqueueSnackbar } = useSnackbar();
-
-    const [user, setUser] = useState<User | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
@@ -90,7 +87,6 @@ export default function Profile() {
 
             const data = res.data.data;
 
-            setUser(data);
             setAvatar(data.avatar || "");
             setCoverImage(data.coverImage || "");
 
@@ -119,8 +115,6 @@ export default function Profile() {
             const updatedUser = res.data.data;
 
             dispatch(login(updatedUser));
-            setUser(updatedUser);
-
             reset(data);
 
             enqueueSnackbar("Account updated successfully!", {

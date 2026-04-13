@@ -3,7 +3,7 @@ export type Comment = {
     content: string;
     createdAt: string;
     updatedAt?: string;
-    user: {
+    owner: {
         _id: string;
         username: string;
         avatar?: string;

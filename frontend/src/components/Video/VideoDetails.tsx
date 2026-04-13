@@ -23,7 +23,6 @@ const VideoDetails = ({
     channel,
     isLiked,
     likesCount,
-    isDisliked,
 }: VideoDetailsProps) => {
     const { id } = useParams<{ id?: string }>();
 
@@ -43,7 +42,6 @@ const VideoDetails = ({
     } = useLike(
         isLiked ?? false,
         likesCount ?? 0,
-        isDisliked ?? false,
         "video"
     );
 

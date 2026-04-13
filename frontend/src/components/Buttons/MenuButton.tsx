@@ -9,22 +9,18 @@ import {
     DialogContent,
 } from "@mui/material";
 import CreatePlaylist from "../Playlist/CreatePlaylist";
-import { useParams } from "react-router-dom";
 
 function MenuButton({
     videoId,
-    isLiked = false,
-    setVideos,
-    isWatchLater = false,
 }: {
     videoId: string;
     isLiked?: boolean;
     setVideos?: React.Dispatch<React.SetStateAction<any[]>>;
     isWatchLater?: boolean;
 }) {
-    const { id } = useParams<{ id: string }>();
+    // const { id } = useParams<{ id: string }>();
 
-    const [loading, setLoading] = useState<boolean>(false);
+    // const [loading, setLoading] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [dialogOpen, setDialogOpen] = useState<string | null>(null);
 

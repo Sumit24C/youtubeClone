@@ -16,7 +16,7 @@ import VideoCallIcon from "@mui/icons-material/VideoCall";
 import { styled } from "@mui/system";
 import { useLogout } from "../../hooks/useLogout";
 
-const UserCircle = styled(Box)(({ theme }) => ({
+const UserCircle = styled(Box)(({ }) => ({
     width: 40,
     height: 40,
     borderRadius: "50%",

@@ -14,10 +14,10 @@ function App() {
             {/* Main */}
             <main
                 className={`
-          flex flex-col flex-1 w-full
-          transition-[margin] duration-150 ease-linear
-          ${open ? "ml-[240px]" : "ml-[64px]"}
-        `}
+                    flex flex-col flex-1 w-full
+                    transition-[margin] duration-150 ease-linear
+                    ${open ? "ml-[240px]" : "ml-[64px]"}
+                `}
             >
                 <Header open={open} setOpen={setOpen} />
 

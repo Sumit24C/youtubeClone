@@ -23,9 +23,9 @@ function AnalyticsMenu({
     type: string;
 }) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const [dialogOpen, setDialogOpen] = useState<any>(null);
+    // const [dialogOpen, setDialogOpen] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [errMsg, setErrMsg] = useState<string>("");
+    const [_errMsg, setErrMsg] = useState<string>("");
 
     const axiosPrivate = useAxiosPrivate();
     const navigate = useNavigate();

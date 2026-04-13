@@ -12,11 +12,11 @@ function Comments() {
     const { id } = useParams<{ id?: string }>();
 
     const [comments, setComments] = useState<Comment[]>([]);
-    const [errorMsg, setErrorMsg] = useState<string>("");
+    const [_errorMsg, setErrorMsg] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [lastCursor, setLastCursor] = useState<string>("");
 
-    const axiosPrivate = useAxiosPrivate();
+    const api = useAxiosPrivate();
     const observerRef = useRef<IntersectionObserver | null>(null);
 
     const fetchComments = async (cursor: string): Promise<void> => {
@@ -25,7 +25,7 @@ function Comments() {
         setLoading(true);
 
         try {
-            const response = await axiosPrivate.get(`/comments/${id}?cursor=${cursor}`);
+            const response = await api.get(`/comments/${id}?cursor=${cursor}`);
 
             const { comments: newComments, nextCursor } = response.data.data;
 
@@ -103,7 +103,7 @@ function Comments() {
                     </Typography>
                 )}
 
-                {/* 🔥 Scroll anchor */}
+                {/* Scroll anchor */}
                 <div id="scroll-anchor" style={{ height: "20px" }} />
 
                 {/* Pagination loader */}

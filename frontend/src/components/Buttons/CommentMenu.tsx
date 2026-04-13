@@ -12,19 +12,11 @@ import { extractErrorMsg } from "../../utils";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
-
-type Comment = {
-    _id: string;
-    owner?: {
-        _id: string;
-    };
-    [key: string]: any;
-};
+import type { Comment } from "../../types/comment";
 
 function CommentMenu({
     comment,
     setComments,
-    isEdit,
     setIsEdit,
 }: {
     comment: Comment;
@@ -32,9 +24,10 @@ function CommentMenu({
     isEdit: boolean;
     setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [loading, setLoading] = useState<boolean>(false);
-    const [errMsg, setErrMsg] = useState<string>("");
+    const [_errMsg, setErrMsg] = useState<string>("");
 
     const axiosPrivate = useAxiosPrivate();
     const open = Boolean(anchorEl);

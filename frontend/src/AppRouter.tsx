@@ -20,7 +20,7 @@ import {
     LoginFailed
 } from "./pages/index"
 
-import { ChannelAbout, ChannelPlaylist, ChannelVideos } from './components/Channel'
+import { ChannelPlaylist, ChannelVideos, ChannelAbout } from './components/Channel'
 import { ContentPlaylistTab, ContentVideoTab } from "./components/Studio"
 import SubscribedChannel from './pages/SubscribedChannel'
 import EditVideoPage from './components/Studio/EditVideoPage'

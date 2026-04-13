@@ -26,8 +26,8 @@ export default function Sidebar({ open }: { open: boolean }) {
         { name: "Liked Videos", path: "/liked-videos", icon: <LikedIcon /> },
     ];
 
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [_loading, setLoading] = useState(false);
+    const [_errorMsg, setErrorMsg] = useState("");
 
     const dispatch = useDispatch();
     const { channelData } = useSelector((state: any) => state.channel);
