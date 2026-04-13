@@ -3,6 +3,7 @@ import { Subscription } from "../models/subscription.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { transformVideo } from "utils/transformVideo.js"
 
 
 const toggleSubscription = asyncHandler(async (req, res) => {
@@ -127,7 +128,7 @@ const getSubscribedChannelsVideos = asyncHandler(async (req, res) => {
                 from: "videos",
                 localField: "channel",
                 foreignField: "owner",
-                as: "videos",
+                as: "video",
                 pipeline: [
                     {
                         $sort: { createdAt: -1 }
@@ -153,21 +154,24 @@ const getSubscribedChannelsVideos = asyncHandler(async (req, res) => {
             }
         },
         {
-            $unwind: "$videos"
+            $unwind: "$video"
         },
         {
             $project: {
-                videos: 1
+                _id: 0,
+                video: 1
             }
         }
     ])
 
     if (!subscribedChannelVideos) {
         throw new ApiError(404, "subscribedChannels video not found")
-    }
+    }   
+
+    const formattedVideos = subscribedChannelVideos.map((videoObj) => transformVideo(videoObj.video));
 
     return res.status(200).json(
-        new ApiResponse(200, subscribedChannelVideos, "Successfully fetched subscribedChannels videos")
+        new ApiResponse(200, formattedVideos, "Successfully fetched subscribedChannels videos")
     )
 })
 

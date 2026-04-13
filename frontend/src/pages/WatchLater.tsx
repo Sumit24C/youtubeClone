@@ -1,0 +1,189 @@
+import { useEffect, useState } from "react";
+import {
+    Box,
+    Typography,
+    CircularProgress,
+    Button,
+    CardMedia,
+} from "@mui/material";
+import PlayArrow from "@mui/icons-material/PlayArrow";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+import { useAxiosPrivate } from "../hooks/useAxiosPrivate";
+import { isCancel } from "axios";
+import { extractErrorMsg } from "../utils/extractErrorMsg";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import CardContainer from "../components/Main/CardContainer";
+import type { Video } from "../types/video";
+import type { AuthState } from "../types/user";
+
+type WatchLaterItem = {
+    video: Video;
+};
+
+type ApiResponse<T> = {
+    data: T;
+};
+
+type RootState = {
+    auth: AuthState
+};
+
+function WatchLater() {
+    const userData = useSelector(
+        (state: RootState) => state.auth.userData
+    );
+
+    const axiosPrivate = useAxiosPrivate();
+    const navigate = useNavigate();
+
+    const [loading, setLoading] = useState<boolean>(false);
+    const [errorMsg, setErrorMsg] = useState<string>("");
+    const [watchLaterVideos, setWatchLaterVideos] = useState<Video[]>([]);
+
+    useEffect(() => {
+        const fetchWatchLater = async (): Promise<void> => {
+            setLoading(true);
+            setErrorMsg("");
+
+            try {
+                const response = await axiosPrivate.get<
+                    ApiResponse<WatchLaterItem[]>
+                >(`/users/watch-later`);
+
+                const watchLater = response.data.data;
+
+                setWatchLaterVideos(watchLater.map((l) => l.video));
+            } catch (error: unknown) {
+                if (!isCancel(error)) {
+                    setErrorMsg(extractErrorMsg(error));
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWatchLater();
+    }, [axiosPrivate]);
+
+    if (loading && watchLaterVideos.length === 0) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "60vh",
+                    width: "100%",
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    return (
+        <Box
+            sx={{
+                display: "flex",
+                height: "calc(100vh - 64px)",
+                bgcolor: "#0f0f0f",
+                color: "white",
+            }}
+        >
+            {/* LEFT */}
+            <Box
+                sx={{
+                    width: 350,
+                    p: 3,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                }}
+            >
+                <CardMedia
+                    component="img"
+                    image={watchLaterVideos[0]?.thumbnailUrl}
+                    sx={{
+                        width: "100%",
+                        height: 200,
+                        borderRadius: 2,
+                        mb: 2,
+                    }}
+                />
+
+                <Typography variant="h5" fontWeight="bold" mb={1}>
+                    Watch Later
+                </Typography>
+
+                <Typography variant="body2" color="grey.400" mb={1}>
+                    {userData?.username}
+                </Typography>
+
+                <Typography variant="body2" color="grey.400" mb={3}>
+                    {watchLaterVideos.length} videos • Updated today
+                </Typography>
+
+                <Box sx={{ display: "flex", gap: 2 }}>
+                    <Button
+                        onClick={() =>
+                            watchLaterVideos[0] &&
+                            navigate(`/v/${watchLaterVideos[0]._id}/Pl=/watch-later`)
+                        }
+                        variant="contained"
+                        startIcon={<PlayArrow />}
+                        sx={{
+                            borderRadius: 20,
+                            bgcolor: "white",
+                            color: "black",
+                            fontWeight: "bold",
+                        }}
+                        disabled={watchLaterVideos.length === 0}
+                    >
+                        Play all
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<ShuffleIcon />}
+                        sx={{
+                            borderRadius: 20,
+                            borderColor: "grey.600",
+                            color: "white",
+                        }}
+                    >
+                        Shuffle
+                    </Button>
+                </Box>
+            </Box>
+
+            {/* RIGHT */}
+            <Box sx={{ flex: 1, p: 2, overflowY: "auto" }}>
+                <Box mt={2} width="70%" marginX={5}>
+                    {errorMsg ? (
+                        <Typography textAlign="center" color="error">
+                            {errorMsg}
+                        </Typography>
+                    ) : watchLaterVideos.length > 0 ? (
+                        watchLaterVideos.map((video) => (
+                            <Box key={video._id} my={1}>
+                                <CardContainer
+                                    video={video}
+                                    vertical
+                                    size="large"
+                                    setVideos={setWatchLaterVideos}
+                                />
+                            </Box>
+                        ))
+                    ) : (
+                        <Typography textAlign="center">
+                            No videos available
+                        </Typography>
+                    )}
+                </Box>
+            </Box>
+        </Box>
+    );
+}
+
+export default WatchLater;

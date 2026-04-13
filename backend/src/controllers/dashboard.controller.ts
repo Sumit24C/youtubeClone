@@ -125,6 +125,32 @@ const getVideoAnalytics = asyncHandler(async (req, res) => {
                 foreignField: "video",
                 as: "comments"
             }
+        },
+        {
+            $addFields: {
+                views: { $ifNull: [{ $arrayElemAt: ["$views.count", 0] }, 0] },
+                likesCount: { $ifNull: [{ $arrayElemAt: ["$likes.count", 0] }, 0] },
+                comments: { $ifNull: [{ $arrayElemAt: ["$comments.count", 0] }, 0] }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                title: 1,
+                description: 1,
+                thumbnail: 1,
+                duration: 1,
+                status: 1,
+                isPublished: 1,
+                createdAt: 1,
+
+                views: 1,
+                comments: 1,
+                likesCount: 1
+            }
+        },
+        {
+            $sort: { createdAt: -1 }
         }
     ])
 
@@ -263,7 +289,6 @@ const getVideoByIdStudio = asyncHandler(async (req, res) => {
             }
         }
     ])
-
 
     if (!video[0]) {
         throw new ApiError(404, "Video not found")

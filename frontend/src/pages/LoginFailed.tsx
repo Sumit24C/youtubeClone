@@ -1,0 +1,7 @@
+function LoginFailed() {
+  return (
+    <div>LoginFailed</div>
+  )
+}
+
+export default LoginFailed

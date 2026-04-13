@@ -506,6 +506,7 @@ const updateVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "VideoId is required");
     }
     const { title, description, isPublished, thumbnail = "" } = req.body;
+
     const updatedDetails = {
         ...(title && { title }),
         ...(description && { description }),
@@ -539,8 +540,9 @@ const updateVideo = asyncHandler(async (req, res) => {
         { new: true }
     );
 
+    const formattedVideo = transformVideo(updatedVideo);
     return res.status(200).json(
-        new ApiResponse(200, updatedVideo, "Successfully updated video")
+        new ApiResponse(200, formattedVideo, "Successfully updated video")
     );
 });
 
