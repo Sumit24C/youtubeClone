@@ -10,14 +10,14 @@ const getVideoComments = asyncHandler(async (req: Request, res: Response) => {
     const { cursor, limit } = req.query;
 
     if (!videoId) {
-        throw new ApiError(401, "videoId is required");
+        throw new ApiError(400, "videoId is required");
     }
 
     if (typeof videoId !== "string" || !mongoose.Types.ObjectId.isValid(videoId)) {
         throw new ApiError(400, "Invalid videoId");
     }
 
-    const limitNumber = Math.min(parseInt(typeof limit === "string" ? limit : "7"), 50);
+    const limitNumber = Math.min(Number(limit) || 7, 50);
 
     const matchStage: {
         video: mongoose.Types.ObjectId;
@@ -26,10 +26,11 @@ const getVideoComments = asyncHandler(async (req: Request, res: Response) => {
         video: new mongoose.Types.ObjectId(videoId),
     };
 
-    if (typeof cursor === "string") {
+    if (typeof cursor === "string" && cursor) {
         matchStage.createdAt = { $lt: new Date(cursor) };
     }
-    
+
+    const userId = new mongoose.Types.ObjectId(req.user!._id);
     const comments = await Comment.aggregate([
         { $match: matchStage },
 
@@ -47,10 +48,10 @@ const getVideoComments = asyncHandler(async (req: Request, res: Response) => {
         },
         {
             $addFields: {
-                likesCount: { $size: "$like" },
+                likesCount: { $size: { $ifNull: ["$like", []] } },
                 isLiked: {
                     $cond: {
-                        if: { $in: [req.user?._id, "$like.likedBy"] },
+                        if: { $in: [userId, "$like.likedBy"] },
                         then: true,
                         else: false,
                     },
@@ -124,7 +125,7 @@ const updateComment = asyncHandler(async (req, res) => {
     if (!commentId) {
         throw new ApiError(401, "ComtentId is required");
     }
-    
+
     const updatedComment = await Comment.findOneAndUpdate(
         { _id: commentId, owner: req.user?._id },
         { $set: { content } },
