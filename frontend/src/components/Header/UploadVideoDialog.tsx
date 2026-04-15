@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -11,25 +11,53 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useForm } from "react-hook-form";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
-import axios from "axios";
 import { extractErrorMsg } from "../../utils";
 import { useNavigate } from "react-router-dom";
-import { uploadChunk } from "../../utils/uploadChunks";
+
+import {
+    abortUpload,
+    completeUpload,
+    createVideoEntry,
+    getPartUrls,
+    getUploadStatus,
+    initMultipartUpload,
+    saveUploadStatus,
+    uploadThumbnail,
+} from "../../features/uploads/services/uploadService";
+
+import Uppy from "@uppy/core";
+import type { UppyFile } from "@uppy/core";
+import AwsS3, { type AwsBody } from "@uppy/aws-s3";
+import { UppyContextProvider, useUppyState } from "@uppy/react";
 
 type FormDataType = {
     title: string;
     description: string;
-    video: FileList;
     image?: FileList;
 };
 
-type UploadMetaRef = {
-    uploadId: string;
+type UppyMeta = {
+    uploadId?: string;
+    key?: string;
+    videoId?: string;
+};
+
+type VideoResponse = {
     videoId: string;
-    chunks: Blob[];
-    urls: { url: string }[];
-    file: File;
-    key: string;
+    thumbnail: {
+        url: string;
+        key: string;
+    };
+};
+
+type UploadStatus = {
+    PartNumber: number,
+    ETag: string
+}
+
+type MultipartInitResponse = {
+    uploadId: string;
+    videoKey: string;
 };
 
 function UploadVideoDialog({
@@ -39,210 +67,155 @@ function UploadVideoDialog({
     open: boolean;
     handleClose: () => void;
 }) {
-    const [loading, setLoading] = useState<boolean>(false);
-    const [_errMsg, setErrMsg] = useState<string>("");
+    const [loading, setLoading] = useState(false);
+    const [_errMsg, setErrMsg] = useState("");
 
-    const {
-        register,
-        handleSubmit,
-    } = useForm<FormDataType>();
+    const { register, handleSubmit } = useForm<FormDataType>();
 
     const api = useAxiosPrivate();
     const navigate = useNavigate();
 
-    const [progress, setProgress] = useState<number>(0);
-    const [isPaused, setIsPaused] = useState<boolean>(false);
-    const isPausedRef = useRef<boolean>(false);
+    const [uppy] = useState(() => {
+        const instance = new Uppy<UppyMeta, AwsBody>({
+            autoProceed: false,
+            restrictions: { maxNumberOfFiles: 1 },
+        });
+
+        instance.on("s3-multipart:part-uploaded", async (file, data) => {
+            const { videoId } = file.meta as UppyMeta;
+            if (!videoId) {
+                throw new Error("videoId not found");
+            }
+            console.log(data);
+            await saveUploadStatus(api, {
+                videoId: videoId,
+                PartNumber: data.PartNumber,
+                ETag: data.ETag
+            });
+        });
+
+        instance.use(AwsS3, {
+            shouldUseMultipart: true,
+
+            async createMultipartUpload(file) {
+                const meta = file.meta as UppyMeta;
+                if (!meta.uploadId || !meta.key) {
+                    throw new Error("Missing upload metadata");
+                }
+                return {
+                    uploadId: meta.uploadId,
+                    key: meta.key,
+                };
+            },
+
+            async signPart(_file, { uploadId, key, partNumber }) {
+                const url = await getPartUrls(api, uploadId, key, partNumber);
+
+                return {
+                    url: url,
+                    method: "PUT",
+                    headers: {
+                        "Content-Type":
+                            _file.type || "application/octet-stream",
+                    },
+                };
+            },
+
+            async completeMultipartUpload(file) {
+                const { videoId } = file.meta as UppyMeta;
+                if (!videoId) {
+                    throw new Error("videoId not found");
+                }
+                await completeUpload(api, videoId);
+                navigate("/studio");
+
+                return { location: "" };
+            },
+
+            async abortMultipartUpload(file, { uploadId, key }) {
+                const { videoId } = file.meta as UppyMeta;
+                if (!videoId || !uploadId) {
+                    throw new Error("videoId or UploadId not found");
+                }
+
+                await abortUpload(api, { videoId, uploadId, key });
+            },
+
+            async listParts(file, _opts) {
+                const { videoId } = file.meta as UppyMeta;
+                if (!videoId) {
+                    throw new Error("videoId not found");
+                }
+
+                const uploadedParts: UploadStatus[] = await getUploadStatus(api, videoId);
+
+                return uploadedParts;
+            },
+
+            limit: 6,
+        });
+
+        return instance;
+    });
 
     useEffect(() => {
-        isPausedRef.current = isPaused;
-    }, [isPaused]);
+        return () => uppy.destroy();
+    }, [uppy]);
 
-    const controllersRef = useRef<Record<number, AbortController>>({});
-    const progressMapRef = useRef<Record<number, number>>({});
-    const uploadMetaRef = useRef<UploadMetaRef>(null);
+    const totalProgress = useUppyState(
+        uppy,
+        (state) => state.totalProgress
+    );
 
-    const CHUNK_SIZE = 5 * 1024 * 1024;
-
-    const createChunks = (file: File) => {
-        const chunks: Blob[] = [];
-        let start = 0;
-
-        while (start < file.size) {
-            chunks.push(file.slice(start, start + CHUNK_SIZE));
-            start += CHUNK_SIZE;
-        }
-
-        return chunks;
-    };
-
-    const createVideoEntry = async (data: FormDataType) => {
-        const file = data.video[0];
-
-        const res = await api.post("/videos", {
-            title: data.title,
-            description: data.description,
-            filename: file.name,
-            contentType: file.type,
-        });
-
-        return res.data.data;
-    };
-
-    const initUpload = async (file: File, videoId: string) => {
-        const chunks = createChunks(file);
-
-        const initRes = await api.post("/upload/init-multipart", {
-            filename: file.name,
-            contentType: file.type,
-            videoId,
-        });
-
-        const { uploadId, videoKey } = initRes.data.data;
-
-        const partNumbers = chunks.map((_, i) => i + 1);
-
-        const urlsRes = await api.post("/upload/get-part-urls", {
-            uploadId,
-            key: videoKey,
-            partNumbers,
-        });
-
-        const urls = urlsRes.data.data;
-
-        uploadMetaRef.current = {
-            uploadId,
-            videoId,
-            chunks,
-            urls,
-            file,
-            key: videoKey,
-        };
-
-        return { chunks, urls };
-    };
-
-    const uploadChunks = async (
-        items: any[],
-        file: File,
-        videoId: string
-    ) => {
-        const concurrency = 3;
-        let index = 0;
-
-        const workers = Array(concurrency)
-            .fill(null)
-            .map(async () => {
-                while (index < items.length && !isPausedRef.current) {
-                    const i = index++;
-                    const { chunk, PartNumber, url } = items[i];
-
-                    await uploadChunk({
-                        chunk,
-                        PartNumber,
-                        url,
-                        file,
-                        videoId,
-                        api,
-                        progressMap: progressMapRef.current,
-                        controllersMap: controllersRef.current,
-                        onProgress: setProgress,
-                        isPausedRef,
-                    });
-                }
-            });
-
-        await Promise.all(workers);
-    };
-
-    const completeUpload = async (videoId: string) => {
-        await api.post("/upload/complete-upload", { videoId });
-    };
-
-    const pauseUpload = () => {
-        setIsPaused(true);
-
-        Object.values(controllersRef.current).forEach((c) => c.abort());
-        controllersRef.current = {};
-    };
-
-    const resumeUpload = async () => {
-        setIsPaused(false);
-
-        const meta = uploadMetaRef.current;
-        if (!meta) return;
-
-        const { videoId, chunks, urls, file } = meta;
-
-        const statusRes = await api.get(`/upload/upload-status/${videoId}`);
-
-        const uploadedParts = statusRes.data.data.uploadedParts.map(
-            (p: any) => p.PartNumber
-        );
-
-        const remaining = chunks
-            .map((chunk: Blob, i: number) => ({
-                chunk,
-                PartNumber: i + 1,
-                url: urls[i].url,
-            }))
-            .filter((item) => !uploadedParts.includes(item.PartNumber));
-
-        if (remaining.length === 0) return;
-
-        await uploadChunks(remaining, file, videoId);
-
-        if (!isPausedRef.current) {
-            await completeUpload(videoId);
-        }
-    };
-
-    const cancelUpload = async () => {
-        pauseUpload();
-
-        if (uploadMetaRef.current) {
-            await api.post("/upload/abort-upload", uploadMetaRef.current);
-            uploadMetaRef.current = null;
-        }
-
-        handleClose();
-    };
+    const status =
+        totalProgress === 100
+            ? "complete"
+            : totalProgress > 0
+                ? "uploading"
+                : "idle";
 
     const upload = async (data: FormDataType) => {
         try {
             setLoading(true);
 
-            const file = data.video[0];
-            const thumbnail = data.image?.[0];
+            const file = uppy.getFiles()[0] as
+                | UppyFile<UppyMeta, AwsBody>
+                | undefined;
 
-            const video = await createVideoEntry(data);
+            if (!file) throw new Error("No video selected");
+
+            if (!(file.data instanceof File)) {
+                throw new Error("Invalid file");
+            }
+
+            const actualFile = file.data;
+            const thumbnail = data.image?.[0];
+            const video: VideoResponse = await createVideoEntry(api, {
+                title: data.title,
+                description: data.description,
+                filename: actualFile.name,
+                contentType: actualFile.type,
+            });
 
             if (thumbnail) {
-                await axios.put(video.thumbnail.url, thumbnail, {
-                    headers: { "Content-Type": thumbnail.type },
-                });
-
-                await api.patch(`/videos/${video.videoId}`, {
-                    thumbnail: video.thumbnail.key,
+                await uploadThumbnail(api, {
+                    videoId: video.videoId,
+                    thumbnail,
+                    url: video.thumbnail.url,
+                    key: video.thumbnail.key,
                 });
             }
 
-            const { chunks, urls } = await initUpload(file, video.videoId);
+            const multipart: MultipartInitResponse = await initMultipartUpload(api, actualFile, video.videoId);
 
-            const items = chunks.map((chunk, i) => ({
-                chunk,
-                PartNumber: i + 1,
-                url: urls[i].url,
-            }));
+            uppy.setFileMeta(file.id, {
+                uploadId: multipart.uploadId,
+                key: multipart.videoKey,
+                videoId: video.videoId,
+            });
 
-            await uploadChunks(items, file, video.videoId);
-
-            if (!isPausedRef.current) {
-                await completeUpload(video.videoId);
-            }
-
-            navigate("/studio");
-        } catch (err: any) {
+            await uppy.upload();
+        } catch (err: unknown) {
             setErrMsg(extractErrorMsg(err));
         } finally {
             setLoading(false);
@@ -250,60 +223,86 @@ function UploadVideoDialog({
     };
 
     return (
-        <Dialog
-            component="form"
-            onSubmit={handleSubmit(upload)}
-            open={open}
-            onClose={handleClose}
-            maxWidth="sm"
-            fullWidth
-        >
-            <DialogTitle>
-                Upload Video
-                <IconButton
-                    onClick={handleClose}
-                    sx={{ position: "absolute", right: 8, top: 8 }}
-                >
-                    <CloseIcon />
-                </IconButton>
-            </DialogTitle>
+        <UppyContextProvider uppy={uppy as unknown as Uppy}>
+            <Dialog
+                component="form"
+                onSubmit={handleSubmit(upload)}
+                open={open}
+                onClose={handleClose}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>
+                    Upload Video
+                    <IconButton
+                        onClick={handleClose}
+                        sx={{ position: "absolute", right: 8, top: 8 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
 
-            <DialogContent>
-                <TextField
-                    fullWidth
-                    label="Title"
-                    {...register("title", { required: true })}
-                />
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        label="Title"
+                        {...register("title", { required: true })}
+                    />
 
-                <TextField
-                    fullWidth
-                    label="Description"
-                    multiline
-                    {...register("description", { required: true })}
-                />
+                    <TextField
+                        fullWidth
+                        label="Description"
+                        multiline
+                        {...register("description", { required: true })}
+                    />
 
-                <input type="file" {...register("video")} />
-                <input type="file" {...register("image")} />
-            </DialogContent>
+                    <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
 
-            <DialogActions>
-                <Button onClick={cancelUpload}>Cancel</Button>
+                            uppy.getFiles().forEach((f) =>
+                                uppy.removeFile(f.id)
+                            );
 
-                <Button disabled={loading} type="submit">
-                    Upload
-                </Button>
+                            uppy.addFile({
+                                name: file.name,
+                                type: file.type,
+                                data: file,
+                            });
+                        }}
+                    />
 
-                <Button onClick={pauseUpload} disabled={isPaused}>
-                    Pause
-                </Button>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        {...register("image")}
+                    />
 
-                <Button onClick={resumeUpload} disabled={!isPaused}>
-                    Resume
-                </Button>
+                    <div style={{ marginTop: 10 }}>
+                        <p>Status: {status}</p>
+                        <p>Progress: {totalProgress}%</p>
+                    </div>
+                </DialogContent>
 
-                <p>{progress}%</p>
-            </DialogActions>
-        </Dialog>
+                <DialogActions>
+                    <Button onClick={() => uppy.cancelAll()}>
+                        Cancel
+                    </Button>
+                    <Button onClick={() => uppy.pauseAll()}>
+                        Pause
+                    </Button>
+                    <Button onClick={() => uppy.resumeAll()}>
+                        Resume
+                    </Button>
+                    <Button disabled={loading} type="submit">
+                        Upload
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </UppyContextProvider>
     );
 }
 

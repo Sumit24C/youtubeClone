@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { deleteFromR2, generateThumbnailUploadUrl } from "services/r2.service.js";
+import { deleteFromR2, generatePreSignedUploadUrl } from "services/r2.service.js";
 import { transformVideo } from "utils/transformVideo.js";
 
 const parseNumberParam = (value: unknown, fallback: number) => {
@@ -343,7 +343,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to publish video");
     }
 
-    const data = await generateThumbnailUploadUrl(filename, contentType, publishedVideo._id.toString());
+    const data = await generatePreSignedUploadUrl(filename, contentType, publishedVideo._id.toString(), "thumbnails");
     return res
         .status(200)
         .json(
@@ -505,6 +505,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     if (!videoId) {
         throw new ApiError(400, "VideoId is required");
     }
+
     const { title, description, isPublished, thumbnail = "" } = req.body;
 
     const updatedDetails = {

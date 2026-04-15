@@ -9,13 +9,15 @@ import { Readable } from "stream";
 import { ApiError } from "utils/ApiError.js";
 import { redis } from "config/redis.js";
 
-export const generateThumbnailUploadUrl = async (
+export const generatePreSignedUploadUrl = async (
     filename: string,
     contentType: string,
     videoId: string,
+    folder: string = "thumbnails"
 ) => {
     const newFilename = `${randomUUID()}${path.extname(filename)}`;
-    const key = `videos/${videoId}/thumbnails/${newFilename}`;
+    console.log(folder)
+    const key = `videos/${videoId}/${folder}/${newFilename}`;
     const command = new PutObjectCommand({
         Bucket: process.env.R2_BUCKET!,
         Key: key,

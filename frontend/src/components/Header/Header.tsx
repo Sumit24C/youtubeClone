@@ -25,7 +25,6 @@ function Header({
       "
     >
       <div className="flex items-center justify-between w-full px-4">
-
         {/* Left */}
         <div className="flex items-center gap-3">
           <button
@@ -47,7 +46,6 @@ function Header({
 
         {/* Right */}
         <div className="flex items-center gap-2">
-
           <CreateButton />
 
           <button className="p-2 rounded-full hover:bg-[#272727] relative">
