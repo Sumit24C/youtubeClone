@@ -12,7 +12,7 @@ function CollapsedContainer({
 }) {
     const nextVideoIndex = currentVideo || 1;
     const nextVideo = videos?.[nextVideoIndex - 1];
-
+    
     return (
         <Box
             sx={{
@@ -61,7 +61,7 @@ function CollapsedContainer({
                     flexShrink: 0,
                 }}
             >
-                {currentVideo || 1} / {videos?.length || 0}
+                {currentVideo || 0} / {videos?.length || 0}
             </Typography>
         </Box>
     );

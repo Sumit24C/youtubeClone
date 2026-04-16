@@ -51,11 +51,11 @@ router.route('/update-coverImage').patch(
     upload.single('coverImage'),
     updateUserCoverImage)
 
-router.route('/channel-profile/:username').get(verifyJWT, getUserChannelInfo)
-router.route('/watch-history').get(verifyJWT, getWatchHistory).patch(verifyJWT, clearWatchHistory)
-router.route('/watch-history/p').patch(verifyJWT, playPauseWatchHistory)
-router.route('/watch-history/v/:videoId').patch(verifyJWT, removeVideoFromWatchHistory)
-router.route('/watch-later').get(verifyJWT, getWatchLaterVideos)
-router.route('/watch-later/v/toggle/:videoId').patch(verifyJWT, toggleWatchLater)
+router.route('/channel-profile/:username').get(verifyJWT, getUserChannelInfo);
+router.route('/watch-history').get(verifyJWT, getWatchHistory).patch(verifyJWT, clearWatchHistory);
+router.route('/watch-history/p').patch(verifyJWT, playPauseWatchHistory);
+router.route('/watch-history/v/:videoId').patch(verifyJWT, removeVideoFromWatchHistory);
+router.route('/watch-later').get(verifyJWT, getWatchLaterVideos);
+router.route('/watch-later/v/toggle/:videoId').patch(verifyJWT, toggleWatchLater);
 
-export default router
+export default router;

@@ -182,43 +182,6 @@ export const abortMultipartUpload = async (req: Request, res: Response) => {
     return res.json(new ApiResponse(200, null, "aborted multipart upload"));
 };
 
-export const getUploadUrl = async (req: Request, res: Response) => {
-    const { videoId } = req.params;
-    if (!videoId || typeof videoId !== "string") {
-        throw new ApiError(400, "videoId is required");
-    }
-
-    const { filename, contentType, folderName, language } = req.body;
-
-    if (!filename || !contentType || !folderName) {
-        throw new ApiError(400, "filename, folderName and contentType are required");
-    }
-
-    const allowedFolders = ["thumbnail", "subtitles"];
-    if (!allowedFolders.includes(folderName)) {
-        throw new ApiError(400, "Invalid folderName");
-    }
-
-    let folder = folderName;
-
-    if (folderName === "subtitles") {
-        if (!language || typeof language !== "string") {
-            throw new ApiError(400, "language is required for subtitles");
-        }
-        folder = `${folderName}/${language}`;
-    }
-
-    const data = await generatePreSignedUploadUrl(
-        filename,
-        contentType,
-        videoId,
-        folder
-    );
-
-    return res.json(
-        new ApiResponse(200, data, "successfully created signed-url")
-    );
-};
 
 export const listMultipartUploads = asyncHandler(async (req: Request, res: Response) => {
     const { videoId } = req.query;
@@ -249,3 +212,41 @@ export const listMultipartUploads = asyncHandler(async (req: Request, res: Respo
         )
     );
 });
+
+export const getUploadUrl = async (req: Request, res: Response) => {
+    const { videoId } = req.params;
+    if (!videoId || typeof videoId !== "string") {
+        throw new ApiError(400, "videoId is required");
+    }
+
+    const { filename, contentType, folderName, language } = req.body;
+
+    if (!filename || !contentType || !folderName) {
+        throw new ApiError(400, "filename, folderName and contentType are required");
+    }
+
+    const allowedFolders = ["thumbnails", "subtitles"];
+    if (!allowedFolders.includes(folderName)) {
+        throw new ApiError(400, "Invalid folderName");
+    }
+
+    let folder = folderName;
+
+    if (folderName === "subtitles") {
+        if (!language || typeof language !== "string") {
+            throw new ApiError(400, "language is required for subtitles");
+        }
+        folder = `${folderName}/${language}`;
+    }
+
+    const data = await generatePreSignedUploadUrl(
+        filename,
+        contentType,
+        videoId,
+        folder
+    );
+
+    return res.json(
+        new ApiResponse(200, data, "successfully created signed-url")
+    );
+};

@@ -6,6 +6,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteFromR2, generatePreSignedUploadUrl } from "services/r2.service.js";
 import { transformVideo } from "utils/transformVideo.js";
+import { Subtitle } from "models/subtitle.model.js";
+import { subtitleQueue } from "queues/video.queue.js";
+import { VideoBase } from "types/video.js";
 
 const parseNumberParam = (value: unknown, fallback: number) => {
     if (typeof value === "string") {
@@ -93,7 +96,8 @@ const getAllHomeVideos = asyncHandler(async (req, res) => {
     if (!(result.videos.length > 0)) {
         throw new ApiError(404, "Videos not found");
     }
-    const formattedVideo = result.videos.map(transformVideo);
+
+    const formattedVideo = result.videos.map((video: VideoBase) => transformVideo(video));
 
     return res.status(200).json(
         new ApiResponse(
@@ -203,7 +207,7 @@ const getSearchVideos = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Videos not found");
     }
 
-    const formattedVideo = result.videos.map(transformVideo);
+    const formattedVideo = result.videos.map((video: VideoBase) => transformVideo(video));
 
     return res.status(200).json(
         new ApiResponse(
@@ -275,7 +279,7 @@ const getSearchQuery = asyncHandler(async (req, res) => {
         );
 });
 
-const getChannelVideo = asyncHandler(async (req, res) => {
+const getChannelVideos = asyncHandler(async (req, res) => {
     const { username } = req.params;
 
     if (!username) {
@@ -290,7 +294,7 @@ const getChannelVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "user not found");
     }
 
-    const video = await Video.aggregate([
+    const videos = await Video.aggregate([
         {
             $match: {
                 owner: user._id,
@@ -312,16 +316,16 @@ const getChannelVideo = asyncHandler(async (req, res) => {
         },
     ]);
 
-    if (!video) {
+    if (videos.length === 0) {
         throw new ApiError(404, "Videos not found");
     }
 
-    const formattedVideo = transformVideo(video);
+    const formattedVideos = videos.map((video: VideoBase) => transformVideo(video));
 
     return res
         .status(200)
         .json(
-            new ApiResponse(200, formattedVideo, "Channel Videos fetched successfully")
+            new ApiResponse(200, formattedVideos, "Channel Videos fetched successfully")
         );
 });
 
@@ -343,11 +347,45 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to publish video");
     }
 
-    const data = await generatePreSignedUploadUrl(filename, contentType, publishedVideo._id.toString(), "thumbnails");
     return res
         .status(200)
         .json(
-            new ApiResponse(200, data, "Video published successfully")
+            new ApiResponse(200, publishedVideo._id, "Video published successfully")
+        );
+});
+
+const publishVideoSubtitle = asyncHandler(async (req, res) => {
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(403, "videoId is required");
+    }
+
+    const { language, key } = req.body;
+    if (!language || !key) {
+        throw new ApiError(403, "language and key are required");
+    }
+
+    const subtitles = await Subtitle.create({
+        video: videoId,
+        language,
+        key,
+        status: "processing"
+    });
+
+    if (!subtitles) {
+        throw new ApiError(500, "Failed to create video subtitle");
+    }
+
+    await subtitleQueue.add("process-subtitle", {
+        trackId: subtitles._id,
+        key
+    });
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, subtitles, "Video published successfully")
         );
 });
 
@@ -493,7 +531,10 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to update watchHistory");
     }
 
-    const formattedVideo = transformVideo(video[0]);
+    const subtitles = await Subtitle.find({ video: video[0]._id }).select("key status language");
+
+    console.log(subtitles);
+    const formattedVideo = transformVideo(video[0], subtitles);
 
     return res
         .status(200)
@@ -594,11 +635,12 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 export {
     getAllHomeVideos,
     publishAVideo,
+    publishVideoSubtitle,
     getVideoById,
     updateVideo,
     deleteVideo,
     togglePublishStatus,
-    getChannelVideo,
+    getChannelVideos,
     getSearchVideos,
     getSearchQuery,
 };

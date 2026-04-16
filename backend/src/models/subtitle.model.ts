@@ -3,35 +3,37 @@ import mongoose, { Schema } from "mongoose";
 const subtitleSchema = new Schema({
     video: {
         type: mongoose.Types.ObjectId,
-        ref: "Video"
+        ref: "Video",
+        required: true,
     },
-    text: {
+    key: {
         type: String,
-        required: true,
-        trim: true
-    },
-    startTime: {
-        type: Number,
-        required: true,
-    },
-    endTime: {
-        type: Number,
         required: true,
     },
     language: {
         type: String,
-        enum: ["en", "hin"],
-        default: "en"
-    }
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: ["processing", "ready", "failed"],
+        default: "processing",
+    },
+    fullText: {
+        type: String,
+        required: false
+    },
+    content: {
+        type: [
+            {
+                text: String,
+                startTime: Number,
+                endTime: Number,
+            }
+        ],
+        default: [],
+    },
 }, { timestamps: true });
 
-subtitleSchema.index({ videoId: 1, startTime: 1 });
-
-subtitleSchema.pre("save", function (next) {
-    if (this.startTime >= this.endTime) {
-        return next(new Error("startTime must be less than endTime"));
-    }
-    next();
-});
-
+subtitleSchema.index({ video: 1, language: 1 }, { unique: true });
 export const Subtitle = mongoose.model('Subtitle', subtitleSchema);

@@ -25,9 +25,9 @@ export interface UserDocument {
     createdAt?: Date;
     updatedAt?: Date;
 
-    isPasswordCorrect(password: string): Promise<boolean>;
-    generateAccessToken(): string;
-    generateRefreshToken(): string;
+    isPasswordCorrect: (password: string) => Promise<boolean>;
+    generateAccessToken: () => string;
+    generateRefreshToken: () => string;
 }
 
 const userSchema = new Schema<UserDocument>(

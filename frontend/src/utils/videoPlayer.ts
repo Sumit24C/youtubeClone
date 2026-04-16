@@ -31,6 +31,9 @@ type VideoPlayerConfig = {
     settings?: Settings;
 
     videoFile: string;
+
+    onPlayStateChange: (playing: boolean) => void
+    onVolumeStateChange: (volume: number) => void
 };
 
 class VideoPlayer {
@@ -49,6 +52,8 @@ class VideoPlayer {
 
     private hls: Hls | null;
     private hideTimeout: ReturnType<typeof setTimeout> | null;
+    private onPlayStateChange: (playing: boolean) => void;
+    private onVolumeStateChange: (volume: number) => void;
 
     constructor({
         playerElement,
@@ -59,6 +64,8 @@ class VideoPlayer {
         audio,
         settings,
         videoFile,
+        onPlayStateChange,
+        onVolumeStateChange,
     }: VideoPlayerConfig) {
         this.player = playerElement;
         this.video = videoElement;
@@ -72,12 +79,15 @@ class VideoPlayer {
         this.timeDisplay = timeline.timeDisplay;
 
         this.volume = audio.volume;
-        
+
         this.qualitySelect = settings?.qualitySelect;
         this.speedControl = settings?.speedControl;
 
         this.hls = null;
         this.hideTimeout = null;
+
+        this.onPlayStateChange = onPlayStateChange;
+        this.onVolumeStateChange = onVolumeStateChange;
 
         this.showControls = this.showControls.bind(this);
 
@@ -86,11 +96,10 @@ class VideoPlayer {
 
     private init(videoFile: string): void {
         this.initStreaming(videoFile);
-        this.initControls();
-        this.initKeyboard();
+        // this.initControls();
+        // this.initKeyboard();
         this.initProgress();
-        this.initVolume();
-        this.initQuality();
+        // this.initQuality();
         this.initPlaybackSpeed();
         this.initAutoHide();
     }
@@ -119,6 +128,16 @@ class VideoPlayer {
 
     private togglePlay(): void {
         this.video.paused ? this.video.play() : this.video.pause();
+    }
+
+    private toggleMute(): void {
+        if (this.video.muted) {
+            this.onVolumeStateChange(0);
+        } else {
+            this.onVolumeStateChange(this.video.volume);
+        }
+
+        this.video.muted = !this.video.muted;
     }
 
     private toggleFullscreen(): void {
@@ -155,8 +174,22 @@ class VideoPlayer {
 
     private initControls(): void {
 
+        this.video.addEventListener("play", () => {
+            this.player.classList.add("playing");
+            this.onPlayStateChange(true);
+        });
+
+        this.video.addEventListener("pause", () => {
+            this.player.classList.remove("playing");
+            this.onPlayStateChange(false);
+        });
+
         this.playBtn.addEventListener("click", () => this.togglePlay());
-        this.video.addEventListener("click", () => this.togglePlay());
+        this.player.addEventListener("click", (e) => {
+            if ((e.target as HTMLElement).closest("button, input, select")) return;
+            this.togglePlay()
+        });
+
         this.video.addEventListener("dblclick", () => this.toggleFullscreen());
 
         this.fullscreenBtn.addEventListener(
@@ -201,6 +234,9 @@ class VideoPlayer {
                     this.toggleFullscreen()
                     break
 
+                case "KeyM":
+                    this.toggleMute()
+                    break
             }
         })
     }
@@ -233,12 +269,6 @@ class VideoPlayer {
         this.progress.addEventListener("input", () => {
             const time = (Number(this.progress.value) / 100) * this.video.duration;
             this.video.currentTime = time;
-        });
-    }
-
-    private initVolume(): void {
-        this.volume.addEventListener("input", () => {
-            this.video.volume = Number(this.volume.value);
         });
     }
 

@@ -15,13 +15,8 @@ import { useNavigate } from "react-router-dom";
 import CardContainer from "../components/Main/CardContainer";
 import type { Video } from "../types/video";
 import type { AuthState } from "../types/user";
-
-type Like = {
-    video: Video;
-};
-
 type LikesResponse = {
-    data: Like[];
+    data: Video[];
 };
 
 type RootState = {
@@ -51,8 +46,8 @@ function LikedVideos() {
                 );
 
                 const likes = response.data.data;
-
-                setLikedVideos(likes.map((l) => l.video));
+                console.log(likes);
+                setLikedVideos(likes);
             } catch (error: unknown) {
                 if (!isCancel(error)) {
                     setErrorMsg(extractErrorMsg(error));

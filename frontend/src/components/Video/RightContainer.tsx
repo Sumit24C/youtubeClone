@@ -91,12 +91,9 @@ function RightContainer() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             {/* Playlist section */}
             <Box>
-                {p_id &&
-                    (p_id === "like" ? (
-                        <PlaylistVideo isFromLiked={true} />
-                    ) : (
-                        <PlaylistVideo />
-                    ))}
+                {p_id && (
+                    <PlaylistVideo isFromLiked={p_id === "like"} />
+                )}
             </Box>
 
             {/* Video list */}

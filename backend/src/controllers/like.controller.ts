@@ -3,6 +3,7 @@ import { Like } from "../models/like.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { getFileUrl } from "utils/urlBuilder.js"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -150,14 +151,19 @@ const getLikedVideos = asyncHandler(async (req, res) => {
                 video: 1
             }
         }
-    ])
+    ]);
 
     if (!response) {
         throw new ApiError(404, "No liked videos");
     }
 
+    const formattedVideos = response.map((r) => ({
+        ...r.video,
+        thumbnailUrl: getFileUrl(r.video.thumbnail)
+    }));
+
     return res.status(200).json(
-        new ApiResponse(200, response, "Successfully fetched liked videos")
+        new ApiResponse(200, formattedVideos, "Successfully fetched liked videos")
     )
 })
 

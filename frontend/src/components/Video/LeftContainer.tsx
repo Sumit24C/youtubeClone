@@ -83,6 +83,7 @@ function LeftContainer({ isWideScreen }: LeftContainerProps) {
                 <CustomVideoPlayer
                     videoFile={video.streamUrl || ""}
                     thumbnail={video.thumbnailUrl}
+                    subtitles={video?.subtitles}
                 />
             </Box>
 

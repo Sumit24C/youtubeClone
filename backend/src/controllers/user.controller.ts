@@ -15,6 +15,7 @@ import {
     refreshTokenSecret,
 } from "../constants.js";
 import { Request } from "express";
+import { getFileUrl } from "utils/urlBuilder.js";
 
 const generateAccessAndRefreshToken = async (userId: Types.ObjectId) => {
     try {
@@ -256,6 +257,36 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "successfully update user details"));
 });
 
+const updateProfileMedia = asyncHandler(async (req, res) => {
+    const { key, type } = req.body;
+    if (!key || !type) {
+        throw new ApiError(400, "key and type are required");
+    }
+    type UpdateObj = {
+        avatar?: string;
+        converImage?: string;
+    };
+
+    let updateObj: UpdateObj = {};
+    if (type === "avatar") {
+        updateObj.avatar = key
+    } else {
+        updateObj.converImage = key
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: updateObj,
+        },
+        { new: true }
+    );
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, user, "successfully updated avatar"));
+});
+
 const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.file?.path;
     if (!avatarLocalPath) {
@@ -450,16 +481,19 @@ const getWatchHistory = asyncHandler(async (req, res) => {
         },
     ]);
 
-    if (!user[0].watchHistory) {
+    const watchHistory = user[0].watchHistory;
+    if (!watchHistory) {
         throw new ApiError(404, "watchHistory not found");
     }
+
+    const formattedWatchHistory = watchHistory.map((wh: any) => ({ ...wh, thumbnailUrl: getFileUrl(wh.thumbnail) }))
 
     return res
         .status(200)
         .json(
             new ApiResponse(
                 200,
-                user[0].watchHistory,
+                formattedWatchHistory,
                 "watchHistory fetched successfully"
             )
         );

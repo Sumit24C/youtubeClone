@@ -22,7 +22,6 @@ function PlaylistVideo({ isFromLiked = false }: Props) {
     const { id, p_id } = useParams<{ id: string; p_id: string }>();
 
     const axiosPrivate = useAxiosPrivate();
-
     const [videos, setVideos] = useState<Video[]>([]);
     const [playlist, setPlaylist] = useState<Playlist | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -39,11 +38,7 @@ function PlaylistVideo({ isFromLiked = false }: Props) {
                 try {
                     const response = await axiosPrivate.get(`/likes/videos`);
 
-                    const likes = response.data.data;
-
-                    const likedVideos: Video[] = likes
-                        .map((l: any) => l.video)
-                        .filter(Boolean);
+                    const likedVideos = response.data.data;
 
                     setVideos(likedVideos);
 
@@ -55,7 +50,7 @@ function PlaylistVideo({ isFromLiked = false }: Props) {
                         isPrivate: false,
                         videosCount: likedVideos.length,
                         updatedAt: new Date().toISOString(),
-                        playlistVideo: likedVideos,
+                        playlistVideos: likedVideos,
                     });
 
                 } catch (error: any) {
@@ -68,9 +63,8 @@ function PlaylistVideo({ isFromLiked = false }: Props) {
                     const response = await axiosPrivate.get(`/playlist/${p_id}`);
 
                     const playlistData: Playlist = response.data.data;
-
                     setPlaylist(playlistData);
-                    setVideos(playlistData.playlistVideo || []);
+                    setVideos(playlistData.playlistVideos || []);
                 } catch (error: any) {
                     if (!isCancel(error)) console.error(error);
                 } finally {

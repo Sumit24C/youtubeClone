@@ -10,7 +10,7 @@ export type Playlist = {
     updatedAt: string;
     videos?: string[];
     lastVideo?: Video;
-    playlistVideo?: Video[];
+    playlistVideos?: Video[];
 
     totalVideos?: number;
     totalViews?: number;

@@ -42,7 +42,6 @@ function CardContainer({
         medium: { width: "168px", height: "94px" },
         large: { width: "200px", height: "120px" },
     };
-
     return (
         <Box
             position="relative"
@@ -55,7 +54,7 @@ function CardContainer({
             {/* Thumbnail */}
             <Link to={path} style={{ textDecoration: "none", flexShrink: 0 }}>
                 <Box sx={{ position: "relative" }}>
-                    <CardMedia
+                    <CardMedia  
                         component="img"
                         src={thumbnailUrl}
                         alt={title}

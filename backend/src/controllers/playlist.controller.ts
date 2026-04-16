@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js"
+import { getFileUrl } from "utils/urlBuilder.js"
 const createPlaylist = asyncHandler(async (req, res) => {
     const { name, description, videoId, isPrivate } = req.body
 
@@ -85,15 +86,23 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(404, "userPlaylist not found")
     }
 
+    const formattedPlaylist = userPlaylists.map((playlist) => ({
+        ...playlist,
+        lastVideo: {
+            _id: playlist.lastVideo._id,
+            thumbnailUrl: getFileUrl(playlist.lastVideo.thumbnail)
+        }
+    }));
+
     return res.status(200).json(
-        new ApiResponse(200, userPlaylists, "currentUser playlist fetched successfully")
+        new ApiResponse(200, formattedPlaylist, "currentUser playlist fetched successfully")
     )
 
 })
 
 const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
-    
+
     const userPlaylists = await Playlist.aggregate([
         {
             $match: {
@@ -141,8 +150,16 @@ const getCurrentUserPlaylists = asyncHandler(async (req, res) => {
         throw new ApiError(404, "userPlaylist not found")
     }
 
+    const formattedPlaylist = userPlaylists.map((playlist) => ({
+        ...playlist,
+        lastVideo: {
+            _id: playlist.lastVideo._id,
+            thumbnailUrl: getFileUrl(playlist.lastVideo.thumbnail)
+        }
+    }));
+
     return res.status(200).json(
-        new ApiResponse(200, userPlaylists, "currentUser playlist fetched successfully")
+        new ApiResponse(200, formattedPlaylist, "currentUser playlist fetched successfully")
     )
 
 })
@@ -175,12 +192,11 @@ const getCurrentUserPublicPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
     const { playlistId } = req.params
-
     if (typeof playlistId !== "string" || !playlistId.trim()) {
         throw new ApiError(401, "UserId is required")
     }
 
-    const playlist = await Playlist.aggregate([
+    const [playlist] = await Playlist.aggregate([
         {
             $match: {
                 _id: new mongoose.Types.ObjectId(playlistId)
@@ -191,7 +207,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
                 from: "videos",
                 localField: "videos",
                 foreignField: "_id",
-                as: "playlistVideo",
+                as: "playlistVideos",
                 pipeline: [
                     {
                         $lookup: {
@@ -223,8 +239,16 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to fetch playlist")
     }
 
+    const formattedPlaylist = {
+        ...playlist,
+        playlistVideos: playlist.playlistVideos.map((pl: any) => ({
+            ...pl,
+            thumbnailUrl: getFileUrl(pl.thumbnail)
+        })),
+    }
+    
     return res.status(200).json(
-        new ApiResponse(200, playlist[0], "Playlist fetched successfully")
+        new ApiResponse(200, formattedPlaylist, "Playlist fetched successfully")
     )
 })
 

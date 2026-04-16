@@ -164,18 +164,23 @@ export const generateHLS = async (
     await fs.mkdir(path.join(hlsDir, "1"), { recursive: true });
 
     const ffmpegCommand = `
-    ffmpeg -y -i "${inputPath}" \
-    -filter_complex "[0:v]split=2[v1][v2];[v1]scale=640:360[v1out];[v2]scale=1280:720[v2out]" \
-    -map "[v1out]" -map 0:a? -c:v:0 libx264 -b:v:0 800k \
-    -map "[v2out]" -map 0:a? -c:v:1 libx264 -b:v:1 2800k \
-    -var_stream_map "v:0,name:360p v:1,name:720p" \
-    -master_pl_name master.m3u8 \
-    -f hls \
-    -hls_time 10 \
-    -hls_list_size 0 \
-    -hls_segment_filename "${hlsDir}/%v/seg_%03d.ts" \
-    "${hlsDir}/%v/index.m3u8"
-  `;
+        ffmpeg -y -i "${inputPath}" \
+        -filter_complex "[0:v]split=2[v1][v2];[v1]scale=640:360[v1out];[v2]scale=1280:720[v2out]" \
+        -map "[v1out]" -map 0:a:0? \
+        -map "[v2out]" -map 0:a:0? \
+        -c:v:0 libx264 -b:v:0 800k \
+        -c:v:1 libx264 -b:v:1 2800k \
+        -c:a:0 aac -b:a:0 96k \
+        -c:a:1 aac -b:a:1 128k \
+        -pix_fmt yuv420p \
+        -var_stream_map "v:0,a:0,name:360p v:1,a:1,name:720p" \
+        -master_pl_name master.m3u8 \
+        -f hls \
+        -hls_time 10 \
+        -hls_list_size 0 \
+        -hls_segment_filename "${hlsDir}/%v/seg_%03d.ts" \
+        "${hlsDir}/%v/index.m3u8"
+    `;
 
     return new Promise<void>((resolve, reject) => {
         exec(ffmpegCommand, (error, stdout, stderr) => {

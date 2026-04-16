@@ -24,7 +24,6 @@ function PlaylistContainer({
 }: Props) {
     const [playlistState, setPlaylistState] =
         useState<Playlist>(initialPlaylist);
-
     return (
         <Card
             sx={{

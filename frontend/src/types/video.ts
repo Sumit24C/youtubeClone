@@ -6,6 +6,11 @@ export type Video = {
     title: string;
     description?: string;
 
+    subtitles: {
+        subtitleUrl: string;
+        language: string;
+    }[];
+
     thumbnailUrl: string;
     streamUrl?: string;
 

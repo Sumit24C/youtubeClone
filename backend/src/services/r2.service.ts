@@ -16,8 +16,8 @@ export const generatePreSignedUploadUrl = async (
     folder: string = "thumbnails"
 ) => {
     const newFilename = `${randomUUID()}${path.extname(filename)}`;
-    console.log(folder)
     const key = `videos/${videoId}/${folder}/${newFilename}`;
+
     const command = new PutObjectCommand({
         Bucket: process.env.R2_BUCKET!,
         Key: key,
@@ -26,8 +26,8 @@ export const generatePreSignedUploadUrl = async (
 
     const url = await getSignedUrl(r2, command, { expiresIn: 60 });
     return {
-        thumbnail: { url, key },
-        videoId
+        url,
+        key,
     };
 };
 
@@ -46,8 +46,8 @@ export const downloadFromR2 = async (key: string, outputPath: string) => {
     return new Promise<void>((resolve, reject) => {
         const write = fs.createWriteStream(outputPath);
         body.pipe(write);
-        body.on("finish", resolve);
-        body.on("error", reject);
+        write.on("finish", resolve);
+        write.on("error", reject);
     });
 };
 

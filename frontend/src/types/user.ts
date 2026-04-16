@@ -1,10 +1,6 @@
 export type AuthState = {
     status: boolean;
-    userData?: {
-        username: string;
-        email: string;
-        isHistory: boolean
-    };
+    userData?: User
 };
 
 export type User = {

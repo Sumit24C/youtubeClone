@@ -12,7 +12,6 @@ function PlaylistPage() {
     const [loading, setLoading] = useState<boolean>(false);
 
     const axiosPrivate = useAxiosPrivate();
-
     useEffect(() => {
         const fetchPlaylists = async (): Promise<void> => {
             setLoading(true);

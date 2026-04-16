@@ -1,6 +1,6 @@
 const R2_BASE_URL = process.env.R2_PUBLIC_URL;
 
-export const getThumbnailUrl = (key: string): string => {
+export const getFileUrl = (key: string): string => {
     return `${R2_BASE_URL}/${key}`;
 };
 

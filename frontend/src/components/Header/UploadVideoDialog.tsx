@@ -21,9 +21,10 @@ import {
     getPartUrls,
     getUploadStatus,
     initMultipartUpload,
-    saveUploadStatus,
     uploadThumbnail,
-} from "../../features/uploads/services/uploadService";
+    uploadSubtitle,
+    getUploadUrl,
+} from "../../services/uploadService";
 
 import Uppy from "@uppy/core";
 import type { UppyFile } from "@uppy/core";
@@ -36,24 +37,16 @@ type FormDataType = {
     image?: FileList;
 };
 
+type SubtitleItem = {
+    file: File;
+    language: string;
+};
+
 type UppyMeta = {
     uploadId?: string;
     key?: string;
     videoId?: string;
 };
-
-type VideoResponse = {
-    videoId: string;
-    thumbnail: {
-        url: string;
-        key: string;
-    };
-};
-
-type UploadStatus = {
-    PartNumber: number,
-    ETag: string
-}
 
 type MultipartInitResponse = {
     uploadId: string;
@@ -69,6 +62,7 @@ function UploadVideoDialog({
 }) {
     const [loading, setLoading] = useState(false);
     const [_errMsg, setErrMsg] = useState("");
+    const [subtitleItems, setSubtitleItems] = useState<SubtitleItem[]>([]);
 
     const { register, handleSubmit } = useForm<FormDataType>();
 
@@ -79,19 +73,6 @@ function UploadVideoDialog({
         const instance = new Uppy<UppyMeta, AwsBody>({
             autoProceed: false,
             restrictions: { maxNumberOfFiles: 1 },
-        });
-
-        instance.on("s3-multipart:part-uploaded", async (file, data) => {
-            const { videoId } = file.meta as UppyMeta;
-            if (!videoId) {
-                throw new Error("videoId not found");
-            }
-            console.log(data);
-            await saveUploadStatus(api, {
-                videoId: videoId,
-                PartNumber: data.PartNumber,
-                ETag: data.ETag
-            });
         });
 
         instance.use(AwsS3, {
@@ -110,9 +91,8 @@ function UploadVideoDialog({
 
             async signPart(_file, { uploadId, key, partNumber }) {
                 const url = await getPartUrls(api, uploadId, key, partNumber);
-
                 return {
-                    url: url,
+                    url,
                     method: "PUT",
                     headers: {
                         "Content-Type":
@@ -123,9 +103,8 @@ function UploadVideoDialog({
 
             async completeMultipartUpload(file) {
                 const { videoId } = file.meta as UppyMeta;
-                if (!videoId) {
-                    throw new Error("videoId not found");
-                }
+                if (!videoId) throw new Error("videoId not found");
+
                 await completeUpload(api, videoId);
                 navigate("/studio");
 
@@ -141,15 +120,11 @@ function UploadVideoDialog({
                 await abortUpload(api, { videoId, uploadId, key });
             },
 
-            async listParts(file, _opts) {
+            async listParts(file) {
                 const { videoId } = file.meta as UppyMeta;
-                if (!videoId) {
-                    throw new Error("videoId not found");
-                }
+                if (!videoId) throw new Error("videoId not found");
 
-                const uploadedParts: UploadStatus[] = await getUploadStatus(api, videoId);
-
-                return uploadedParts;
+                return await getUploadStatus(api, videoId);
             },
 
             limit: 6,
@@ -182,15 +157,14 @@ function UploadVideoDialog({
                 | UppyFile<UppyMeta, AwsBody>
                 | undefined;
 
-            if (!file) throw new Error("No video selected");
-
-            if (!(file.data instanceof File)) {
-                throw new Error("Invalid file");
+            if (!file || !(file.data instanceof File)) {
+                throw new Error("No valid video selected");
             }
 
             const actualFile = file.data;
             const thumbnail = data.image?.[0];
-            const video: VideoResponse = await createVideoEntry(api, {
+
+            const videoId = await createVideoEntry(api, {
                 title: data.title,
                 description: data.description,
                 filename: actualFile.name,
@@ -198,20 +172,58 @@ function UploadVideoDialog({
             });
 
             if (thumbnail) {
+                const { url, key } = await getUploadUrl(api, {
+                    id: videoId,
+                    filename: thumbnail.name,
+                    contentType: thumbnail.type,
+                    folderName: "thumbnails"
+                });
+
                 await uploadThumbnail(api, {
-                    videoId: video.videoId,
-                    thumbnail,
-                    url: video.thumbnail.url,
-                    key: video.thumbnail.key,
+                    videoId,
+                    file: thumbnail,
+                    url,
+                    key,
                 });
             }
 
-            const multipart: MultipartInitResponse = await initMultipartUpload(api, actualFile, video.videoId);
+            if (subtitleItems.some((item) => !item.language)) {
+                throw new Error("All subtitles must have a language selected");
+            }
+
+            const languages = subtitleItems.map((i) => i.language);
+            if (new Set(languages).size !== languages.length) {
+                throw new Error("Duplicate subtitle languages not allowed");
+            }
+
+            if (subtitleItems.length > 0) {
+                await Promise.all(
+                    subtitleItems.map(async ({ file, language }) => {
+                        const { url, key } = await getUploadUrl(api, {
+                            id: videoId,
+                            filename: file.name,
+                            contentType: file.type,
+                            folderName: "subtitles",
+                            language,
+                        });
+
+                        await uploadSubtitle(api, {
+                            videoId,
+                            file,
+                            url,
+                            key,
+                            language,
+                        });
+                    })
+                );
+            }
+
+            const multipart: MultipartInitResponse = await initMultipartUpload(api, actualFile, videoId);
 
             uppy.setFileMeta(file.id, {
                 uploadId: multipart.uploadId,
                 key: multipart.videoKey,
-                videoId: video.videoId,
+                videoId,
             });
 
             await uppy.upload();
@@ -256,6 +268,7 @@ function UploadVideoDialog({
                         {...register("description", { required: true })}
                     />
 
+                    {/* Video */}
                     <input
                         type="file"
                         accept="video/*"
@@ -275,11 +288,50 @@ function UploadVideoDialog({
                         }}
                     />
 
+                    {/* Thumbnail */}
                     <input
                         type="file"
                         accept="image/*"
                         {...register("image")}
                     />
+
+                    {/* Subtitles */}
+                    <input
+                        type="file"
+                        accept=".srt,.vtt"
+                        multiple
+                        onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            const newItems = files.map((file) => ({
+                                file,
+                                language: "",
+                            }));
+                            setSubtitleItems((prev) => [
+                                ...prev,
+                                ...newItems,
+                            ]);
+                        }}
+                    />
+
+                    {subtitleItems.map((item, index) => (
+                        <div key={index}>
+                            <p>{item.file.name}</p>
+                            <select
+                                value={item.language}
+                                onChange={(e) => {
+                                    const updated = [...subtitleItems];
+                                    updated[index].language =
+                                        e.target.value;
+                                    setSubtitleItems(updated);
+                                }}
+                            >
+                                <option value="">Select Language</option>
+                                <option value="en">English</option>
+                                <option value="hi">Hindi</option>
+                                <option value="mr">Marathi</option>
+                            </select>
+                        </div>
+                    ))}
 
                     <div style={{ marginTop: 10 }}>
                         <p>Status: {status}</p>

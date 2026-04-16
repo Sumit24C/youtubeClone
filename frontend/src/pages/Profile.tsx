@@ -1,63 +1,36 @@
 import { useEffect, useState, useRef } from "react";
 import type { ChangeEvent } from "react";
-import {
-    Box,
-    Typography,
-    TextField,
-    Button,
-    Paper,
-    Stack,
-    CircularProgress,
-    Avatar,
-    IconButton,
-    ThemeProvider,
-    createTheme,
-} from "@mui/material";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import { useAxiosPrivate } from "../hooks/useAxiosPrivate";
-import { useDispatch } from "react-redux";
+import { Camera, Loader2 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../store/authSlice";
 import { useSnackbar } from "notistack";
 import { extractErrorMsg } from "../utils";
 import { useForm } from "react-hook-form";
-
-type ProfileForm = {
-    username: string;
-    fullName: string;
-    email: string;
-};
+import { getUploadUrl, uploadUserProfileMedia } from "../services/uploadService";
+import { useAxiosPrivate } from "../hooks/useAxiosPrivate";
+import type { AuthState, User } from "../types/user";
 
 type PasswordForm = {
     oldPassword: string;
     newPassword: string;
 };
 
-const darkTheme = createTheme({
-    palette: {
-        mode: "dark",
-        background: {
-            default: "#181818",
-            paper: "#202020",
-        },
-        primary: {
-            main: "#ff0000",
-        },
-    },
-});
+type RootAuth = {
+    auth: AuthState;
+};
 
 export default function Profile() {
     const dispatch = useDispatch();
-    const axiosPrivate = useAxiosPrivate();
+    const api = useAxiosPrivate();
     const { enqueueSnackbar } = useSnackbar();
 
     const [loading, setLoading] = useState(false);
     const [passwordLoading, setPasswordLoading] = useState(false);
+    const { userData } = useSelector((state: RootAuth) => state.auth);
 
     const [avatar, setAvatar] = useState("");
     const [coverImage, setCoverImage] = useState("");
-
-    const [avatarLoading, setAvatarLoading] = useState(false);
-    const [coverImgLoading, setCoverImgLoading] = useState(false);
+    const [uploadLoading, setUploadLoading] = useState(false);
 
     const avatarInputRef = useRef<HTMLInputElement | null>(null);
     const coverInputRef = useRef<HTMLInputElement | null>(null);
@@ -67,7 +40,14 @@ export default function Profile() {
         handleSubmit,
         reset,
         formState: { isDirty },
-    } = useForm<ProfileForm>();
+    } = useForm<User>({
+        defaultValues: {
+            _id: userData?._id,
+            username: userData?.username || "",
+            email: userData?.email || "",
+            fullName: userData?.fullName || "",
+        },
+    });
 
     const {
         register: registerPassword,
@@ -76,25 +56,19 @@ export default function Profile() {
         watch: watchPassword,
     } = useForm<PasswordForm>();
 
-    const handleAvatarClick = () => avatarInputRef.current?.click();
-    const handleCoverClick = () => coverInputRef.current?.click();
+    const handleAvatarClick = () => {
+        if (!uploadLoading) avatarInputRef.current?.click();
+    };
+    const handleCoverClick = () => {
+        if (!uploadLoading) coverInputRef.current?.click();
+    };
 
     const fetchUser = async () => {
         try {
-            const res = await axiosPrivate.get(
-                "/users/current-user"
-            );
-
+            const res = await api.get("/users/current-user");
             const data = res.data.data;
-
             setAvatar(data.avatar || "");
             setCoverImage(data.coverImage || "");
-
-            reset({
-                username: data.username || "",
-                fullName: data.fullName || "",
-                email: data.email || "",
-            });
         } catch (err: unknown) {
             enqueueSnackbar(extractErrorMsg(err), { variant: "error" });
         }
@@ -104,22 +78,14 @@ export default function Profile() {
         fetchUser();
     }, []);
 
-    const onSubmitProfile = async (data: ProfileForm) => {
+    const onSubmitProfile = async (data: User) => {
         setLoading(true);
         try {
-            const res = await axiosPrivate.patch(
-                "/users/update-account-details",
-                data
-            );
-
+            const res = await api.patch("/users/update-account-details", data);
             const updatedUser = res.data.data;
-
             dispatch(login(updatedUser));
             reset(data);
-
-            enqueueSnackbar("Account updated successfully!", {
-                variant: "success",
-            });
+            enqueueSnackbar("Account updated successfully!", { variant: "success" });
         } catch (err: unknown) {
             enqueueSnackbar(extractErrorMsg(err), { variant: "error" });
         } finally {
@@ -130,16 +96,9 @@ export default function Profile() {
     const onSubmitPassword = async (data: PasswordForm) => {
         setPasswordLoading(true);
         try {
-            const res = await axiosPrivate.post(
-                "/users/change-password",
-                data
-            );
-
+            const res = await api.post("/users/change-password", data);
             resetPassword();
-
-            enqueueSnackbar(res.data.message || "Password updated", {
-                variant: "success",
-            });
+            enqueueSnackbar(res.data.message || "Password updated", { variant: "success" });
         } catch (err: unknown) {
             enqueueSnackbar(extractErrorMsg(err), { variant: "error" });
         } finally {
@@ -149,126 +108,245 @@ export default function Profile() {
 
     const passwordValues = watchPassword();
     const canChangePassword =
-        passwordValues.oldPassword?.trim() &&
-        passwordValues.newPassword?.trim();
+        passwordValues.oldPassword?.trim() && passwordValues.newPassword?.trim();
 
-    const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = async (e: ChangeEvent<HTMLInputElement>, type: string) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file || uploadLoading) return;
 
-        setAvatarLoading(true);
-
-        const formData = new FormData();
-        formData.append("avatar", file);
+        e.target.value = "";
 
         try {
-            await axiosPrivate.patch("/users/update-avatar", formData);
-            await fetchUser();
+            setUploadLoading(true);
+            const { url, key } = await getUploadUrl(api, {
+                id: userData?._id || "",
+                filename: file.name,
+                contentType: file.type,
+                folderName: "thumbnails",
+            });
+
+            await uploadUserProfileMedia(api, { file, url, key, type });
+
+            const localUrl = URL.createObjectURL(file);
+            if (type === "avatar") setAvatar(localUrl);
+            else setCoverImage(localUrl);
+
+            enqueueSnackbar(
+                `${type === "avatar" ? "Avatar" : "Cover image"} updated successfully!`,
+                { variant: "success" }
+            );
         } catch (err: unknown) {
             enqueueSnackbar(extractErrorMsg(err), { variant: "error" });
         } finally {
-            setAvatarLoading(false);
-        }
-    };
-
-    const handleCoverUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setCoverImgLoading(true);
-
-        const formData = new FormData();
-        formData.append("coverImage", file);
-
-        try {
-            await axiosPrivate.patch("/users/update-coverImage", formData);
-            await fetchUser();
-        } catch (err: unknown) {
-            enqueueSnackbar(extractErrorMsg(err), { variant: "error" });
-        } finally {
-            setCoverImgLoading(false);
+            setUploadLoading(false);
         }
     };
 
     return (
-        <ThemeProvider theme={darkTheme}>
-            <Box sx={{ minHeight: "100vh", backgroundColor: "#181818" }}>
-                {/* Cover */}
-                <Box sx={{ maxWidth: 1200, mx: "auto", px: 2, pt: 2 }}>
-                    <Box sx={{ position: "relative", borderRadius: 3, overflow: "hidden" }}>
-                        {coverImgLoading ? (
-                            <CircularProgress />
+        <div className="min-h-screen bg-[#181818] text-white">
+            <div className="max-w-5xl mx-auto px-4 pt-4">
+
+                {/* ── Cover Image ── */}
+                <div className="relative rounded-2xl overflow-hidden bg-neutral-800 h-52">
+                    {coverImage ? (
+                        <img
+                            src={coverImage}
+                            alt="Cover"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-neutral-700 to-neutral-900" />
+                    )}
+
+                    {/* Cover upload overlay */}
+                    <button
+                        onClick={handleCoverClick}
+                        disabled={uploadLoading}
+                        className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-colors duration-200 group disabled:cursor-not-allowed"
+                        aria-label="Change cover image"
+                    >
+                        {uploadLoading ? (
+                            <Loader2
+                                className="text-white animate-spin opacity-0 group-hover:opacity-100 transition-opacity"
+                                size={32}
+                            />
                         ) : (
-                            <Box component="img" src={coverImage} sx={{ width: "100%", height: 220 }} />
+                            <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Camera className="text-white" size={28} />
+                                <span className="text-white text-xs font-medium">Change cover</span>
+                            </div>
                         )}
+                    </button>
 
-                        <input hidden ref={coverInputRef} type="file" onChange={handleCoverUpload} />
-                        <IconButton onClick={handleCoverClick}>
-                            <CameraAltIcon />
-                        </IconButton>
-                    </Box>
+                    <input
+                        hidden
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleUpload(e, "coverImage")}
+                    />
+                </div>
 
-                    {/* Avatar */}
-                    <Box display="flex" justifyContent="center" mt={-9}>
-                        {avatarLoading ? (
-                            <CircularProgress />
-                        ) : (
-                            <Avatar src={avatar} sx={{ width: 140, height: 140 }} />
-                        )}
+                {/* ── Avatar ── */}
+                <div className="flex justify-center -mt-16 relative z-10">
+                    <div className="relative">
+                        <div className="w-32 h-32 rounded-full border-4 border-[#181818] overflow-hidden bg-neutral-700">
+                            {avatar ? (
+                                <img
+                                    src={avatar}
+                                    alt="Avatar"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-neutral-600 to-neutral-800 flex items-center justify-center">
+                                    <span className="text-3xl font-bold text-neutral-400">
+                                        {userData?.fullName?.[0]?.toUpperCase() || "?"}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
 
-                        <input hidden ref={avatarInputRef} type="file" onChange={handleAvatarUpload} />
-                        <IconButton onClick={handleAvatarClick}>
-                            <CameraAltIcon />
-                        </IconButton>
-                    </Box>
-                </Box>
+                        {/* Avatar upload button */}
+                        <button
+                            onClick={handleAvatarClick}
+                            disabled={uploadLoading}
+                            className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-red-600 hover:bg-red-500 disabled:bg-neutral-600 disabled:cursor-not-allowed flex items-center justify-center border-2 border-[#181818] transition-colors duration-200 shadow-lg"
+                            aria-label="Change avatar"
+                        >
+                            {uploadLoading ? (
+                                <Loader2 className="animate-spin text-white" size={16} />
+                            ) : (
+                                <Camera size={16} className="text-white" />
+                            )}
+                        </button>
 
-                {/* Forms */}
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-                    <Box sx={{ width: "100%", maxWidth: 600 }}>
-                        {/* Profile */}
-                        <Paper sx={{ p: 3, mb: 3 }}>
-                            <Typography variant="h6">Profile Info</Typography>
-                            <Stack spacing={2}>
-                                <TextField label="Username" {...register("username")} />
-                                <TextField label="Full Name" {...register("fullName")} />
-                                <TextField label="Email" {...register("email")} />
+                        <input
+                            hidden
+                            ref={avatarInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleUpload(e, "avatar")}
+                        />
+                    </div>
+                </div>
 
-                                <Button
-                                    disabled={!isDirty || loading}
-                                    onClick={handleSubmit(onSubmitProfile)}
-                                >
-                                    {loading ? <CircularProgress size={24} /> : "Update Account"}
-                                </Button>
-                            </Stack>
-                        </Paper>
+                {/* ── Username display ── */}
+                <div className="text-center mt-3 mb-8">
+                    <p className="text-neutral-400 text-sm">@{userData?.username}</p>
+                </div>
+            </div>
 
-                        {/* Password */}
-                        <Paper sx={{ p: 3 }}>
-                            <Typography variant="h6">Change Password</Typography>
-                            <Stack spacing={2}>
-                                <TextField
-                                    type="password"
-                                    label="Old Password"
+            {/* ── Forms ── */}
+            <div className="flex justify-center px-4 pb-12">
+                <div className="w-full max-w-lg space-y-4">
+
+                    {/* Profile Info */}
+                    <div className="bg-[#202020] rounded-2xl p-6 border border-neutral-800">
+                        <h2 className="text-base font-semibold text-white mb-5">
+                            Profile Info
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                                    Username
+                                </label>
+                                <input
+                                    {...register("username")}
+                                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                                    placeholder="Enter username"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                                    Full Name
+                                </label>
+                                <input
+                                    {...register("fullName")}
+                                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                                    placeholder="Enter full name"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                                    Email
+                                </label>
+                                <input
+                                    {...register("email")}
+                                    type="email"
+                                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                                    placeholder="Enter email"
+                                />
+                            </div>
+
+                            <button
+                                disabled={!isDirty || loading}
+                                onClick={handleSubmit(onSubmitProfile)}
+                                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 rounded-lg transition-colors duration-200"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={16} />
+                                        <span>Saving…</span>
+                                    </>
+                                ) : (
+                                    "Update Account"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Change Password */}
+                    <div className="bg-[#202020] rounded-2xl p-6 border border-neutral-800">
+                        <h2 className="text-base font-semibold text-white mb-5">
+                            Change Password
+                        </h2>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                                    Old Password
+                                </label>
+                                <input
                                     {...registerPassword("oldPassword")}
-                                />
-                                <TextField
                                     type="password"
-                                    label="New Password"
-                                    {...registerPassword("newPassword")}
+                                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                                    placeholder="Enter current password"
                                 />
+                            </div>
 
-                                <Button
-                                    disabled={!canChangePassword || passwordLoading}
-                                    onClick={handlePasswordSubmit(onSubmitPassword)}
-                                >
-                                    {passwordLoading ? <CircularProgress size={24} /> : "Change Password"}
-                                </Button>
-                            </Stack>
-                        </Paper>
-                    </Box>
-                </Box>
-            </Box>
-        </ThemeProvider>
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-400 mb-1.5">
+                                    New Password
+                                </label>
+                                <input
+                                    {...registerPassword("newPassword")}
+                                    type="password"
+                                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                                    placeholder="Enter new password"
+                                />
+                            </div>
+
+                            <button
+                                disabled={!canChangePassword || passwordLoading}
+                                onClick={handlePasswordSubmit(onSubmitPassword)}
+                                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-500 disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 rounded-lg transition-colors duration-200"
+                            >
+                                {passwordLoading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" size={16} />
+                                        <span>Updating…</span>
+                                    </>
+                                ) : (
+                                    "Change Password"
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

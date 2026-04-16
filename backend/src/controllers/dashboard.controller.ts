@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { Playlist } from "../models/playlist.model.js"
 import { transformVideo } from "utils/transformVideo.js"
+import { VideoBase } from "types/video.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
 
@@ -158,9 +159,9 @@ const getVideoAnalytics = asyncHandler(async (req, res) => {
         throw new ApiError(500, "Failed to fetch Video Analytics")
     }
 
-    const formattedVideo = videos.map(transformVideo);
+    const formattedVideos = videos.map((video: VideoBase) => transformVideo(video));
     return res.json(
-        new ApiResponse(200, formattedVideo, "successfully fetched videos analytics")
+        new ApiResponse(200, formattedVideos, "successfully fetched videos analytics")
     );
 })
 
