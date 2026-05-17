@@ -42,7 +42,6 @@ function MainContainer() {
       setLoading(false);
     }
   };
-  console.log("video", videos)
   useEffect(() => {
     fetchVideos(1);
   }, []);
