@@ -15,7 +15,7 @@ import {
     refreshTokenSecret,
 } from "../constants.js";
 import { Request } from "express";
-import { getFileUrl } from "utils/urlBuilder.js";
+import { getFileUrl } from "../utils/urlBuilder.js";
 
 const generateAccessAndRefreshToken = async (userId: Types.ObjectId) => {
     try {

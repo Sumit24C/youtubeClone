@@ -6,8 +6,8 @@ import { randomUUID } from "crypto";
 import path from "path";
 import fs from "fs";
 import { Readable } from "stream";
-import { ApiError } from "utils/ApiError.js";
-import { redis } from "config/redis.js";
+import { ApiError } from "../utils/ApiError.js";
+import { redis } from "../config/redis.js";
 
 export const generatePreSignedUploadUrl = async (
     filename: string,

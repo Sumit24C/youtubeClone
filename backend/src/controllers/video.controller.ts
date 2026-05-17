@@ -4,11 +4,11 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { deleteFromR2, generatePreSignedUploadUrl } from "services/r2.service.js";
-import { transformVideo } from "utils/transformVideo.js";
-import { Subtitle } from "models/subtitle.model.js";
-import { subtitleQueue } from "queues/video.queue.js";
-import { VideoBase } from "types/video.js";
+import { deleteFromR2, generatePreSignedUploadUrl } from "../services/r2.service.js";
+import { transformVideo } from "../utils/transformVideo.js";
+import { Subtitle } from "../models/subtitle.model.js";
+import { subtitleQueue } from "../queues/video.queue.js";
+import { VideoBase } from "../types/video.js";
 
 const parseNumberParam = (value: unknown, fallback: number) => {
     if (typeof value === "string") {

@@ -6,7 +6,7 @@ import {
   abortMultipartUpload,
   getUploadUrl,
   listMultipartUploads,
-} from "controllers/upload.controller.js";
+} from "../controllers/upload.controller.js";
 
 import { Router } from "express";
 

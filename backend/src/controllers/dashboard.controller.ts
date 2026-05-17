@@ -5,8 +5,8 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { Playlist } from "../models/playlist.model.js"
-import { transformVideo } from "utils/transformVideo.js"
-import { VideoBase } from "types/video.js"
+import { transformVideo } from "../utils/transformVideo.js"
+import { VideoBase } from "../types/video.js"
 
 const getChannelStats = asyncHandler(async (req, res) => {
 

@@ -1,9 +1,9 @@
-import { asyncHandler } from "utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { Request, Response } from "express";
-import { ApiResponse } from "utils/ApiResponse.js";
-import { abortMultipartUploadFromR2, generatePreSignedUploadUrl } from "services/r2.service.js";
-import { ApiError } from "utils/ApiError.js";
-import { videoQueue } from "queues/video.queue.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { abortMultipartUploadFromR2, generatePreSignedUploadUrl } from "../services/r2.service.js";
+import { ApiError } from "../utils/ApiError.js";
+import { videoQueue } from "../queues/video.queue.js";
 import {
     CompleteMultipartUploadCommand,
     CreateMultipartUploadCommand,
@@ -11,10 +11,10 @@ import {
     ListMultipartUploadsCommand,
     ListPartsCommand
 } from "@aws-sdk/client-s3";
-import path, { parse } from "path";
-import { r2 } from "config/r2.js";
+import path from "path";
+import { r2 } from "../config/r2.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { redis } from "config/redis.js";
+import { redis } from "../config/redis.js";
 
 export const initMultipartUpload = asyncHandler(async (req: Request, res: Response) => {
     const { filename, contentType, videoId } = req.body;

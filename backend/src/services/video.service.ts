@@ -9,7 +9,7 @@ import { uploadPathChunks, videoPath } from "../config/upload.config.js";
 import { ApiError } from "../utils/ApiError.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { videoQueue } from "queues/video.queue.js";
+import { videoQueue } from "../queues/video.queue.js";
 
 export const MAX_RETRIES = 5;
 export const RETRY_DELAY = 1000;
