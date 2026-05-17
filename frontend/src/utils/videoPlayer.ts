@@ -45,7 +45,7 @@ class VideoPlayer {
     private fullscreenBtn: HTMLElement;
     private progress: HTMLInputElement;
     private bufferBar: HTMLElement;
-    private volume: HTMLInputElement;
+    // private volume: HTMLInputElement;
     private qualitySelect?: HTMLSelectElement | null;
     private speedControl?: HTMLSelectElement | null;
     private timeDisplay: HTMLElement;
@@ -61,7 +61,6 @@ class VideoPlayer {
         controlsElement,
         controls,
         timeline,
-        audio,
         settings,
         videoFile,
         onPlayStateChange,
@@ -77,8 +76,6 @@ class VideoPlayer {
         this.progress = timeline.progress;
         this.bufferBar = timeline.bufferBar;
         this.timeDisplay = timeline.timeDisplay;
-
-        this.volume = audio.volume;
 
         this.qualitySelect = settings?.qualitySelect;
         this.speedControl = settings?.speedControl;
@@ -96,10 +93,10 @@ class VideoPlayer {
 
     private init(videoFile: string): void {
         this.initStreaming(videoFile);
-        // this.initControls();
-        // this.initKeyboard();
+        this.initControls();
+        this.initKeyboard();
         this.initProgress();
-        // this.initQuality();
+        this.initQuality();
         this.initPlaybackSpeed();
         this.initAutoHide();
     }

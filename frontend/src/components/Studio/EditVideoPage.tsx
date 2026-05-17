@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Box, CircularProgress } from "@mui/material";
+import { CircularProgress } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { extractErrorMsg } from "../../utils";
 import { useAxiosPrivate } from "../../hooks/useAxiosPrivate";
-import axios, { isCancel } from "axios";
+import { isCancel } from "axios";
 import { useForm } from "react-hook-form";
 import VideoPlayer from "../Video/CustomVideoPlayer";
 import CreatePlaylist from "../Playlist/CreatePlaylist";

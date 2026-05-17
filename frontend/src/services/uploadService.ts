@@ -77,15 +77,12 @@ export const uploadChunk = async ({
         });
     } catch (err: any) {
         if (axios.isCancel(err)) {
-            console.log(`Chunk ${item.PartNumber} cancelled`);
             return;
         }
 
         if (isPausedRef?.current) return;
 
         if (retries > 0) {
-            console.log(`Retrying chunk ${item.PartNumber}...`);
-
             return uploadChunk({
                 item,
                 file,
@@ -195,7 +192,6 @@ export const getUploadUrl = async (
 };
 
 export const uploadToS3 = async (file: File, url: string) => {
-    console.log(file)
     await fetch(url, {
         method: "PUT",
         body: file,

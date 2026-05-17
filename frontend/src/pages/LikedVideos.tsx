@@ -46,7 +46,6 @@ function LikedVideos() {
                 );
 
                 const likes = response.data.data;
-                console.log(likes);
                 setLikedVideos(likes);
             } catch (error: unknown) {
                 if (!isCancel(error)) {

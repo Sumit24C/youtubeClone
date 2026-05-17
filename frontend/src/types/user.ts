@@ -10,4 +10,5 @@ export type User = {
     email?: string;
     avatar?: string;
     coverImage?: string;
+    isHistory?: boolean;
 };
