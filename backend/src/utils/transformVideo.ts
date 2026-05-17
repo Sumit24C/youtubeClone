@@ -3,6 +3,7 @@ import { getFileUrl, getHlsUrl } from "./urlBuilder.js"
 
 export const transformVideo = (video: any, subtitles: any[] = []) => {
     const base = video.toObject?.() ?? video;
+    console.log(base.thumbnail);
     return {
         ...base,
         subtitles: subtitles
